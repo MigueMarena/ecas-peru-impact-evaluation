@@ -41,6 +41,7 @@
 //                  Out/5_BDs por grupos de vars/Registros_Almacen_LByLS.dta
 // Output         : Out/5_BDs por grupos de vars/BPAs_Compuestos_LByLS.dta
 //------------------------------------------------------------------------------
+version 19.0
 clear all
 
 //==============================================================================
@@ -69,9 +70,17 @@ if `ResetDoFrames'{
 // Step 1: Load Data
 //==============================================================================
 if `LoadData'{
-	// Bootstrap robusto en batch fresh (fix bug ${ruta_scripts}; ver script 30).
-	if "${CONSULT}" == "" qui do "C:\\Users\\carlo\\ado\\personal\\profile.do"
-	qui include "${CONSULT}\\BID\\HRC0052956\\2_Scripts\\A_master.do"
+	// Bootstrap del entorno: define las globals ${ruta_*} a partir de ${ECAS},
+	// la única entrada de configuración del pipeline (ver A_master.do).
+	if "${ruta_data}" == "" {
+		capture qui include "${ECAS}/2_Scripts/A_master.do"
+		if _rc capture qui include "2_Scripts/A_master.do"
+		if "${ruta_data}" == "" {
+			di as error "No encuentro A_master.do. Definí la global ECAS con la ruta"
+			di as error "a la raíz del repositorio, o corré Stata desde esa raíz."
+			exit 601
+		}
+	}
 
 // Redirige el log de stata-batch a 3_Logs/ (limpia el log auto en 2_Scripts).
 cap log close

@@ -14,6 +14,7 @@
 // Output         : Out/5_.../Viv_Act_SEA_LB.dta
 //                  Out/5_.../Demog_Ing_Hog_LB.dta
 //------------------------------------------------------------------------------
+version 19.0
 clear all
 
 //==============================================================================
@@ -46,9 +47,17 @@ if `ResetDoFrames'{
 if `LoadDataViv'{
 	frame change vivienda
 	
-	// Bootstrap robusto en batch fresh (fix bug ${ruta_scripts}; ver script 30).
-	if "${CONSULT}" == "" qui do "C:\\Users\\carlo\\ado\\personal\\profile.do"
-	qui include "${CONSULT}\\BID\\HRC0052956\\2_Scripts\\A_master.do"
+	// Bootstrap del entorno: define las globals ${ruta_*} a partir de ${ECAS},
+	// la única entrada de configuración del pipeline (ver A_master.do).
+	if "${ruta_data}" == "" {
+		capture qui include "${ECAS}/2_Scripts/A_master.do"
+		if _rc capture qui include "2_Scripts/A_master.do"
+		if "${ruta_data}" == "" {
+			di as error "No encuentro A_master.do. Definí la global ECAS con la ruta"
+			di as error "a la raíz del repositorio, o corré Stata desde esa raíz."
+			exit 601
+		}
+	}
 
 // Redirige el log de stata-batch a 3_Logs/ (limpia el log auto en 2_Scripts).
 cap log close
@@ -250,9 +259,17 @@ if `GenVarsSEA'{
 if `LoadDataPers'{
 	frame change personas_hog
 	
-	// Bootstrap robusto en batch fresh (fix bug ${ruta_scripts}; ver script 30).
-	if "${CONSULT}" == "" qui do "C:\\Users\\carlo\\ado\\personal\\profile.do"
-	qui include "${CONSULT}\\BID\\HRC0052956\\2_Scripts\\A_master.do"
+	// Bootstrap del entorno: define las globals ${ruta_*} a partir de ${ECAS},
+	// la única entrada de configuración del pipeline (ver A_master.do).
+	if "${ruta_data}" == "" {
+		capture qui include "${ECAS}/2_Scripts/A_master.do"
+		if _rc capture qui include "2_Scripts/A_master.do"
+		if "${ruta_data}" == "" {
+			di as error "No encuentro A_master.do. Definí la global ECAS con la ruta"
+			di as error "a la raíz del repositorio, o corré Stata desde esa raíz."
+			exit 601
+		}
+	}
 	use "`outc4'\\Panel_Personas", clear
 	
 	keep if post==0

@@ -10,10 +10,10 @@
 //----------------------------------------------------------------------
 cls
 clear all
-cd "${ruta_data}\Raw"
 
-// Macro con direccion de almacenamiento de bd
-local c3 "3_Centros Poblados y su Estatus de Tratamiento"
+// Ruta explícita en vez de `cd': el directorio de trabajo es estado global y
+// dejarlo cambiado afecta a cualquier script que corra después en la sesión.
+local c3 "${ruta_data}/Raw/3_Centros Poblados y su Estatus de Tratamiento"
 
 set obs 136
 input str15 nomb_rgn str30 nomb_prvnc str30 nomb_dstrt str30 nomb_ccpp str30 nomb_ccpp_ori byte asig_ccpp

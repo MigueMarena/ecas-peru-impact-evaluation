@@ -59,7 +59,7 @@ program define prg_load_panel
 	// un program (r(9611)).
 	if "${ruta_data}" == "" {
 		di as error "Global \${ruta_data} no está definido. El caller debe"
-		di as error "haber hecho `qui include \"\${CONSULT}\\BID\\HRC0052956\\2_Scripts\\A_master.do\"`."
+		di as error "hecho el bootstrap del entorno (ver A_master.do)."
 		exit 198
 	}
 	local outc5 "${ruta_data}/Out/5_BDs por grupos de vars"

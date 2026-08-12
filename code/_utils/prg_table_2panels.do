@@ -119,7 +119,7 @@ program define prg_table_2panels
 
 	if "${ruta_helpers}" == "" {
 		di as error "Global \${ruta_helpers} no está definido. El caller debe"
-		di as error "haber hecho `qui include \"\${CONSULT}\\BID\\HRC0052956\\2_Scripts\\A_master.do\"`."
+		di as error "hecho el bootstrap del entorno (ver A_master.do)."
 		exit 198
 	}
 

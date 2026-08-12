@@ -23,11 +23,21 @@
 //                  _helpers/fix_table_borders.ps1 (invocado por el programa)
 //------------------------------------------------------------------------------
 
+version 19.0
+
 cls
 
-// Bootstrap del entorno (define globals: ruta_data, ruta_anexos, ruta_helpers, ...)
-if "${CONSULT}" == "" qui do "C:\\Users\\carlo\\ado\\personal\\profile.do"
-qui include "${CONSULT}\\BID\\HRC0052956\\2_Scripts\\A_master.do"
+// Bootstrap del entorno: define las globals ${ruta_*} a partir de ${ECAS},
+// la única entrada de configuración del pipeline (ver A_master.do).
+if "${ruta_data}" == "" {
+	capture qui include "${ECAS}/2_Scripts/A_master.do"
+	if _rc capture qui include "2_Scripts/A_master.do"
+	if "${ruta_data}" == "" {
+		di as error "No encuentro A_master.do. Definí la global ECAS con la ruta"
+		di as error "a la raíz del repositorio, o corré Stata desde esa raíz."
+		exit 601
+	}
+}
 
 // Redirige el log de stata-batch a 3_Logs/ (limpia el log auto en 2_Scripts).
 cap log close

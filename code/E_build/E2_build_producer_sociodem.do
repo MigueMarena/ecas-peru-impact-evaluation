@@ -11,13 +11,13 @@
 //                  Out/4_.../Panel_Personas.dta
 // Output         : Out/5_.../Sociodem_Prod_JH_LB.dta
 //------------------------------------------------------------------------------
+version 19.0
 clear all
 
 //==============================================================================
 // Local Macros (Control Flow)
 //==============================================================================
 {
-	local InstallPkages 	  = 0
 	local ResetDoFrames 	  = 1
 	local LoadData 			  = 1	// Carga, link y consolida marcos sociodem
 	local GenVars  			  = 1	// Genera variables sociodemográficas
@@ -27,13 +27,9 @@ clear all
 	local varltoimport2 Codprod22 post preg001c preg002-opreg008 preg803_1
 }
 
-//==============================================================================
-// Install Programs
-//==============================================================================
-if `InstallPkages'{
-	ssc install xframeappend, replace
-}
- 
+// Los comandos externos (acá: xframeappend, reclink2) se instalan una vez por
+// máquina con 2_Scripts/_helpers/install_ado.do, no en medio de una corrida.
+
 //==============================================================================
 // Frames
 //==============================================================================
@@ -47,9 +43,17 @@ if `ResetDoFrames'{
 // Load Data: Keep sociodem data from HH or Farm Producer and save in a frame
 //==============================================================================
 if `LoadData'{
-	// Bootstrap robusto en batch fresh (fix bug ${ruta_scripts}; ver script 30).
-	if "${CONSULT}" == "" qui do "C:\\Users\\carlo\\ado\\personal\\profile.do"
-	qui include "${CONSULT}\\BID\\HRC0052956\\2_Scripts\\A_master.do"
+	// Bootstrap del entorno: define las globals ${ruta_*} a partir de ${ECAS},
+	// la única entrada de configuración del pipeline (ver A_master.do).
+	if "${ruta_data}" == "" {
+		capture qui include "${ECAS}/2_Scripts/A_master.do"
+		if _rc capture qui include "2_Scripts/A_master.do"
+		if "${ruta_data}" == "" {
+			di as error "No encuentro A_master.do. Definí la global ECAS con la ruta"
+			di as error "a la raíz del repositorio, o corré Stata desde esa raíz."
+			exit 601
+		}
+	}
 
 // Redirige el log de stata-batch a 3_Logs/ (limpia el log auto en 2_Scripts).
 cap log close

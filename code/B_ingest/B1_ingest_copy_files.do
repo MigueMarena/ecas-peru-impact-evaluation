@@ -20,6 +20,8 @@
 //                    Raw\3_Centros Poblados y su Estatus de Tratamiento\
 //------------------------------------------------------------------------------
 
+version 19.0
+
 // Redirige el log de stata-batch a 3_Logs/ (limpia el log auto en 2_Scripts).
 cap log close
 cap erase "${ruta_scripts}\B1_ingest_copy_files.log"
@@ -74,8 +76,13 @@ foreach f of local files{
 
 // Ruta insumo Marcos Agurto
 local path_from "${ruta_docum}\Identificacion_tratados\Acompañamiento_linea_base_marcos"
+// `unzipfile' extrae siempre al directorio de trabajo y no admite destino, así
+// que el `cd' es inevitable acá. Se guarda el directorio previo y se restaura:
+// dejarlo cambiado afectaría a cualquier script que corra después en la sesión.
+local pwd_previo "`c(pwd)'"
 cd "${ruta_data}\Raw\3_Centros Poblados y su Estatus de Tratamiento\Insumos Consultoría M.A\Entregable 2"
-unzipfile "`path_from'\Entregable_2_Inocuidad_SENASA.zip", replace 
+unzipfile "`path_from'\Entregable_2_Inocuidad_SENASA.zip", replace
+cd "`pwd_previo'"
 
 // NOTA: En que difieren ccpp_intervencion.xlsx y
 // ccpp_senasa_validado_final_12.02.xlsx?

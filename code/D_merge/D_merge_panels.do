@@ -29,6 +29,8 @@
 //                  Out/4_.../Panel_Cultivos.dta
 //------------------------------------------------------------------------------
 
+version 19.0
+
 // NOTA: Previo a este merge, hice un merge basado en strings entre la BASE LINEA
 // BASE y la de PRODUCTORES EN ECAs 2021, usando como llaves los nombres, apellidos
 // y DNIs de los productores. A partir de ello, analicé uno a uno los casos donde
@@ -47,9 +49,17 @@ cls
 clear all 
 
 //  Llamar do-file con rutas 
-// Bootstrap robusto en batch fresh (fix bug ${ruta_scripts}; ver script 30).
-if "${CONSULT}" == "" qui do "C:\\Users\\carlo\\ado\\personal\\profile.do"
-include "${CONSULT}\\BID\\HRC0052956\\2_Scripts\\A_master.do"
+// Bootstrap del entorno: define las globals ${ruta_*} a partir de ${ECAS},
+// la única entrada de configuración del pipeline (ver A_master.do).
+if "${ruta_data}" == "" {
+	capture qui include "${ECAS}/2_Scripts/A_master.do"
+	if _rc capture qui include "2_Scripts/A_master.do"
+	if "${ruta_data}" == "" {
+		di as error "No encuentro A_master.do. Definí la global ECAS con la ruta"
+		di as error "a la raíz del repositorio, o corré Stata desde esa raíz."
+		exit 601
+	}
+}
 
 // Redirige el log de stata-batch a 3_Logs/ (limpia el log auto en 2_Scripts).
 cap log close
@@ -255,9 +265,17 @@ foreach base in `basesPersonas'{
 // Step 4: Merge panels: Personas
 //=====================================================================
 { //	JUNTAR: Personas_LB - NuevosIntegrantes_LS		//
-	// Bootstrap robusto en batch fresh (fix bug ${ruta_scripts}; ver script 30).
-	if "${CONSULT}" == "" qui do "C:\\Users\\carlo\\ado\\personal\\profile.do"
-	include "${CONSULT}\\BID\\HRC0052956\\2_Scripts\\A_master.do"
+	// Bootstrap del entorno: define las globals ${ruta_*} a partir de ${ECAS},
+	// la única entrada de configuración del pipeline (ver A_master.do).
+	if "${ruta_data}" == "" {
+		capture qui include "${ECAS}/2_Scripts/A_master.do"
+		if _rc capture qui include "2_Scripts/A_master.do"
+		if "${ruta_data}" == "" {
+			di as error "No encuentro A_master.do. Definí la global ECAS con la ruta"
+			di as error "a la raíz del repositorio, o corré Stata desde esa raíz."
+			exit 601
+		}
+	}
 	use "`outc1'\\Personas_LB", clear
 	append using "`outc2'\\Personas_LS"
 	order HORD01b, a(HORD01)

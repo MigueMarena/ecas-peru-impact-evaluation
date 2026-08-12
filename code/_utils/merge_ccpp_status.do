@@ -19,9 +19,22 @@
 // 	Base using es CCPPALEAy1AECA_ESTAT_CUMPL.dta.
 
 // --- Llamar do-file con rutas ---
-// Bootstrap robusto en batch fresh (fix bug ${ruta_scripts}; ver script 30).
-if "${CONSULT}" == "" qui do "C:\\Users\\carlo\\ado\\personal\\profile.do"
-include "${CONSULT}\\BID\\HRC0052956\\2_Scripts\\A_master.do"
+// Bootstrap del entorno: define las globals ${ruta_*} a partir de ${ECAS},
+// la única entrada de configuración del pipeline (ver A_master.do).
+if "${ruta_data}" == "" {
+	capture qui include "${ECAS}/2_Scripts/A_master.do"
+	if _rc capture qui include "2_Scripts/A_master.do"
+	if "${ruta_data}" == "" {
+		di as error "No encuentro A_master.do. Definí la global ECAS con la ruta"
+		di as error "a la raíz del repositorio, o corré Stata desde esa raíz."
+		exit 601
+	}
+}
+
+// Rutas derivadas del global ${ruta_data}. Este helper se invoca con `do', que
+// abre un scope nuevo: los locales `outc*' que define A_master.do NO llegan
+// hasta acá. Mismo patrón que prg_load_panel.do.
+local outc3ccpp "${ruta_data}/Out/3_Centros Poblados y su Estatus de Tratamiento/CCPP"
 
 // --- Cruce ---
 # delimit ;	

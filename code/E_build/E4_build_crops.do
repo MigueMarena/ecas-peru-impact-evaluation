@@ -26,6 +26,7 @@
 //                  Out/5_.../Valor_Produccion_Predio_LByLS.dta
 //------------------------------------------------------------------------------
 
+version 19.0
 clear all
 
 //==============================================================================
@@ -70,9 +71,17 @@ if `ResetDoFrames'{
 // Step 1: Load Data & Identify Crops
 //==============================================================================
 if `LoadData'{
-	// Bootstrap robusto en batch fresh (fix bug ${ruta_scripts}; ver script 30).
-	if "${CONSULT}" == "" qui do "C:\\Users\\carlo\\ado\\personal\\profile.do"
-	qui include "${CONSULT}\\BID\\HRC0052956\\2_Scripts\\A_master.do"
+	// Bootstrap del entorno: define las globals ${ruta_*} a partir de ${ECAS},
+	// la única entrada de configuración del pipeline (ver A_master.do).
+	if "${ruta_data}" == "" {
+		capture qui include "${ECAS}/2_Scripts/A_master.do"
+		if _rc capture qui include "2_Scripts/A_master.do"
+		if "${ruta_data}" == "" {
+			di as error "No encuentro A_master.do. Definí la global ECAS con la ruta"
+			di as error "a la raíz del repositorio, o corré Stata desde esa raíz."
+			exit 601
+		}
+	}
 
 // Redirige el log de stata-batch a 3_Logs/ (limpia el log auto en 2_Scripts).
 cap log close
@@ -85,6 +94,13 @@ log using "${ruta_logs}\E4_build_crops.log", replace text
 	compress
 
 	// Merge de producto a evaluar
+	// El helper GENERA Productor-Producto.dta. Antes no se invocaba desde acá:
+	// el archivo existía en disco de una corrida vieja, así que el merge
+	// funcionaba en la máquina del autor y fallaba en un clon limpio. Se invoca
+	// igual que outliers_pesticide_prices.do más abajo (ver Step de plaguicidas).
+	preserve
+	qui do "${ruta_helpers}\make_producer_product.do"
+	restore
 	merge m:1 Codprod22 post using "`outc6'\\Productor-Producto.dta", nogen
 	order prod_ECA_eval, a(nomb_prod_obj)
 	

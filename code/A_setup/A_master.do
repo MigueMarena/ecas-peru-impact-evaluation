@@ -11,19 +11,52 @@
 // antes que cualquier otro script.
 //------------------------------------------------------------------------------
 
+version 19.0
+
 //==============================================================================
-// Step 1: Load personal profile
+// Step 1: Resolver la raíz del proyecto
 //==============================================================================
-// Carga macros globales (ej. ${CONSULT})
-qui do "C:\\Users\\carlo\\ado\\personal\\profile.do"
+// ${ECAS} es la ÚNICA entrada de configuración del pipeline: la ruta a la raíz
+// del repositorio. Todo lo demás se deriva de ella, así que ninguna ruta de
+// máquina vive dentro del repositorio.
+//
+// Se resuelve en este orden:
+//   1. ${ECAS} ya definido. Es el caso normal: se fija una sola vez por
+//      máquina, FUERA del repositorio (por ejemplo en el profile.do personal
+//      de Stata, junto a las demás globals de proyecto).
+//   2. El directorio de trabajo, si contiene el centinela 2_Scripts/A_master.do
+//      — el caso de quien hace `cd` a la raíz antes de correr.
+//   3. config_local.do en el directorio de trabajo: escotilla para máquinas con
+//      un layout distinto. No se versiona.
+
+if "${ECAS}" == "" {
+	capture confirm file "2_Scripts/A_master.do"
+	if !_rc global ECAS "`c(pwd)'"
+}
+if "${ECAS}" == "" {
+	capture confirm file "config_local.do"
+	if !_rc qui include "config_local.do"
+}
+if "${ECAS}" == "" {
+	di as error "No pude ubicar la raíz del proyecto."
+	di as error "Definí la global ECAS con la ruta al repositorio, por ejemplo:"
+	di as error `"    global ECAS "D:/ruta/al/repositorio""'
+	di as error "o ejecutá Stata desde esa raíz."
+	exit 601
+}
+capture confirm file "${ECAS}/2_Scripts/A_master.do"
+if _rc {
+	di as error "La global ECAS no apunta a la raíz del proyecto:"
+	di as error "    ${ECAS}"
+	di as error "Se esperaba encontrar ahí 2_Scripts/A_master.do."
+	exit 601
+}
 
 //==============================================================================
 // Step 2: Set up absolute and relative paths
 //==============================================================================
-local hrn HRC0052956
-
 // Ruta absoluta del proyecto
-global ruta_abs "${CONSULT}\\BID\\`hrn'"
+global ruta_abs "${ECAS}"
 
 // Rutas relativas
 global ruta_share   "${ruta_abs}\\0_1 Compartidos"
@@ -127,85 +160,14 @@ local basesParcela  ""`outc1'\pcl_Parcela_LB" 	"`outc2'\pcl_Parcela_LS""
 local basesCultivo  ""`outc1'\pcl_Cultivo_LB" 	"`outc2'\pcl_Cultivo_LS""
 
 //==============================================================================
-// Step 4: Define pipeline execution order (commented reference)
+// Step 4: Cierre
 //==============================================================================
-// --- Fase 1: Ingest ---
-// do "${ruta_scripts}\\B1_ingest_copy_files.do"
-// do "${ruta_scripts}\\B2_clean_survey_modules.do"
-
-// --- Fase 2: Treatment identification ---
-// do "${ruta_scripts}\\C1_make_treated_producers.do"
-// do "${ruta_scripts}\\C2_make_ccpp_assignment.do"
-
-// --- Fase 3: Merge ---
-// do "${ruta_scripts}\\D_merge_panels.do"
-
-// --- Fase 4: Build outcome variables ---
-// do "${ruta_scripts}\\E1_build_obs_chars.do"
-// do "${ruta_scripts}\\E2_build_producer_sociodem.do"
-// do "${ruta_scripts}\\E3_build_household.do"
-// do "${ruta_scripts}\\E4_build_crops.do"
-// do "${ruta_scripts}\\E5_build_farm.do"
-// do "${ruta_scripts}\\E6_build_bpa_knowledge.do"
-// do "${ruta_scripts}\\E7_build_bpa_practices.do"
-// do "${ruta_scripts}\\E8_build_records_storage.do"
-// do "${ruta_scripts}\\E9_build_food_safety.do"
-// do "${ruta_scripts}\\E10_build_composite_bpas.do"
-
-// --- Fase 5: Validation ---
-// do "${ruta_scripts}\\F1_test_balance.do"
-
-// --- Fase 6: Estimation ---
-// do "${ruta_scripts}\\G1_estimate_knowledge_scores.do"
-// do "${ruta_scripts}\\G2_estimate_bpa_uncond.do"
-// do "${ruta_scripts}\\G3_estimate_bpa_cond.do"
-// do "${ruta_scripts}\\G4_estimate_records_safety.do"
-// do "${ruta_scripts}\\G5Aa_estimate_subind_ena_vO.do"
-// do "${ruta_scripts}\\G5Ab_estimate_subind_ena_vF.do"
-// do "${ruta_scripts}\\G5Ac_estimate_compuesto_ena_vF_vO.do"
-
-// --- Fase 7: Reporting ---
-// H1 va AL FINAL de todo: consolida las secciones .docx ya terminadas en dos
-// documentos (cuerpo y anexos). Tras correrlo hay un paso manual en Word:
-// Ctrl+E y F9 para resolver los índices, y luego exportar a PDF.
-// do "${ruta_scripts}\\H1_report_compile.do"
-// do "${ruta_scripts}\\H2_plot_yield_outliers.do"
-
-// --- Fase 8: Diagnostics (diseño y robustez para sección metodológica del paper) ---
-// do "${ruta_scripts}\\I1_summary_consort.do"
-// shell python "${ruta_scripts}\\I2_graph_consort.py"
-// do "${ruta_scripts}\\I3_summary_cluster.do"
-// do "${ruta_scripts}\\I4_balance_prod_cluster.do"
-// do "${ruta_scripts}\\I5_balance_covariates.do"
-// do "${ruta_scripts}\\I6_loveplot.do"
-// do "${ruta_scripts}\\I7A_summary_cluster_size.do"
-// do "${ruta_scripts}\\I7B_summary_deff_outcomes.do"
-// do "${ruta_scripts}\\I8_balance_attrition.do"
-// do "${ruta_scripts}\\I9_summary_takeup.do"
-// do "${ruta_scripts}\\I10_summary_intensity.do"
-// do "${ruta_scripts}\\I11_robust_timing.do"
-
-//==============================================================================
-// Step 5 (opcional, no activo): Migración futura a subcarpetas por fase
-//==============================================================================
-// Convención actual: nombres con prefijo de fase (A, B, C, ...). Cuando se
-// decida agrupar fisicamente los scripts en subcarpetas, activar las globals
-// abajo, mover los archivos con `git mv` y reemplazar ${ruta_scripts} por la
-// global de la fase correspondiente en las llamadas del Step 4. Los nombres
-// de archivo permanecen iguales (siguen siendo autodescriptivos).
+// El ORDEN DE EJECUCIÓN del pipeline ya no vive acá: está en run_all.do, que es
+// el orquestador. Este archivo define el entorno y nada más, y por eso es
+// seguro hacerle `include` desde cualquier script sin disparar nada.
 //
-// global ruta_setup   "${ruta_scripts}\\A_setup"
-// global ruta_ingest  "${ruta_scripts}\\B_ingest"
-// global ruta_treat   "${ruta_scripts}\\C_treatment"
-// global ruta_merge   "${ruta_scripts}\\D_merge"
-// global ruta_build   "${ruta_scripts}\\E_build"
-// global ruta_valid   "${ruta_scripts}\\F_validation"
-// global ruta_estim   "${ruta_scripts}\\G_estimation"
-// global ruta_report  "${ruta_scripts}\\H_reporting"
-// global ruta_diag    "${ruta_scripts}\\I_diagnostics"
-//
-// Ejemplo de migración una línea del Step 4:
-//   antes: do "${ruta_scripts}\\E1_build_obs_chars.do"
-//   despues: do "${ruta_build}\\E1_build_obs_chars.do"
+// (Tenerlos juntos era la trampa: los 35 scripts hacen `include` de este
+// archivo, así que activar aquí las llamadas del pipeline habría producido
+// recursión infinita.)
 
 log close

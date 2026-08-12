@@ -115,7 +115,12 @@ titulares de las encuestas y de los registros administrativos.
 
 ### Software
 
-**Stata 17 o superior.** Comandos de terceros usados por el pipeline:
+**Stata 19 o superior.** No es una preferencia: las especificaciones LATE usan
+`ivregress 2sls` con la opción `absorb()`, que existe recién desde Stata 19. Bajo
+`version 17` o `version 18` el pipeline aborta con `option absorb() not allowed`.
+Todos los scripts declaran `version 19.0`.
+
+Comandos de terceros usados por el pipeline:
 
 | Comando | Fuente | Usado en |
 |---|---|---|

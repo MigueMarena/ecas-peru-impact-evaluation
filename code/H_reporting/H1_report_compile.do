@@ -43,13 +43,24 @@
 //                  ${ruta_report}\{fecha}_Anexos_EI.docx         (+ .pdf)
 //------------------------------------------------------------------------------
 
+version 19.0
+
 cls
 
 //==============================================================================
 // Step 1: Entorno y log
 //==============================================================================
-if "${CONSULT}" == "" qui do "C:\\Users\\carlo\\ado\\personal\\profile.do"
-qui include "${CONSULT}\\BID\\HRC0052956\\2_Scripts\\A_master.do"
+// Bootstrap del entorno: define las globals ${ruta_*} a partir de ${ECAS},
+// la única entrada de configuración del pipeline (ver A_master.do).
+if "${ruta_data}" == "" {
+	capture qui include "${ECAS}/2_Scripts/A_master.do"
+	if _rc capture qui include "2_Scripts/A_master.do"
+	if "${ruta_data}" == "" {
+		di as error "No encuentro A_master.do. Definí la global ECAS con la ruta"
+		di as error "a la raíz del repositorio, o corré Stata desde esa raíz."
+		exit 601
+	}
+}
 
 cap log close
 cap erase "${ruta_scripts}\\H1_report_compile.log"

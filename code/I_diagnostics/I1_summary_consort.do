@@ -41,18 +41,23 @@
 //------------------------------------------------------------------------------
 
 cls
+version 19.0
 clear all
 
 //==============================================================================
 // Step 1: Load environment
 //==============================================================================
-// En Stata batch fresh, ni ${ruta_scripts} ni ${CONSULT} están definidos. El
-// profile.do (que define ${CONSULT}) carga automáticamente al iniciar la
-// sesión, pero por robustez se vuelve a cargar si CONSULT está vacío.
-if "${CONSULT}" == "" {
-    qui do "C:\\Users\\carlo\\ado\\personal\\profile.do"
+// Bootstrap del entorno: define las globals ${ruta_*} a partir de ${ECAS},
+// la única entrada de configuración del pipeline (ver A_master.do).
+if "${ruta_data}" == "" {
+	capture qui include "${ECAS}/2_Scripts/A_master.do"
+	if _rc capture qui include "2_Scripts/A_master.do"
+	if "${ruta_data}" == "" {
+		di as error "No encuentro A_master.do. Definí la global ECAS con la ruta"
+		di as error "a la raíz del repositorio, o corré Stata desde esa raíz."
+		exit 601
+	}
 }
-qui include "${CONSULT}\\BID\\HRC0052956\\2_Scripts\\A_master.do"
 
 // Redirige el log de stata-batch a 3_Logs/ (limpia el log auto en 2_Scripts).
 cap log close
