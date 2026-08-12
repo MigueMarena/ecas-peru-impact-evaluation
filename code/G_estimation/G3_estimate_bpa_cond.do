@@ -22,10 +22,10 @@
 //                  envolver el loop con preserve/keep if/restore.
 //
 // Output         : Anexos/Prácticas_Agronómicas/B-2-<k>_Tab_BPA_<var>.docx (×23)
-// Depends        : _helpers/prg_load_panel.do
-//                  _helpers/prg_table_3panels.do  (define _fmt_*)
-//                  _helpers/prg_table_2panels.do
-//                  _helpers/fix_table_borders.ps1 (invocado por el programa)
+// Depends        : _utils/prg_load_panel.do
+//                  _utils/prg_table_3panels.do  (define _fmt_*)
+//                  _utils/prg_table_2panels.do
+//                  _utils/fix_table_borders.ps1 (invocado por el programa)
 //------------------------------------------------------------------------------
 
 version 19.0
@@ -35,8 +35,8 @@ cls
 // Bootstrap del entorno: define las globals ${ruta_*} a partir de ${ECAS},
 // la única entrada de configuración del pipeline (ver A_master.do).
 if "${ruta_data}" == "" {
-	capture qui include "${ECAS}/2_Scripts/A_master.do"
-	if _rc capture qui include "2_Scripts/A_master.do"
+	capture qui include "${ECAS}/2_Scripts/A_setup/A_master.do"
+	if _rc capture qui include "2_Scripts/A_setup/A_master.do"
 	if "${ruta_data}" == "" {
 		di as error "No encuentro A_master.do. Definí la global ECAS con la ruta"
 		di as error "a la raíz del repositorio, o corré Stata desde esa raíz."
@@ -51,9 +51,9 @@ log using "${ruta_logs}\G3_estimate_bpa_cond.log", replace text
 
 
 // Cargar programas (prg_table_3panels primero porque define _fmt_*)
-qui do "${ruta_helpers}/prg_load_panel.do"
-qui do "${ruta_helpers}/prg_table_3panels.do"
-qui do "${ruta_helpers}/prg_table_2panels.do"
+qui do "${ruta_utils}/prg_load_panel.do"
+qui do "${ruta_utils}/prg_table_3panels.do"
+qui do "${ruta_utils}/prg_table_2panels.do"
 
 //------------------------------------------------------------------------------
 // 1. Cargar la base maestra + outcomes + vars crudas para D_c/P_i

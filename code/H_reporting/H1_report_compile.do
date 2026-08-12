@@ -35,10 +35,10 @@
 //                  ${ruta_seccio}\0_Carátula.docx
 //                  ${ruta_seccio}\1_Introducción.docx  … 12_Referencias.docx
 //                  ${ruta_seccio}\Anexos.docx
-// Helpers        : ${ruta_helpers}\check_sections.py           (Step 2)
-//                  ${ruta_helpers}\fix_compiled_docx.py        (Step 5)
-//                  ${ruta_helpers}\update_fields_export_pdf.ps1 (Step 6)
-//                  ${ruta_helpers}\verify_compiled_docx.ps1    (Step 7)
+// Helpers        : ${ruta_utils}\check_sections.py           (Step 2)
+//                  ${ruta_utils}\fix_compiled_docx.py        (Step 5)
+//                  ${ruta_utils}\update_fields_export_pdf.ps1 (Step 6)
+//                  ${ruta_utils}\verify_compiled_docx.ps1    (Step 7)
 // Output         : ${ruta_report}\{fecha}_Reporte_EI_Final.docx  (+ .pdf)
 //                  ${ruta_report}\{fecha}_Anexos_EI.docx         (+ .pdf)
 //------------------------------------------------------------------------------
@@ -53,8 +53,8 @@ cls
 // Bootstrap del entorno: define las globals ${ruta_*} a partir de ${ECAS},
 // la única entrada de configuración del pipeline (ver A_master.do).
 if "${ruta_data}" == "" {
-	capture qui include "${ECAS}/2_Scripts/A_master.do"
-	if _rc capture qui include "2_Scripts/A_master.do"
+	capture qui include "${ECAS}/2_Scripts/A_setup/A_master.do"
+	if _rc capture qui include "2_Scripts/A_setup/A_master.do"
 	if "${ruta_data}" == "" {
 		di as error "No encuentro A_master.do. Definí la global ECAS con la ruta"
 		di as error "a la raíz del repositorio, o corré Stata desde esa raíz."
@@ -88,7 +88,7 @@ cap erase "`ok_check'"
 di as text _n "{hline 70}"
 di as text "Validación de las secciones"
 di as text "{hline 70}"
-shell python "${ruta_helpers}\\check_sections.py" "${ruta_seccio}" "`ok_check'"
+shell python "${ruta_utils}\\check_sections.py" "${ruta_seccio}" "`ok_check'"
 
 cap confirm file "`ok_check'"
 if _rc {
@@ -217,7 +217,7 @@ di as text _n "{hline 70}"
 di as text "Saneamiento del paquete"
 di as text "{hline 70}"
 foreach f of local salidas {
-	shell python "${ruta_helpers}\\fix_compiled_docx.py" "${ruta_report}\\`f'"
+	shell python "${ruta_utils}\\fix_compiled_docx.py" "${ruta_report}\\`f'"
 }
 
 //==============================================================================
@@ -235,7 +235,7 @@ di as text "Índices y PDF"
 di as text "{hline 70}"
 foreach f of local salidas {
 	shell powershell -NoProfile -ExecutionPolicy Bypass ///
-		-File "${ruta_helpers}/update_fields_export_pdf.ps1" "${ruta_report}\\`f'"
+		-File "${ruta_utils}/update_fields_export_pdf.ps1" "${ruta_report}\\`f'"
 }
 
 //==============================================================================
@@ -258,7 +258,7 @@ di as text _n "{hline 70}"
 di as text "Verificación del resultado"
 di as text "{hline 70}"
 shell powershell -NoProfile -ExecutionPolicy Bypass ///
-	-File "${ruta_helpers}/verify_compiled_docx.ps1" "`ok_verify'" `rutas'
+	-File "${ruta_utils}/verify_compiled_docx.ps1" "`ok_verify'" `rutas'
 
 cap confirm file "`ok_verify'"
 if _rc {

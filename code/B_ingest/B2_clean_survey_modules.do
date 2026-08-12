@@ -11,9 +11,9 @@
 // guarda la base pre-limpia (prefijo pcl_) para tratamiento
 // posterior.
 //
-// Depends          : _helpers/to_miss_neg_cat.do,
-//                    _helpers/lab_cle.do,
-//                    _helpers/std_strings.do
+// Depends          : _utils/to_miss_neg_cat.do,
+//                    _utils/lab_cle.do,
+//                    _utils/std_strings.do
 // Input            : BaseInicio.dta (Raw/1_Encu Linea Base/),
 //                    Personas.dta (Raw/1_Encu Linea Base/),
 //                    Parcela.dta (Raw/1_Encu Linea Base/),
@@ -46,15 +46,15 @@ clear all
 // 	2) VERIFICAR SI TODAS LAS ETIQUETAS DE VALOR SON STRINGS QUE REPRESENTAN
 //	NÚMEROS, Y SI ES ASÍ, ELIMINA LA DEFINICIÓN/ASOCIACIÓN DE ETIQUETAS DE VALOR
 // 	DE ESAS VARIABLES.
-qui do "${ruta_helpers}\to_miss_neg_cat.do"
-qui do "${ruta_helpers}\lab_cle.do"
+qui do "${ruta_utils}\to_miss_neg_cat.do"
+qui do "${ruta_utils}\lab_cle.do"
 
 // --- Llamar do-file con rutas ---
 // Bootstrap del entorno: define las globals ${ruta_*} a partir de ${ECAS},
 // la única entrada de configuración del pipeline (ver A_master.do).
 if "${ruta_data}" == "" {
-	capture qui include "${ECAS}/2_Scripts/A_master.do"
-	if _rc capture qui include "2_Scripts/A_master.do"
+	capture qui include "${ECAS}/2_Scripts/A_setup/A_master.do"
+	if _rc capture qui include "2_Scripts/A_setup/A_master.do"
 	if "${ruta_data}" == "" {
 		di as error "No encuentro A_master.do. Definí la global ECAS con la ruta"
 		di as error "a la raíz del repositorio, o corré Stata desde esa raíz."
@@ -83,7 +83,7 @@ log using "${ruta_logs}\B2_clean_survey_modules.log", replace text
 	gl remcircum	1
 	gl remother		1
 	gl gen_extract_invl 1 
-	qui do "${ruta_helpers}\std_strings.do"
+	qui do "${ruta_utils}\std_strings.do"
 
 // LISTAR Y CAMBIAR VALORES DE VARIABLES CON CATEGORÍAS <0 (OMISIÓN A RPTA)
 	qui ds, has(vallab)
@@ -146,7 +146,7 @@ log using "${ruta_logs}\B2_clean_survey_modules.log", replace text
 	gl remcircum	1
 	gl remother		1
 	gl gen_extract_invl 1 
-	qui do "${ruta_helpers}\std_strings.do"
+	qui do "${ruta_utils}\std_strings.do"
 
 // LISTAR Y CAMBIAR VALORES DE VARIABLES (ETIQUETADAS) CON CATEGORÍAS <0 (OMISIÓN)
 	qui ds, has(vallab)
@@ -180,7 +180,7 @@ log using "${ruta_logs}\B2_clean_survey_modules.log", replace text
 	gl remcircum	1
 	gl remother		1
 	gl gen_extract_invl 1 
-	qui do "${ruta_helpers}\std_strings.do"
+	qui do "${ruta_utils}\std_strings.do"
 
 // LISTAR Y CAMBIAR VALORES DE VARIABLES (ETIQUETADAS) CON CATEGORÍAS <0 (OMISIÓN)
 	qui ds, has(vallab)
@@ -216,7 +216,7 @@ log using "${ruta_logs}\B2_clean_survey_modules.log", replace text
 	gl remcircum	1
 	gl remother		1
 	gl gen_extract_invl 1 
-	qui do "${ruta_helpers}\std_strings.do"
+	qui do "${ruta_utils}\std_strings.do"
 
 // LISTAR Y CAMBIAR VALORES DE VARIABLES (ETIQUETADAS) CON CATEGORÍAS <0 (OMISIÓN)
 	qui ds, has(vallab)
@@ -252,7 +252,7 @@ log using "${ruta_logs}\B2_clean_survey_modules.log", replace text
 	gl remcircum	1
 	gl remother		1
 	gl gen_extract_invl 1 
-	qui do "${ruta_helpers}\std_strings.do"
+	qui do "${ruta_utils}\std_strings.do"
 
 // LISTAR Y CAMBIAR VALORES DE VARIABLES (ETIQUETADAS) CON CATEGORÍAS <0 (OMISIÓN)
 	qui ds, has(vallab)
@@ -288,7 +288,7 @@ log using "${ruta_logs}\B2_clean_survey_modules.log", replace text
 	gl remcircum	1
 	gl remother		1
 	gl gen_extract_invl 1
-	qui do "${ruta_helpers}\std_strings.do"
+	qui do "${ruta_utils}\std_strings.do"
 
 // MODIFICAR MANUALMENTE CARACTERES INVÁLIDOS (MUY PUNTUALES)
 	tab1 extra_*
@@ -349,7 +349,7 @@ log using "${ruta_logs}\B2_clean_survey_modules.log", replace text
 	gl remcircum	1
 	gl remother		1
 	gl gen_extract_invl 1 
-	qui do "${ruta_helpers}\std_strings.do"
+	qui do "${ruta_utils}\std_strings.do"
 
 // LISTAR Y CAMBIAR VALORES DE VARIABLES CON CATEGORÍAS <0 (OMISIÓN A RPTA)
 	qui ds, has(vallab)
@@ -388,7 +388,7 @@ log using "${ruta_logs}\B2_clean_survey_modules.log", replace text
 	gl remcircum	1
 	gl remother		1
 	gl gen_extract_invl 1 
-	qui do "${ruta_helpers}\std_strings.do"
+	qui do "${ruta_utils}\std_strings.do"
 
 // LISTAR Y CAMBIAR VALORES DE VARIABLES CON CATEGORÍAS <0 (OMISIÓN A RPTA)
 	qui ds, has(vallab)
@@ -426,7 +426,7 @@ log using "${ruta_logs}\B2_clean_survey_modules.log", replace text
 	gl remcircum	1
 	gl remother		1
 	gl gen_extract_invl 1 
-	qui do "${ruta_helpers}\std_strings.do"
+	qui do "${ruta_utils}\std_strings.do"
 
 // LISTAR Y CAMBIAR VALORES DE VARIABLES CON CATEGORÍAS <0 (OMISIÓN A RPTA)
 	qui ds, has(vallab)

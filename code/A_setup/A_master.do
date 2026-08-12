@@ -24,13 +24,14 @@ version 19.0
 //   1. ${ECAS} ya definido. Es el caso normal: se fija una sola vez por
 //      máquina, FUERA del repositorio (por ejemplo en el profile.do personal
 //      de Stata, junto a las demás globals de proyecto).
-//   2. El directorio de trabajo, si contiene el centinela 2_Scripts/A_master.do
+//   2. El directorio de trabajo, si contiene el centinela
+//      2_Scripts/A_setup/A_master.do
 //      — el caso de quien hace `cd` a la raíz antes de correr.
 //   3. config_local.do en el directorio de trabajo: escotilla para máquinas con
 //      un layout distinto. No se versiona.
 
 if "${ECAS}" == "" {
-	capture confirm file "2_Scripts/A_master.do"
+	capture confirm file "2_Scripts/A_setup/A_master.do"
 	if !_rc global ECAS "`c(pwd)'"
 }
 if "${ECAS}" == "" {
@@ -44,11 +45,11 @@ if "${ECAS}" == "" {
 	di as error "o ejecutá Stata desde esa raíz."
 	exit 601
 }
-capture confirm file "${ECAS}/2_Scripts/A_master.do"
+capture confirm file "${ECAS}/2_Scripts/A_setup/A_master.do"
 if _rc {
 	di as error "La global ECAS no apunta a la raíz del proyecto:"
 	di as error "    ${ECAS}"
-	di as error "Se esperaba encontrar ahí 2_Scripts/A_master.do."
+	di as error "Se esperaba encontrar ahí 2_Scripts/A_setup/A_master.do."
 	exit 601
 }
 
@@ -74,8 +75,20 @@ global ruta_report  "${ruta_deliv}\\Reporte Final_VPaper\\Versiones"
 
 global ruta_docum   "${ruta_share}\\01-CSD-RND\\CSD-RND_ECAs_documentacion"
 
-// Ruta de scripts auxiliares (helpers)
-global ruta_helpers "${ruta_scripts}\\_helpers"
+// Subcarpetas por fase. La estructura de 2_Scripts/ espeja la de code/ en el
+// repositorio público, así que el manifiesto de publicación es 1:1 y no
+// traduce nombres: lo que se ve acá es lo que se publica.
+global ruta_setup  "${ruta_scripts}\\A_setup"
+global ruta_ingest "${ruta_scripts}\\B_ingest"
+global ruta_treatment  "${ruta_scripts}\\C_treatment"
+global ruta_merge  "${ruta_scripts}\\D_merge"
+global ruta_build  "${ruta_scripts}\\E_build"
+global ruta_estimation  "${ruta_scripts}\\G_estimation"
+global ruta_reporting  "${ruta_scripts}\\H_reporting"
+global ruta_diagnostics   "${ruta_scripts}\\I_diagnostics"
+
+// Programas y utilidades reusables (invocados desde los scripts de fase)
+global ruta_utils  "${ruta_scripts}\\_utils"
 
 // Redirige el log de stata-batch a 3_Logs/ (limpia el log auto en 2_Scripts).
 cap log close

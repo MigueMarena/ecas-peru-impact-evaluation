@@ -26,10 +26,10 @@
 //                  Out/5_.../Productor_Predio_LB.dta
 //                  Out/5_.../Ptjs_Test_BPAs_LS.dta
 // Output         : Tablas/1_Conocimiento_Agronómico/8.1-1_Tabla_Ptjes_Comb.docx
-// Depends        : _helpers/prg_table_3panels.do  (define _fmt_* helpers
+// Depends        : _utils/prg_table_3panels.do  (define _fmt_* helpers
 //                                                  reutilizados por el 4-paneles)
-//                  _helpers/prg_table_4panels.do
-//                  _helpers/fix_table_borders.ps1 (invocado por el programa)
+//                  _utils/prg_table_4panels.do
+//                  _utils/fix_table_borders.ps1 (invocado por el programa)
 //------------------------------------------------------------------------------
 
 version 19.0
@@ -39,8 +39,8 @@ cls
 // Bootstrap del entorno: define las globals ${ruta_*} a partir de ${ECAS},
 // la única entrada de configuración del pipeline (ver A_master.do).
 if "${ruta_data}" == "" {
-	capture qui include "${ECAS}/2_Scripts/A_master.do"
-	if _rc capture qui include "2_Scripts/A_master.do"
+	capture qui include "${ECAS}/2_Scripts/A_setup/A_master.do"
+	if _rc capture qui include "2_Scripts/A_setup/A_master.do"
 	if "${ruta_data}" == "" {
 		di as error "No encuentro A_master.do. Definí la global ECAS con la ruta"
 		di as error "a la raíz del repositorio, o corré Stata desde esa raíz."
@@ -57,8 +57,8 @@ log using "${ruta_logs}\G1_estimate_knowledge_scores.log", replace text
 // Cargar los programas. prg_table_3panels primero porque define _fmt_b,
 // _fmt_se, _fmt_N, _fmt_F al top-level y prg_table_4panels los reusa
 // (también los redefine como fallback).
-qui do "${ruta_helpers}/prg_table_3panels.do"
-qui do "${ruta_helpers}/prg_table_4panels.do"
+qui do "${ruta_utils}/prg_table_3panels.do"
+qui do "${ruta_utils}/prg_table_4panels.do"
 
 
 //------------------------------------------------------------------------------

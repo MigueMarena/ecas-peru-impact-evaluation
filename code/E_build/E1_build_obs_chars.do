@@ -28,7 +28,7 @@ clear all
 }
 
 // Los comandos externos (acá: labutil) se instalan una vez por máquina con
-// 2_Scripts/_helpers/install_ado.do, no en medio de una corrida.
+// 2_Scripts/_utils/install_ado.do, no en medio de una corrida.
 
 //==============================================================================
 // Frames Setup
@@ -45,8 +45,8 @@ if `LoadData'{
 	// Bootstrap del entorno: define las globals ${ruta_*} a partir de ${ECAS},
 	// la única entrada de configuración del pipeline (ver A_master.do).
 	if "${ruta_data}" == "" {
-		capture qui include "${ECAS}/2_Scripts/A_master.do"
-		if _rc capture qui include "2_Scripts/A_master.do"
+		capture qui include "${ECAS}/2_Scripts/A_setup/A_master.do"
+		if _rc capture qui include "2_Scripts/A_setup/A_master.do"
 		if "${ruta_data}" == "" {
 			di as error "No encuentro A_master.do. Definí la global ECAS con la ruta"
 			di as error "a la raíz del repositorio, o corré Stata desde esa raíz."

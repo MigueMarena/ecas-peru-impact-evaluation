@@ -9,12 +9,12 @@
 //                  y nombres, asigna estatus de tratamiento a nivel de CCPP y
 //                  productor, y genera cuatro paneles: Inicio, Personas, Parcelas
 //                  y Cultivos.
-// Depends        : _helpers/fix_dni_names.do
-//                  _helpers/merge_ccpp_status.do
-//                  _helpers/merge_producer_eca.do
-//                  _helpers/relab_yesno.do
-//                  _helpers/fix_producer_names.do
-//                  _helpers/map_crop_names.do
+// Depends        : _utils/fix_dni_names.do
+//                  _utils/merge_ccpp_status.do
+//                  _utils/merge_producer_eca.do
+//                  _utils/relab_yesno.do
+//                  _utils/fix_producer_names.do
+//                  _utils/map_crop_names.do
 // Input          : Out/1_.../pcl_Inicio_LB.dta
 //                  Out/2_.../pcl_Inicio_LS.dta
 //                  Out/1_.../pcl_Personas_LB.dta
@@ -52,8 +52,8 @@ clear all
 // Bootstrap del entorno: define las globals ${ruta_*} a partir de ${ECAS},
 // la única entrada de configuración del pipeline (ver A_master.do).
 if "${ruta_data}" == "" {
-	capture qui include "${ECAS}/2_Scripts/A_master.do"
-	if _rc capture qui include "2_Scripts/A_master.do"
+	capture qui include "${ECAS}/2_Scripts/A_setup/A_master.do"
+	if _rc capture qui include "2_Scripts/A_setup/A_master.do"
 	if "${ruta_data}" == "" {
 		di as error "No encuentro A_master.do. Definí la global ECAS con la ruta"
 		di as error "a la raíz del repositorio, o corré Stata desde esa raíz."
@@ -142,10 +142,10 @@ foreach base in `basesInicio'{
 	replace prodencod = 26 if producto=="CITRICOS"
 	
 // A números y nombres de DNIs
-	do "${ruta_helpers}\fix_dni_names.do"
+	do "${ruta_utils}\fix_dni_names.do"
 
 // Asignar estatus de asignación y otros a nivel de CCPP
-	do "${ruta_helpers}\merge_ccpp_status.do"
+	do "${ruta_utils}\merge_ccpp_status.do"
 
 // Sanity check
 	assert prodencod == prod_ECA_eval
@@ -160,11 +160,11 @@ foreach base in `basesInicio'{
 // 		1.2 ASISTIÓ Y SE GRADUÓ
 // 	2) FECHA DE INICIO Y FIN DE LA ECA (SOLO PARA LOS QUE ASISTEN A UNA)
 // 	3) PROMEDIO FINAL Y ESTATUS DE GRADUACIÓN DEL PRODUCTOR (SOLO PARA LOS QUE ASISTEN A UNA)
-	do "${ruta_helpers}\merge_producer_eca.do"
+	do "${ruta_utils}\merge_producer_eca.do"
 
 // Ordenar la data y reetiquetar 	
 	sort nomb_rgn nomb_prvnc nomb_dstrt nomb_ccpp ordenprod
-	qui do "${ruta_helpers}\relab_yesno.do"
+	qui do "${ruta_utils}\relab_yesno.do"
 	
 // Reconversión de variables
 	destring preg603_27,	replace // ult cap en técnicas de labranza de suelos
@@ -238,10 +238,10 @@ foreach base in `basesPersonas'{
 	cap destring HORD01 HORD01b, replace // solo en linea seguimiento
 
 //  Corregir nombres de miembros que presumiblemente son productores 
-	do "${ruta_helpers}\fix_producer_names.do"
+	do "${ruta_utils}\fix_producer_names.do"
 	
 //  Reetiquetar 
-	qui do "${ruta_helpers}\relab_yesno.do"
+	qui do "${ruta_utils}\relab_yesno.do"
 
 //  Generar variable pre-post 
 	if `j'==1{
@@ -268,8 +268,8 @@ foreach base in `basesPersonas'{
 	// Bootstrap del entorno: define las globals ${ruta_*} a partir de ${ECAS},
 	// la única entrada de configuración del pipeline (ver A_master.do).
 	if "${ruta_data}" == "" {
-		capture qui include "${ECAS}/2_Scripts/A_master.do"
-		if _rc capture qui include "2_Scripts/A_master.do"
+		capture qui include "${ECAS}/2_Scripts/A_setup/A_master.do"
+		if _rc capture qui include "2_Scripts/A_setup/A_master.do"
 		if "${ruta_data}" == "" {
 			di as error "No encuentro A_master.do. Definí la global ECAS con la ruta"
 			di as error "a la raíz del repositorio, o corré Stata desde esa raíz."
@@ -309,7 +309,7 @@ foreach base in `basesParcela'{
 	cap drop ___index-_sub___version	
 
 //  Reetiquetar 
-	qui do "${ruta_helpers}\relab_yesno.do"
+	qui do "${ruta_utils}\relab_yesno.do"
 
 //  Reconversión de variables 
 	destring pagagua1-pagagua88, replace
@@ -370,10 +370,10 @@ foreach base in `basesCultivo'{
 	cap drop ___index-_sub__tags
 	
 //  Reetiquetar 
-	qui do "${ruta_helpers}\relab_yesno.do"
+	qui do "${ruta_utils}\relab_yesno.do"
 
 //  Asociar código de cultivo con su resp. nombre 
-	qui do "${ruta_helpers}\map_crop_names.do"
+	qui do "${ruta_utils}\map_crop_names.do"
 
 //  Reconversión de variables 
 	tostring preg114x2c_*, replace 

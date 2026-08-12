@@ -58,15 +58,15 @@ flowchart TB
 | Cruce | Script | Llave | Qué resuelve |
 |---|---|---|---|
 | LB ↔ LS por módulo | `D_merge_panels.do` | `Codprod22` + `post` (+ `preg101a` en parcela, `+ ordp114` en cultivo) | Arma los cuatro paneles |
-| Productor ↔ estatus del CCPP | `_helpers/merge_ccpp_status.do` | nombre de CCPP normalizado → `cod_cpb` | Trae la asignación aleatoria |
-| Productor ↔ participación en ECA | `_helpers/merge_producer_eca.do` | `dni_prod` (corregido a mano) | Trae el cumplimiento individual |
-| Módulos → base de estimación | `_helpers/prg_load_panel.do` | `Codprod22` (m:1) y `Codprod22 + post` (1:1) | Restringe al panel balanceado |
+| Productor ↔ estatus del CCPP | `_utils/merge_ccpp_status.do` | nombre de CCPP normalizado → `cod_cpb` | Trae la asignación aleatoria |
+| Productor ↔ participación en ECA | `_utils/merge_producer_eca.do` | `dni_prod` (corregido a mano) | Trae el cumplimiento individual |
+| Módulos → base de estimación | `_utils/prg_load_panel.do` | `Codprod22` (m:1) y `Codprod22 + post` (1:1) | Restringe al panel balanceado |
 
 ## Dos cosas que conviene no olvidar
 
 **El cruce con los registros de SENASA se hace por `dni_prod`, no por `Codprod22`.**
 Es la única llave común entre la encuesta y los registros administrativos, y por
-eso existen `_helpers/fix_dni_names.do` y `fix_producer_names.do`: hubo que
+eso existen `_utils/fix_dni_names.do` y `fix_producer_names.do`: hubo que
 corregir DNIs y nombres a mano antes de poder cruzar. En el repositorio público
 esos dos archivos van redactados — los valores son datos personales — pero se
 publican igual, porque que las bases hayan sido parchadas a mano es información

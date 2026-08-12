@@ -15,9 +15,8 @@ Los 39 scripts declaran `version 19.0`. Bajarlo no degrada resultados: rompe el
 pipeline con un error que aparece cientos de líneas después del punto donde se
 declaró la versión y que no menciona versiones.
 
-> **Trampa asociada.** `config/paths.do` (`A_master.do` en el repositorio de
-> trabajo) se carga con `include`, no con `do`, así que su `version` **se propaga
-> a la sesión** del script que lo llama y queda en efecto cuando ese script
+> **Trampa asociada.** `code/A_setup/A_master.do` se carga con `include`, no con
+> `do`, así que su `version` **se propaga a la sesión** del script que lo llama y queda en efecto cuando ese script
 > define los programas de `_utils/`. Un valor equivocado ahí no rompe el archivo
 > que lo contiene: rompe las estimaciones.
 
@@ -35,7 +34,6 @@ do code/_utils/install_ado.do
 | `qplot` | SSC | `H2` | Gráficos Q-Q de rendimiento por cultivo |
 | `labutil` | SSC | `E1` | `labmask` para etiquetar códigos generados |
 | `xframeappend` | SSC | `E2` | Concatenar frames |
-| `ftools` | SSC | (dependencia) | Requerido por `reghdfe`/`ppmlhdfe` |
 
 Las estimaciones principales usan comandos **nativos**: `areg` para ITT-OLS y
 DiD, `ivregress 2sls` para LATE, `estat firststage` para el F de primera etapa.

@@ -31,8 +31,8 @@ clear all
 // Step 1: Entorno
 //==============================================================================
 // A_master.do resuelve ${ECAS} (la raíz del repositorio) y define las rutas.
-capture qui include "${ECAS}/2_Scripts/A_master.do"
-if _rc capture qui include "2_Scripts/A_master.do"
+capture qui include "${ECAS}/2_Scripts/A_setup/A_master.do"
+if _rc capture qui include "2_Scripts/A_setup/A_master.do"
 if "${ruta_data}" == "" {
 	di as error "No encuentro A_master.do. Definí la global ECAS con la ruta a"
 	di as error "la raíz del repositorio, o corré Stata desde esa raíz."
@@ -100,11 +100,16 @@ foreach fase of local fases_pedidas {
 	di as text "FASE: `fase'"
 	di as text "{hline 78}"
 
+	// Cada fase vive en su propia subcarpeta. Las globals ${ruta_<fase>} las
+	// define A_master.do (Step 2) con el mismo nombre que la fase, así que
+	// resuelven directo.
+	local carpeta "${ruta_`fase'}"
+
 	foreach s of local scripts {
 		local t0 = clock(c(current_time), "hms")
 		di as text _n ">>> `s'.do"
 
-		capture noisily do "${ruta_scripts}/`s'.do"
+		capture noisily do "`carpeta'/`s'.do"
 		if _rc {
 			di as error _n "El pipeline se detuvo en `s'.do (r(" _rc "))."
 			di as error "Revisá ${ruta_logs}/`s'.log."
@@ -121,7 +126,7 @@ foreach fase of local fases_pedidas {
 // .do y su fallo no debe detener el pipeline (solo produce una figura).
 if strpos("`fases_pedidas'", "diagnostics") {
 	di as text _n ">>> I2_graph_consort.py"
-	capture shell python "${ruta_scripts}/I2_graph_consort.py"
+	capture shell python "${ruta_diagnostics}/I2_graph_consort.py"
 	if _rc di as error "    I2_graph_consort.py falló (r(" _rc ")); se continúa."
 }
 

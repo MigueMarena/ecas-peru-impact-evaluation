@@ -1,12 +1,12 @@
 //------------------------------------------------------------------------------
-// File           : _helpers/install_ado.do
+// File           : _utils/install_ado.do
 // Author         : Carlos Marena
 // Email          : carlosmarena1995@gmail.com
 // Last Mod. Date : 12/08/2026
 // Description    : Instala los comandos de terceros que usa el pipeline.
 //                  Se corre UNA VEZ por máquina, a mano:
 //
-//                      do 2_Scripts/_helpers/install_ado.do
+//                      do 2_Scripts/_utils/install_ado.do
 //
 //                  No lo invoca ningún script del pipeline: instalar paquetes
 //                  es un efecto sobre la máquina, no un paso del análisis, y no
@@ -26,18 +26,14 @@ version 19.0
 //==============================================================================
 // Comandos de SSC
 //==============================================================================
-// reclink2   -> E2_build_producer_sociodem.do, _helpers/merge_ccpp_status.do
+// reclink2   -> E2_build_producer_sociodem.do, _utils/merge_ccpp_status.do
 //               Vinculación aproximada de nombres de productor y de CCPP.
 // qplot      -> H2_plot_yield_outliers.do
 //               Gráficos Q-Q de rendimiento por cultivo.
-// reghdfe    -> _helpers/prg_ppmlhdfe_cf.do
-// ppmlhdfe   -> _helpers/prg_ppmlhdfe_cf.do
-//               Control function con efectos fijos (Poisson pseudo-máxima
-//               verosimilitud). Requiere ftools.
 // labutil    -> E1_build_obs_chars.do
 // xframeappend -> E2_build_producer_sociodem.do
 
-local paquetes reclink2 qplot ftools reghdfe ppmlhdfe labutil xframeappend
+local paquetes reclink2 qplot labutil xframeappend
 
 foreach p of local paquetes {
 	capture which `p'

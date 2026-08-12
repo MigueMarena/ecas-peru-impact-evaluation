@@ -15,10 +15,10 @@
 //                  monetaria. Tambien genera el valor total de la produccion
 //                  cosechada agregada a nivel de predio (insumo para el gasto
 //                  de alquiler como % de produccion en E5_build_farm.do).
-// Depends        : _helpers/outliers_crop_yields.do
-//                  _helpers/outliers_crop_prices.do
-//                  _helpers/outliers_pesticide_prices.do
-//                  _helpers/clean_pesticide_names.do
+// Depends        : _utils/outliers_crop_yields.do
+//                  _utils/outliers_crop_prices.do
+//                  _utils/outliers_pesticide_prices.do
+//                  _utils/clean_pesticide_names.do
 // Input          : Out/4_.../Panel_Cultivos.dta
 //                  Out/6_.../Productor-Producto.dta
 // Output         : Out/5_.../Cultivo_Pcpal_LByLS.dta
@@ -74,8 +74,8 @@ if `LoadData'{
 	// Bootstrap del entorno: define las globals ${ruta_*} a partir de ${ECAS},
 	// la única entrada de configuración del pipeline (ver A_master.do).
 	if "${ruta_data}" == "" {
-		capture qui include "${ECAS}/2_Scripts/A_master.do"
-		if _rc capture qui include "2_Scripts/A_master.do"
+		capture qui include "${ECAS}/2_Scripts/A_setup/A_master.do"
+		if _rc capture qui include "2_Scripts/A_setup/A_master.do"
 		if "${ruta_data}" == "" {
 			di as error "No encuentro A_master.do. Definí la global ECAS con la ruta"
 			di as error "a la raíz del repositorio, o corré Stata desde esa raíz."
@@ -99,7 +99,7 @@ log using "${ruta_logs}\E4_build_crops.log", replace text
 	// funcionaba en la máquina del autor y fallaba en un clon limpio. Se invoca
 	// igual que outliers_pesticide_prices.do más abajo (ver Step de plaguicidas).
 	preserve
-	qui do "${ruta_helpers}\make_producer_product.do"
+	qui do "${ruta_utils}\make_producer_product.do"
 	restore
 	merge m:1 Codprod22 post using "`outc6'\\Productor-Producto.dta", nogen
 	order prod_ECA_eval, a(nomb_prod_obj)
@@ -423,7 +423,7 @@ if `Outliers_Rend'{
 	// Rendimientos (Cultivo, Planta en Edad Productiva y Semilla)
 	//--------------------------------------------------------------------------
 	{
-		do "${ruta_helpers}\outliers_crop_yields"
+		do "${ruta_utils}\outliers_crop_yields"
 		// Kilogramo cosechado por hectárea sembradas/instalados
 		lab var kgxha_semb_ppc_wz1 "Rendimiento del cultivo (kg/ha) - capeo 1 (logs)"
 		lab var kgxha_semb_ppc_wz2 "Rendimiento del cultivo (kg/ha) - capeo 2 (nivs)"
@@ -447,7 +447,7 @@ if `Outliers_Rend'{
 	// Cultivo Sembrada)
 	//--------------------------------------------------------------------------
 	{
-		do "${ruta_helpers}\outliers_crop_prices"
+		do "${ruta_utils}\outliers_crop_prices"
 
 		gen 	itot_ppc_wz1 = tot_kg_prod_vend_ppc * ixkg_ppc_wz1
 		replace itot_ppc_wz1 = 0 if itot_ppc==0
@@ -591,7 +591,7 @@ if `GenVarsInsm'{
 	//--------------------------------------------------------------------------
 	{		
 		// Corregir nombres de Plaguicidas
-		qui do "${ruta_helpers}\clean_pesticide_names.do"
+		qui do "${ruta_utils}\clean_pesticide_names.do"
 		frame copy main_crops plaguicds, replace
 		frame change plaguicds
 		keep Codprod22-post preg114x1_1 ///
@@ -600,7 +600,7 @@ if `GenVarsInsm'{
 			*_1 *_2 *_3 *_4 *_5
 		
 		// Calcular Outliers de medidas de uso y gasto en Plaguicidas
-		qui do "${ruta_helpers}\outliers_pesticide_prices.do"
+		qui do "${ruta_utils}\outliers_pesticide_prices.do"
 		use "`outc6'\\Totales_plag_en_lt_x_cultivo.dta", clear
 		merge 1:1 Codprod22-post using "`outc6'\\Totales_plag_en_kg_x_cultivo.dta", nogen
 		sort Codprod22-post

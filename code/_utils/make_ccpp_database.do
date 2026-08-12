@@ -156,7 +156,7 @@ end
 
 // CREAR VARIABLES QUE IDENTIFICAN EL TIPO Y PRODUCTO A EVALUAR DE ECA EN CCPP
 gen tipo_ECA = "BPA" , a(asig_ccpp)
-qui do "${ruta_helpers}\make_eval_product.do"
+qui do "${ruta_utils}\make_eval_product.do"
 
 // ASIGNACIÓN AL TRATAMIENTO DEL CCPP (1 SI QUEDÓ EN GRUPO DE TRATAMIENTO)
 lab def asig 0 "Control" 1 "Tratamiento"

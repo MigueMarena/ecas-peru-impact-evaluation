@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// File           : _helpers/prg_load_panel.do
+// File           : _utils/prg_load_panel.do
 // Author         : Carlos Marena
 // Email          : carlosmarena1995@gmail.com
 // Description    : Carga la base maestra del proyecto para las tablas de

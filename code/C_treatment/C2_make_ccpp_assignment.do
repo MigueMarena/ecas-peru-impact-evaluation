@@ -9,7 +9,7 @@
 //                  implementada en el CCPP, fusiona con la lista de centros aleatorizados
 //                  y genera variables de cumplimiento (a nivel de centro), periodo
 //					de implementacion, exclusión y otros.
-// Depends        : _helpers/prg_procesa_eca.do
+// Depends        : _utils/prg_procesa_eca.do
 // Input          : Out/3_.../Productor/BD_REPORTE_BID_PRODUCTORES_2020.dta
 //                  Out/3_.../Productor/PRODUCTORES_2021_CCPPs_ALEA.dta
 //                  Out/3_.../Productor/SENASA_PRODUCTORES_ECA_2022-CCPP_ALEA.dta
@@ -30,14 +30,14 @@ cls
 clear 
 
 // Correr programa que procesa cada base por separado
-do "${ruta_helpers}\\prg_procesa_eca"
+do "${ruta_utils}\\prg_procesa_eca"
 
 // Llamar do-file con rutas
 // Bootstrap del entorno: define las globals ${ruta_*} a partir de ${ECAS},
 // la única entrada de configuración del pipeline (ver A_master.do).
 if "${ruta_data}" == "" {
-	capture qui include "${ECAS}/2_Scripts/A_master.do"
-	if _rc capture qui include "2_Scripts/A_master.do"
+	capture qui include "${ECAS}/2_Scripts/A_setup/A_master.do"
+	if _rc capture qui include "2_Scripts/A_setup/A_master.do"
 	if "${ruta_data}" == "" {
 		di as error "No encuentro A_master.do. Definí la global ECAS con la ruta"
 		di as error "a la raíz del repositorio, o corré Stata desde esa raíz."

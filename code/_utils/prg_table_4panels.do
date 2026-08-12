@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// File           : _helpers/prg_table_4panels.do
+// File           : _utils/prg_table_4panels.do
 // Author         : Carlos Marena
 // Email          : carlosmarena1995@gmail.com
 // Description    : Programa reusable que genera una tabla docx de 4 paneles
@@ -90,8 +90,8 @@
 //                          o (b) sobre una subpoblación distinta a la del cuerpo.
 //
 // Dependencias:
-//   - Global ${ruta_helpers} (definido por A_master.do) para el post-process.
-//   - Helper PowerShell ${ruta_helpers}/fix_table_borders.ps1
+//   - Global ${ruta_utils} (definido por A_master.do) para el post-process.
+//   - Helper PowerShell ${ruta_utils}/fix_table_borders.ps1
 //   - Data ya cargada en memoria por el caller.
 //   - Helpers _fmt_b, _fmt_se, _fmt_N, _fmt_F: definidos en prg_table_3panels.do.
 //     Este archivo los redefine como fallback para uso independiente.
@@ -171,8 +171,8 @@ program define prg_table_4panels
 	local size_m    9.5
 	local size_n    8
 
-	if "${ruta_helpers}" == "" {
-		di as error "Global \${ruta_helpers} no está definido. El caller debe"
+	if "${ruta_utils}" == "" {
+		di as error "Global \${ruta_utils} no está definido. El caller debe"
 		di as error "hecho el bootstrap del entorno (ver A_master.do)."
 		exit 198
 	}
@@ -525,7 +525,7 @@ program define prg_table_4panels
 	// Post-process del XML (engrosa dobles líneas + inyecta halign(justify)
 	// en la cell de notas). Mismo helper que prg_table_3panels/2panels.
 	shell powershell -NoProfile -ExecutionPolicy Bypass ///
-		-File "${ruta_helpers}/fix_table_borders.ps1" "`out'"
+		-File "${ruta_utils}/fix_table_borders.ps1" "`out'"
 
 	di as text "Archivo guardado: " as result "`out'"
 end

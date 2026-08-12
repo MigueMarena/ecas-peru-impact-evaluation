@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// File           : _helpers/prg_table_3panels.do
+// File           : _utils/prg_table_3panels.do
 // Author         : Carlos Marena
 // Email          : carlosmarena1995@gmail.com
 // Description    : Programa reusable que genera una tabla docx de 3 paneles
@@ -30,7 +30,7 @@
 // (incl. D_c y P_i si se usan definiciones recodificadas). Su única
 // responsabilidad: dado ese insumo, estimar las 4 specs, almacenar y desplegar
 // la tabla. La carga/merge/restricción a panel balanceado va en el caller
-// (ver _helpers/prg_load_panel.do).
+// (ver _utils/prg_load_panel.do).
 //
 // Sintaxis:
 //   prg_table_3panels, ///
@@ -78,8 +78,8 @@
 //                  distinta a la usada en el cuerpo principal.
 //
 // Dependencias:
-//   - Global ${ruta_helpers} (definido por A_master.do) para el post-process.
-//   - Helper PowerShell ${ruta_helpers}/fix_table_borders.ps1
+//   - Global ${ruta_utils} (definido por A_master.do) para el post-process.
+//   - Helper PowerShell ${ruta_utils}/fix_table_borders.ps1
 //   - Data ya cargada en memoria por el caller (ver prg_load_panel.do).
 //
 // Notas técnicas (peculiaridades de Stata putdocx que motivaron el diseño):
@@ -173,10 +173,10 @@ program define prg_table_3panels
 	// memoria el panel balanceado con `outcome', `z_var', `dc_var', `pi_var',
 	// `post_var', `controls', `absorb' y `cluster' construidos. Su única
 	// responsabilidad: dado ese insumo, estimar, almacenar y desplegar la tabla.
-	// El check de ${ruta_helpers} se mantiene porque el post-process del XML
+	// El check de ${ruta_utils} se mantiene porque el post-process del XML
 	// (Step 6) sí necesita el path del helper PowerShell.
-	if "${ruta_helpers}" == "" {
-		di as error "Global \${ruta_helpers} no está definido. El caller debe"
+	if "${ruta_utils}" == "" {
+		di as error "Global \${ruta_utils} no está definido. El caller debe"
 		di as error "hecho el bootstrap del entorno (ver A_master.do)."
 		exit 198
 	}
@@ -558,7 +558,7 @@ program define prg_table_3panels
 	// Post-process del XML para engrosar las dobles líneas (w:sz="6" = 0.75pt)
 	// e inyectar halign(justify) en la cell de notas.
 	shell powershell -NoProfile -ExecutionPolicy Bypass ///
-		-File "${ruta_helpers}/fix_table_borders.ps1" "`out'"
+		-File "${ruta_utils}/fix_table_borders.ps1" "`out'"
 
 	di as text "Archivo guardado: " as result "`out'"
 	// El programa no carga ni modifica el dataset (solo areg/ivregress/summarize,

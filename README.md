@@ -48,8 +48,8 @@ do code/run_all.do "build estimation" // varias
 ```
 
 Alternativa sin configurar nada: abrir Stata con el directorio de trabajo en la
-raíz del repositorio y correr `do code/run_all.do`. `config/paths.do` detecta la
-raíz por sí solo. Si no la encuentra, aborta con un mensaje que dice qué hacer,
+raíz del repositorio y correr `do code/run_all.do`. `code/A_setup/A_master.do`
+detecta la raíz por sí solo. Si no la encuentra, aborta con un mensaje que dice qué hacer,
 en lugar de fallar más adelante con un error de archivo no encontrado.
 
 Fases disponibles: `ingest`, `treatment`, `merge`, `build`, `estimation`,
@@ -151,7 +151,6 @@ Comandos de terceros usados por el pipeline:
 |---|---|---|
 | `reclink2` | SSC | `E2`, `merge_ccpp_status` — vinculación aproximada de nombres |
 | `qplot` | SSC | `H2` — gráficos Q-Q de rendimiento |
-| `reghdfe`, `ppmlhdfe` | SSC | `prg_ppmlhdfe_cf` — control function con efectos fijos |
 | `labutil` | SSC | `E1` |
 | `xframeappend` | SSC | `E2` |
 
@@ -180,21 +179,24 @@ Pendiente de medición. Se completará cuando se cronometre cada etapa desde cer
 ## Estructura
 
 ```
-config/     Rutas, parámetros de especificación e instalación de comandos
-code/       Pipeline Stata, en subcarpetas por fase
-  A_setup/       Rutas y estructura de carpetas
-  B_ingest/      Ingesta y limpieza de módulos de encuesta
-  C_treatment/   Identificación de tratados y asignación de conglomerados
-  D_merge/       Construcción de los paneles
-  E_build/       Construcción de variables de resultado (10 scripts temáticos)
-  F_validation/  Test de balance
-  G_estimation/  Estimación y generación de tablas
-  H_reporting/   Compilación del reporte y figuras
-  I_diagnostics/ CONSORT, balance, atrición, cumplimiento, robustez
-  _utils/        Helpers y programas reusables
-docs/       Documentación del pipeline y codebook
-output/     Tablas, figuras y logs ya generados
+code/
+  run_all.do       Punto de entrada. Acepta una fase opcional
+  A_setup/         A_master.do: resuelve la raíz y define todas las rutas
+  B_ingest/        Ingesta y limpieza de los módulos de encuesta
+  C_treatment/     Identificación de tratados y asignación de conglomerados
+  D_merge/         Construcción de los cuatro paneles LB-LS
+  E_build/         Variables de resultado (10 scripts temáticos)
+  G_estimation/    Estimación y generación de tablas
+  H_reporting/     Gráficos y compilación del reporte
+  I_diagnostics/   CONSORT, balance, atrición, cumplimiento, robustez
+  _utils/          Programas reusables e instalación de comandos externos
+docs/              Documentación del pipeline y codebook
+output/            Tablas, figuras y logs ya generados
 ```
+
+La fase **F (validación)** no aparece porque quedó vacía: su único script se
+retiró cuando se verificó que la tabla que producía no está en el reporte. La
+letra se reserva.
 
 ### Documentación
 

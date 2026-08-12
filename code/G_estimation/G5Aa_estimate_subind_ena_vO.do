@@ -22,10 +22,10 @@
 //                  Anexos/Indicadores_Compuestos_BPAs/B-1-<k-1>_Tab_SubInd_<stub>_vO_het.docx (×6;
 //                  riego omitido: HetEff por cultivo no estimable en la
 //                  submuestra de riego tecnificado, ver nota en el loop)
-// Depends        : _helpers/prg_load_panel.do
-//                  _helpers/prg_table_3panels.do
-//                  _helpers/prg_table_3way_het.do
-//                  _helpers/fix_table_borders.ps1 (invocado por los programas)
+// Depends        : _utils/prg_load_panel.do
+//                  _utils/prg_table_3panels.do
+//                  _utils/prg_table_3way_het.do
+//                  _utils/fix_table_borders.ps1 (invocado por los programas)
 //------------------------------------------------------------------------------
 
 version 19.0
@@ -35,8 +35,8 @@ cls
 // Bootstrap del entorno: define las globals ${ruta_*} a partir de ${ECAS},
 // la única entrada de configuración del pipeline (ver A_master.do).
 if "${ruta_data}" == "" {
-	capture qui include "${ECAS}/2_Scripts/A_master.do"
-	if _rc capture qui include "2_Scripts/A_master.do"
+	capture qui include "${ECAS}/2_Scripts/A_setup/A_master.do"
+	if _rc capture qui include "2_Scripts/A_setup/A_master.do"
 	if "${ruta_data}" == "" {
 		di as error "No encuentro A_master.do. Definí la global ECAS con la ruta"
 		di as error "a la raíz del repositorio, o corré Stata desde esa raíz."
@@ -50,10 +50,10 @@ cap erase "${ruta_scripts}\G5Aa_estimate_subind_ena_vO.log"
 log using "${ruta_logs}\G5Aa_estimate_subind_ena_vO.log", replace text
 
 
-// Cargar los programas (ruta_helpers es GLOBAL definido por A_master.do)
-qui do "${ruta_helpers}/prg_load_panel.do"
-qui do "${ruta_helpers}/prg_table_3panels.do"
-qui do "${ruta_helpers}/prg_table_3way_het.do"
+// Cargar los programas (ruta_utils es GLOBAL definido por A_master.do)
+qui do "${ruta_utils}/prg_load_panel.do"
+qui do "${ruta_utils}/prg_table_3panels.do"
+qui do "${ruta_utils}/prg_table_3way_het.do"
 
 //------------------------------------------------------------------------------
 // 1. Cargar la base maestra + outcome + vars crudas para D_c/P_i

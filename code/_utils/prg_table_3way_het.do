@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// File           : _helpers/prg_table_3way_het.do
+// File           : _utils/prg_table_3way_het.do
 // Author         : Carlos Marena
 // Email          : carlosmarena1995@gmail.com
 // Last Mod. Date : 25/05/2026
@@ -100,8 +100,8 @@
 // y la saturación no respetaría su naturaleza factor.
 //
 // Dependencias:
-//   - Global ${ruta_helpers} (definido por A_master.do)
-//   - Helper PowerShell ${ruta_helpers}/fix_table_borders.ps1
+//   - Global ${ruta_utils} (definido por A_master.do)
+//   - Helper PowerShell ${ruta_utils}/fix_table_borders.ps1
 //   - `het_var' en memoria
 //   - _fmt_b, _fmt_se, _fmt_N, _fmt_F: definidos por prg_table_3panels.do
 //     (el caller debe cargar ese helper antes de invocar este programa)
@@ -133,8 +133,8 @@ program define prg_table_3way_het
 	local size_m    9.5
 	local size_n    8
 
-	if "${ruta_helpers}" == "" {
-		di as error "Global \${ruta_helpers} no está definido. El caller debe"
+	if "${ruta_utils}" == "" {
+		di as error "Global \${ruta_utils} no está definido. El caller debe"
 		di as error "hecho el bootstrap del entorno (ver A_master.do)."
 		exit 198
 	}
@@ -524,7 +524,7 @@ program define prg_table_3way_het
 	//==========================================================================
 	putdocx save "`out'", replace
 	shell powershell -NoProfile -ExecutionPolicy Bypass ///
-		-File "${ruta_helpers}/fix_table_borders.ps1" "`out'"
+		-File "${ruta_utils}/fix_table_borders.ps1" "`out'"
 
 	di as text "Archivo guardado: " as result "`out'"
 end

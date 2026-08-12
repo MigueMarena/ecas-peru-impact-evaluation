@@ -11,10 +11,10 @@
 //                  fuentes para el año 2021, valida la consistencia geografica,
 //                  completa valores faltantes, imputa sesiones asistidas y genera
 //                  variables de participacion. Finalmente, limpia archivos intermedios.
-// Depends        : _helpers/std_strings.do
-//                  _helpers/fix_ccpp_names.do
-//                  _helpers/fix_dni_names.do
-//                  _helpers/filter_randomized_ccpp.do
+// Depends        : _utils/std_strings.do
+//                  _utils/fix_ccpp_names.do
+//                  _utils/fix_dni_names.do
+//                  _utils/filter_randomized_ccpp.do
 // Input          : Raw/3_.../Copia de Informacion ECAS_2019_AL_2023.xlsx
 //                  Raw/3_.../2. A. Consolidado de reporte de asistencia BID - Editado.xlsx
 // Output         : Out/3_.../Productor/SENASA_PRODUCTORES_ECA_{2019..2023}-CCPP_ALEA.dta
@@ -29,8 +29,8 @@ clear all
 // Bootstrap del entorno: define las globals ${ruta_*} a partir de ${ECAS},
 // la única entrada de configuración del pipeline (ver A_master.do).
 if "${ruta_data}" == "" {
-	capture qui include "${ECAS}/2_Scripts/A_master.do"
-	if _rc capture qui include "2_Scripts/A_master.do"
+	capture qui include "${ECAS}/2_Scripts/A_setup/A_master.do"
+	if _rc capture qui include "2_Scripts/A_setup/A_master.do"
 	if "${ruta_data}" == "" {
 		di as error "No encuentro A_master.do. Definí la global ECAS con la ruta"
 		di as error "a la raíz del repositorio, o corré Stata desde esa raíz."
@@ -79,11 +79,11 @@ log using "${ruta_logs}\C1_make_treated_producers.log", replace text
 	gl varstoremumlaut 	`list_of_strings'
 	gl varstoremcircumf `list_of_strings'
 	gl varstoremother 	`list_of_strings'
-	qui do "${ruta_helpers}\std_strings.do"
+	qui do "${ruta_utils}\std_strings.do"
 
 // Crear/modificar variables 
 //  Nombres de CCPPs: Correr do que corrige nombre de CCPPs
-	do "${ruta_helpers}\fix_ccpp_names.do"
+	do "${ruta_utils}\fix_ccpp_names.do"
 	replace nomb_dstrt="HUAYLLABAMBA" 	if nomb_ECA=="ASOCIACION DE PRODUCTORES LOS TRIUNFADORES DE PACHAVILCA"
 	replace nomb_ccpp="PACHAVILCA"		if nomb_ECA=="ASOCIACION DE PRODUCTORES LOS TRIUNFADORES DE PACHAVILCA"
 	
@@ -123,7 +123,7 @@ log using "${ruta_logs}\C1_make_treated_producers.log", replace text
 	gen graduado:sino = (prom_fin>=11) if !mi(prom_fin)	
 
 // Hacer cambios manuales a números de DNIs y nombres de productores
-	qui do "${ruta_helpers}\fix_dni_names.do"	
+	qui do "${ruta_utils}\fix_dni_names.do"	
 	
 // Trim data
 // 	Regiones relevantes (que contienen solo centros poblados aleatorizados), y
@@ -136,7 +136,7 @@ log using "${ruta_logs}\C1_make_treated_producers.log", replace text
 	keep año_ini_ECA nomb_* *_ECA *_prod prom_fin graduado
 	
 // 	Centros Poblados aleatorizados (i.e parte del estudio o que incialmente lo eran)
-	qui do "${ruta_helpers}\filter_randomized_ccpp.do"
+	qui do "${ruta_utils}\filter_randomized_ccpp.do"
 	
 // Casos duplicados (base queda a nivel año-productor-eca)
 //  Eliminar duplicados en todos los campos
@@ -229,7 +229,7 @@ log using "${ruta_logs}\C1_make_treated_producers.log", replace text
 	gl varstoremumlaut 	`list_of_strings'
 	gl varstoremcircumf `list_of_strings'
 	gl varstoremother 	`list_of_strings'
-	qui do "${ruta_helpers}\std_strings.do"
+	qui do "${ruta_utils}\std_strings.do"
 
 // Crear/modificar variables 
 //  Cambio manual a distrito de Santa Isabel de Siguas
@@ -257,7 +257,7 @@ log using "${ruta_logs}\C1_make_treated_producers.log", replace text
 	replace nomb_ECA = "CHAUPIS"	if nomb_ccpp=="VILCABAMBA- CHAUPIS"
 	
 //  Nombres de CCPPs: Correr do que corrige nombre de CCPPs
-	do "${ruta_helpers}\fix_ccpp_names.do"	
+	do "${ruta_utils}\fix_ccpp_names.do"	
 	
 //  DNI del Productor: Símbolos anómalos y completar con 0s para 8 dígitos
 	replace dni_prod = substr("00000000" + dni_prod, -8, 8) if length(dni_prod) < 8
@@ -294,7 +294,7 @@ log using "${ruta_logs}\C1_make_treated_producers.log", replace text
 	}
 
 //   Correr do-file con cambios manuales a DNIs y nombres de productores
-	qui do "${ruta_helpers}\fix_dni_names.do"	
+	qui do "${ruta_utils}\fix_dni_names.do"	
 	
 // Trim data
 //  Variables relevantes
@@ -302,7 +302,7 @@ log using "${ruta_logs}\C1_make_treated_producers.log", replace text
 	drop *_resp 
 
 //  Centros poblados aleatorizados (i.e parte del estudio o que incialmente lo eran)
-	qui do "${ruta_helpers}\filter_randomized_ccpp.do"	
+	qui do "${ruta_utils}\filter_randomized_ccpp.do"	
 	
 // Casos duplicados (base queda a nivel año-productor-eca)
 //  Eliminar duplicados en todos los campos

@@ -27,11 +27,11 @@
 // Output         : Tablas/4_Indicadores_Compuestos_BPAs/8.2-8_Tab_Comp_ENA_vO.docx
 //                  Anexos/Indicadores_Compuestos_BPAs/B-1-7_Tab_Comp_ENA_vO_het.docx
 //                  Anexos/Indicadores_Compuestos_BPAs/B-4-1_Tab_Comp_ENA_vF.docx
-// Depends        : _helpers/prg_load_panel.do
-//                  _helpers/prg_table_3panels.do
-//                  _helpers/prg_table_3way_het.do
-//                  _helpers/prg_table_2panels.do
-//                  _helpers/fix_table_borders.ps1 (invocado por los programas)
+// Depends        : _utils/prg_load_panel.do
+//                  _utils/prg_table_3panels.do
+//                  _utils/prg_table_3way_het.do
+//                  _utils/prg_table_2panels.do
+//                  _utils/fix_table_borders.ps1 (invocado por los programas)
 //------------------------------------------------------------------------------
 
 version 19.0
@@ -42,8 +42,8 @@ cls
 // Bootstrap del entorno: define las globals ${ruta_*} a partir de ${ECAS},
 // la única entrada de configuración del pipeline (ver A_master.do).
 if "${ruta_data}" == "" {
-	capture qui include "${ECAS}/2_Scripts/A_master.do"
-	if _rc capture qui include "2_Scripts/A_master.do"
+	capture qui include "${ECAS}/2_Scripts/A_setup/A_master.do"
+	if _rc capture qui include "2_Scripts/A_setup/A_master.do"
 	if "${ruta_data}" == "" {
 		di as error "No encuentro A_master.do. Definí la global ECAS con la ruta"
 		di as error "a la raíz del repositorio, o corré Stata desde esa raíz."
@@ -58,10 +58,10 @@ log using "${ruta_logs}\G5Ac_estimate_compuesto_ena_vF_vO.log", replace text
 
 
 // Cargar programas
-qui do "${ruta_helpers}/prg_load_panel.do"
-qui do "${ruta_helpers}/prg_table_3panels.do"
-qui do "${ruta_helpers}/prg_table_3way_het.do"
-qui do "${ruta_helpers}/prg_table_2panels.do"
+qui do "${ruta_utils}/prg_load_panel.do"
+qui do "${ruta_utils}/prg_table_3panels.do"
+qui do "${ruta_utils}/prg_table_3way_het.do"
+qui do "${ruta_utils}/prg_table_2panels.do"
 
 //------------------------------------------------------------------------------
 // 1. Cargar la base maestra + outcomes (vO y vF en paralelo)

@@ -2,7 +2,7 @@
 """
 build_table_map.py — genera docs/table_map.csv desde las cabeceras de los .do
 
-    python 2_Scripts/_helpers/build_table_map.py
+    python 2_Scripts/_utils/build_table_map.py
 
 Mapa de evidencia: qué script produce cada tabla y cada figura del reporte.
 La fuente es el campo `Output` de la cabecera de cada script, que es donde el
@@ -35,7 +35,10 @@ EXT_EVIDENCIA = (".docx", ".xlsx", ".png", ".pdf")
 
 RE_CAMPO = r"^// Output\s*:(.*?)(?=^// [A-Z][a-z]|^//-{4,}|^//={4,})"
 
-FASES = {"F": "Validación", "G": "Estimación", "H": "Reporte", "I": "Diagnóstico"}
+# La fase se deriva de la SUBCARPETA, no del nombre del archivo: desde la
+# migración del 2026-08-12 cada fase vive en la suya.
+FASES = {"F_validation": "Validación", "G_estimation": "Estimación",
+         "H_reporting": "Reporte", "I_diagnostics": "Diagnóstico"}
 
 CATEGORIAS = {
     "1_Conocimiento": "Conocimiento agronómico",
@@ -88,11 +91,11 @@ def verificar(ruta: str) -> str:
 
 def main() -> int:
     filas = []
-    for p in sorted(SCRIPTS.glob("*.do")):
-        if p.name == "run_all.do":
+    for p in sorted(SCRIPTS.glob("*/*.do")):
+        if "Trash" in str(p):
             continue
-        fase = FASES.get(p.name[0])
-        if not fase:                      # solo scripts que producen evidencia
+        fase = FASES.get(p.parent.name)
+        if not fase:                      # solo fases que producen evidencia
             continue
         for ln in lineas_output(p.read_text(encoding="utf-8")[:6000]):
             if not any(e in ln.lower() for e in EXT_EVIDENCIA):
