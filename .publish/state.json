@@ -1,7 +1,7 @@
 {
-  "last_hrc_sha": "779a2ba2442acd8574fc6cddff1c5d12cdc4be8d",
+  "last_hrc_sha": "f50a04422d4a8a12910834f036546bbe45a69bef",
   "files": {
-    "README.md": "3f143a199cc6008986fb3032f2831a61f18552a44c71dcc7a460df5e3485c993",
+    "README.md": "6d7740c42eefd7d8fbf52bf9068fdba70968d7a00700f804b9a8fc8807b8f9e9",
     "LICENSE": "24484df762f9d415f5622173d7ac0945d763c87227f0700a898df17c46efdf2e",
     "CITATION.cff": "3df602cfcd4e4b43a9ec1abffc2f2888598e3d297231e8c63daaceb01fc735fa",
     ".gitignore": "eacbaff7106b9019c4ac91e33f6302c8553e0d485e3205a7aa799e39ad697016",
@@ -31,7 +31,7 @@
     "code/G_estimation/G5Ab_estimate_subind_ena_vF.do": "32219936dbb8082ee14c2547fcf420045be775c94f331c00c1cbfa1ddca974e6",
     "code/G_estimation/G5Ac_estimate_compuesto_ena_vF_vO.do": "8062218a3c970bce0b2f0f8b1013fcaf70492e407c6702f107c10e65e6bd6580",
     "code/H_reporting/H1_report_compile.do": "a620540c43d391acb06f949d68712b24164f96311c732acb9a2bd958dc8f79a9",
-    "code/H_reporting/H2_plot_yield_outliers.do": "94f52497e39f84e75e20d90a1f3180b210df9f0085b0e4c414812a09632563b6",
+    "code/H_reporting/H2_plot_yield_outliers.do": "4405fd101e368757e7873dfc206b72ca1d8be82b2921da86291fbc403d927e31",
     "code/I_diagnostics/I10_summary_intensity.do": "9188eb3052aa5b00df723e4f764cbb1f2118d0d841c33b961d1f6b39dc84c900",
     "code/I_diagnostics/I11_robust_timing.do": "9ad10db50a49aabc2411f9fd539917a3650c15f37bea9832d94263adc28b8943",
     "code/I_diagnostics/I1_summary_consort.do": "6e9161b41add273e489ed7ab8c71b83af11b51c4b907132f32e620495b4acaab",
@@ -69,6 +69,7 @@
     "code/_utils/_build_catalogo_policymakers.py": "1fef55441d811e584e5f19b62777e4d25c5ba4f8a543e1fc63786552fc8952f1",
     "code/_utils/_build_diccionario.py": "adf08ea28bc523dad097d3326004541f24e9d9449a3308dc9f9e117576609cd3",
     "code/_utils/_notas_publicas.py": "310d24107ee325e8265928dc5d6eb74a652f49690faa67359e118f536528fc10",
+    "code/_utils/build_table_map.py": "83ef16ac75b021e0f9d83fa2925cbc55300da5b9b3ef3288dded3b314150da6c",
     "code/_utils/check_sections.py": "cb62088ecd94f380ff218f26c3d48acbb62c1a7f8cc19e47fad21a9a270a3ab1",
     "code/_utils/fix_compiled_docx.py": "7bb50c62304bb2e1cac1df8614be2b44755e522f2a93eaa165b788c467d0bbb7",
     "code/_utils/fix_table_borders.ps1": "dbf46b1bc6494750bee5a809b716c8e4a3583e832434f9eb40b61e41b8f1631e",
@@ -77,6 +78,10 @@
     "code/_utils/plot_knowledge_distributions.py": "053fb8a8ce67291e06e13f659960cf8b0847084b07f6be1d3f2a51ed717ad914",
     "code/_utils/fix_dni_names.do": "89dde9ffccd872a2f1adeb3e32d87bf26d7c711e8d0dcd8496719e477fe5c9a2",
     "code/_utils/fix_producer_names.do": "250757680063c4cb9e9d2080bc65ed028c7bccb5453e9379fa397be968c55d3f",
+    "docs/data_map.md": "98453b9005e8146bb79eab26fa4f1d8118cf47d7ede31b62be72e54d9f2e2c14",
+    "docs/pipeline.md": "00b192affb7265f725a04091900e5ca0e84a9cb68e08a873ca627136e61b6a4b",
+    "docs/software.md": "9d58758e621e6cbd7116e1ddd75c90b05a8e20da1d4e26a350bdd4af2bcdb505",
+    "docs/table_map.csv": "9d4bd45d4a652973307822dfa4a0978762dcf3db07c40fcc42e8cc4214b9a267",
     "docs/codebook/catalogo_variables.xlsx": "8f382aaac69c2fd42e954a7628a4570a300a0d548d580e9c383bc535c72e667c",
     "docs/codebook/diccionario_variables_creadas.xlsx": "6fd64402ecd8843985ad82048e483a07ade2cfbcd9bbff4a602c57017fdec55e",
     "docs/codebook/cuestionario_linea_base_2021.pdf": "1350650e72dda10d9bfc9eda1bbded7a539de3049bfaf286e1c4956bf0e4ff86",
@@ -255,5 +260,5 @@
     "output/logs/preg107_LS.log": "bbd6066f18f80df561039bac2ef2e19d29fc0590988b95af5061d26299e1cb5d",
     "output/logs/run_all.log": "7d1c2568424603292e66cb8bb6ed9dcff874abe96f40f72ce99d407a782e7a55"
   },
-  "manifest_sha": "6f571a39cae32e39caaddcf2974c2603b431f142fa94709d74af4ee4719d8337"
+  "manifest_sha": "c31fe2a52bdde83ab51ea67ba906262eb664ddb1a3f91df95c1fb4778e3fdb97"
 }

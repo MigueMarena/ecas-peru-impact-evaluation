@@ -14,21 +14,46 @@ seguimiento 2022).
 
 ## Estado de este repositorio
 
-Es honesto decirlo arriba y no enterrado en una nota: **este paquete todavía no corre
-de punta a punta en una máquina distinta a la del autor.** El pipeline fue escrito
-para uso interno y arrastra rutas absolutas hacia el entorno de desarrollo original.
-La corrección de esas rutas está en curso.
-
 | | Estado |
 |---|---|
 | Código del pipeline completo, auditable línea por línea | Sí |
-| Documentación de qué produce cada script y dónde | Sí |
+| Corre en cualquier máquina con Stata 19 | Sí |
+| Documentación del flujo, las llaves y qué produce cada script | Sí |
 | Salidas ya generadas (89 tablas, figuras, logs) | Sí |
 | Microdatos | No — ver *Disponibilidad de datos* |
-| Ejecutable de punta a punta por un tercero | **Todavía no** |
+| Reproducción numérica de los resultados por un tercero | **No, sin los datos** |
+
+El pipeline ya no depende del entorno de su autor: `${ECAS}` es la única entrada
+de configuración y todo lo demás se deriva de ella. Lo que impide reproducir los
+números no es el código sino el acceso a los microdatos, que son de SENASA y del
+BID.
 
 Lo que sí permite hoy: leer exactamente cómo se construyó cada variable, cada
-indicador compuesto y cada estimación, y contrastarlo contra las tablas publicadas.
+indicador compuesto y cada estimación, y contrastarlo contra las tablas
+publicadas en `output/`.
+
+## Cómo correrlo
+
+```stata
+* 1. Una vez por máquina: instalar los comandos externos
+do code/_utils/install_ado.do
+
+* 2. Indicar dónde está el repositorio (una sola vez por sesión)
+global ECAS "D:/ruta/al/repositorio"
+
+* 3. Correr
+do code/run_all.do                    // todo el pipeline
+do code/run_all.do build              // solo una fase
+do code/run_all.do "build estimation" // varias
+```
+
+Alternativa sin configurar nada: abrir Stata con el directorio de trabajo en la
+raíz del repositorio y correr `do code/run_all.do`. `config/paths.do` detecta la
+raíz por sí solo. Si no la encuentra, aborta con un mensaje que dice qué hacer,
+en lugar de fallar más adelante con un error de archivo no encontrado.
+
+Fases disponibles: `ingest`, `treatment`, `merge`, `build`, `estimation`,
+`reporting`, `diagnostics`.
 
 ---
 
@@ -170,6 +195,16 @@ code/       Pipeline Stata, en subcarpetas por fase
 docs/       Documentación del pipeline y codebook
 output/     Tablas, figuras y logs ya generados
 ```
+
+### Documentación
+
+| Documento | Qué contiene |
+|---|---|
+| [`docs/pipeline.md`](docs/pipeline.md) | Flujo completo de fuentes a reporte, por qué las fases van en ese orden |
+| [`docs/data_map.md`](docs/data_map.md) | Las cinco llaves del estudio y dónde ocurre cada cruce |
+| [`docs/table_map.csv`](docs/table_map.csv) | Qué script produce cada tabla y figura, verificado contra disco |
+| [`docs/software.md`](docs/software.md) | Entorno, comandos de terceros, y por qué hace falta Stata 19 |
+| `docs/codebook/` | Diccionarios de variables e instrumentos de recolección |
 
 ### Cómo leer el pipeline
 

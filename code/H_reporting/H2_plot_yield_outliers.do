@@ -5,9 +5,9 @@
 // Last Mod. Date : 11/04/2026
 // Description    : Genera graficos Q-Q (qplot) por tipo de cultivo para comparar
 //                  la distribucion del rendimiento original vs. outliers a valores
-//                  missing. Un grafico .png por cada tipo de cultivo.
+//                  missing. Un grafico .emf por cada tipo de cultivo.
 // Input          : Out/5_.../Cultivo_Pcpal_LByLS.dta
-// Output         : Imagenes/Rendimiento Cultivos/*.png
+// Output         : Imágenes/Rendimiento Cultivos/*.emf (uno por tipo de cultivo)
 //----------------------------------------------------------------------
 
 // 0. Configuración Inicial
