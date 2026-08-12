@@ -255,5 +255,6 @@
     "output/logs/panel_parcelas_keys.log": "02c03ed4f9adf53e8c0e45dd3de1548e0e45ca8d5ba42234be3c0db04d8d9030",
     "output/logs/preg107_LB.log": "8813edaccab521b189c6658bdeadb6e2141b8599d19dcd13ee166f3defa08d1d",
     "output/logs/preg107_LS.log": "bbd6066f18f80df561039bac2ef2e19d29fc0590988b95af5061d26299e1cb5d"
-  }
+  },
+  "manifest_sha": "1ccfa8f6ec5fd9c5f633c7f1e18cbc28f541262d36df03dc863981accd239e8b"
 }
