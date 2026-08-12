@@ -1,0 +1,208 @@
+-------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  E:\Consultorías\\BID\HRC0052956\\3_Logs\G5Ac_estimate_compuesto_en
+> a_vF_vO.log
+  log type:  text
+ opened on:  29 May 2026, 12:40:10
+
+. 
+. 
+. // Cargar programas
+. qui do "${ruta_helpers}/prg_load_panel.do"
+
+. qui do "${ruta_helpers}/prg_table_3panels.do"
+
+. qui do "${ruta_helpers}/prg_table_3way_het.do"
+
+. qui do "${ruta_helpers}/prg_table_2panels.do"
+
+. 
+. //---------------------------------------------------------------------------
+> ---
+. // 1. Cargar la base maestra + outcomes (vO y vF en paralelo)
+. //---------------------------------------------------------------------------
+> ---
+. prg_load_panel, ///
+>         outcome_file("BPAs_Compuestos_LByLS") ///
+>         outcome_vars(implementa_bpa_ena_vO implementa_bpa_ena_vF) ///
+>         extra_vars(i1aECA_PE_ccpp ptcp_ECA_prod)
+(Características de la observación: identificadores, efectos fijos, ECA y expos
+> ic)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                             0
+    Matched                             2,727  
+    -----------------------------------------
+(label sino already defined)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                             0
+    Matched                             2,727  
+    -----------------------------------------
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                             0
+    Matched                             2,727  
+    -----------------------------------------
+(label sino already defined)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                             0
+    Matched                             2,727  
+    -----------------------------------------
+(label sino already defined)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                             0
+    Matched                             2,727  
+    -----------------------------------------
+Obs. descartadas por panel no balanceado: 163
+(163 observations deleted)
+
+. 
+. //---------------------------------------------------------------------------
+> ---
+. // 2. Construir D_c y P_i (definiciones operacionales, idem G5Aa/G5Ab)
+. //---------------------------------------------------------------------------
+> ---
+. gen byte D_c = (i1aECA_PE_ccpp == 1) if !mi(asig_ccpp)
+
+. gen byte P_i = (ptcp_ECA_prod  == 1) if !mi(asig_ccpp)
+
+. 
+. //---------------------------------------------------------------------------
+> ---
+. // 3. Labels amigables — sirven como encabezados de columna. El título y la
+. //    nota se redactan vía outcome_phrase/outcome_qualifier.
+. //---------------------------------------------------------------------------
+> ---
+. lab var implementa_bpa_ena_vO "Compuesto ENA — Original"
+
+. lab var implementa_bpa_ena_vF "Compuesto ENA — Flexible"
+
+. 
+. //---------------------------------------------------------------------------
+> ---
+. // 4. Estimar tabla del cuerpo (vO, 3-paneles, F-U/DiD/LATE)
+. //---------------------------------------------------------------------------
+> ---
+. local ctrl_set c.edad c.edadsq i.sexo c.educ i.castell c.ilogsact c.icondvid 
+> ///
+>         c.tot_miem_1564 c.tot_miem_depen c.tot_has_prod i.riego_tec_prod ///
+>         c.años_tenen_prod i.mes_enc
+
+. 
+. local phrase_comp "el cumplimiento agregado del catálogo ENA de BPAs"
+
+. local extra_comp  "La construcción del indicador exige cumplir al menos 2 de 
+> los 3 pilares ENA — agronómico, insumos e inocuidad."
+
+. 
+. prg_table_3panels, ///
+>         outcome(implementa_bpa_ena_vO) ///
+>         outcome_phrase("`phrase_comp'") ///
+>         outcome_qualifier("indicador compuesto ENA") ///
+>         note_extra("`extra_comp'") ///
+>         table_num("8.5-1") ///
+>         out("${ruta_tablas}/4_Indicadores_Compuestos_BPAs/8.5-1_Tab_Comp_ENA_
+> vO.docx") ///
+>         z_var(asig_ccpp) ///
+>         dc_var(D_c) ///
+>         pi_var(P_i) ///
+>         post_var(post) ///
+>         controls("`ctrl_set'") ///
+>         absorb(cod_rgn_PE) ///
+>         cluster(cod_cpb)
+successfully replaced "E:/Consultorías/BID/HRC0052956/5_Entregables/Reporte Fin
+> al_VPaper/Tablas/4_Indicadores_Compuestos_BPAs/8.5-1_Tab_Comp_ENA_vO.docx"
+Bordes dobles engrosados a 1.5pt en: E:\Consultorías\\BID\HRC0052956\\5_Entrega
+> bles\\Reporte Final_VPaper\\Tablas/4_Indicadores_Compuestos_BPAs/8.5-1_Tab_Co
+> mp_ENA_vO.docx
+Archivo guardado: E:\Consultorías\\BID\HRC0052956\\5_Entregables\\Reporte Final
+> _VPaper\\Tablas/4_Indicadores_Compuestos_BPAs/8.5-1_Tab_Comp_ENA_vO.docx
+
+. 
+. //---------------------------------------------------------------------------
+> ---
+. // 5. Estimar tabla anexa HetEff por cultivo (vO, modelo saturado)
+. //---------------------------------------------------------------------------
+> ---
+. prg_table_3way_het, ///
+>         outcome(implementa_bpa_ena_vO) ///
+>         outcome_phrase("`phrase_comp'") ///
+>         outcome_qualifier("indicador compuesto ENA") ///
+>         note_extra("`extra_comp'") ///
+>         table_num("A.7") ///
+>         out("${ruta_anexos}/Indicadores_Compuestos_BPAs/A-7_Tab_Comp_ENA_vO_h
+> et.docx") ///
+>         z_var(asig_ccpp) ///
+>         dc_var(D_c) ///
+>         pi_var(P_i) ///
+>         post_var(post) ///
+>         controls("`ctrl_set'") ///
+>         absorb(cod_rgn_PE) ///
+>         cluster(cod_cpb) ///
+>         het_var(prod_ECA_eval) ///
+>         het_levels(26 16 19) ///
+>         het_labels("Cítrico|Papa|Plátano") ///
+>         het_panel_phrase("cultivos de") ///
+>         het_short("cultivo")
+
+=== Diagnóstico modelo saturado: implementa_bpa_ena_vO (het_var=prod_ECA_eval) 
+> ===
+N (sección cruzada):     1,255   N (DiD panel):     2,532
+F primera etapa por endógena (g1=Cítrico, g2=Papa, g3=Plátano):
+  LATE-cluster:    g1= 19.84  g2=2197.92  g3=  9.93
+  LATE-individual: g1= 35.62  g2= 72.80  g3= 30.99
+  ⚠ F LATE-cluster g3 =   9.93 (<10, instrumento posiblemente débil)
+successfully replaced "E:/Consultorías/BID/HRC0052956/5_Entregables/Reporte Fin
+> al_VPaper/Anexos/Indicadores_Compuestos_BPAs/A-7_Tab_Comp_ENA_vO_het.docx"
+Bordes dobles engrosados a 1.5pt en: E:\Consultorías\\BID\HRC0052956\\5_Entrega
+> bles\\Reporte Final_VPaper\\Anexos/Indicadores_Compuestos_BPAs/A-7_Tab_Comp_E
+> NA_vO_het.docx
+Archivo guardado: E:\Consultorías\\BID\HRC0052956\\5_Entregables\\Reporte Final
+> _VPaper\\Anexos/Indicadores_Compuestos_BPAs/A-7_Tab_Comp_ENA_vO_het.docx
+
+. 
+. //---------------------------------------------------------------------------
+> ---
+. // 6. Estimar tabla anexa (vF, 2-paneles, con `robustez`)
+. //---------------------------------------------------------------------------
+> ---
+. prg_table_2panels, ///
+>         outcome(implementa_bpa_ena_vF) ///
+>         outcome_phrase("`phrase_comp'") ///
+>         outcome_qualifier("definición flexible") ///
+>         note_extra("`extra_comp'") ///
+>         robustez ///
+>         table_num("A.4") ///
+>         out("${ruta_anexos}/Indicadores_Compuestos_BPAs/A-4_Tab_Comp_ENA_vF.d
+> ocx") ///
+>         z_var(asig_ccpp) ///
+>         dc_var(D_c) ///
+>         pi_var(P_i) ///
+>         post_var(post) ///
+>         controls("`ctrl_set'") ///
+>         absorb(cod_rgn_PE) ///
+>         cluster(cod_cpb)
+successfully replaced "E:/Consultorías/BID/HRC0052956/5_Entregables/Reporte Fin
+> al_VPaper/Anexos/Indicadores_Compuestos_BPAs/A-4_Tab_Comp_ENA_vF.docx"
+Bordes dobles engrosados a 1.5pt en: E:\Consultorías\\BID\HRC0052956\\5_Entrega
+> bles\\Reporte Final_VPaper\\Anexos/Indicadores_Compuestos_BPAs/A-4_Tab_Comp_E
+> NA_vF.docx
+Archivo guardado: E:\Consultorías\\BID\HRC0052956\\5_Entregables\\Reporte Final
+> _VPaper\\Anexos/Indicadores_Compuestos_BPAs/A-4_Tab_Comp_ENA_vF.docx
+
+. 
+. log close
+      name:  <unnamed>
+       log:  E:\Consultorías\\BID\HRC0052956\\3_Logs\G5Ac_estimate_compuesto_en
+> a_vF_vO.log
+  log type:  text
+ closed on:  29 May 2026, 12:40:23
+-------------------------------------------------------------------------------

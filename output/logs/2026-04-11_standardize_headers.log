@@ -1,0 +1,156 @@
+================================================================================
+REGISTRO DE PROGRESO — Estandarizacion de Encabezados y Comentarios
+Proyecto: HRC0052956 (Evaluacion de Impacto ECAs Peru)
+Fecha: 2026-04-11
+Autor: Carlos Marena (asistido por Claude Code)
+================================================================================
+
+OBJETIVO:
+Homogenizar los encabezados de todos los scripts .do (pipeline y _helpers/)
+con campos File, Author, Email, Last Mod. Date, Description, y donde aplique
+Depends, Input y Output. Estandarizar comentarios de bloque (ingles, formato
+//===) y comentarios internos (español, //, max 80 chars). No modificar
+codigo ejecutable.
+
+================================================================================
+ACCIONES REALIZADAS
+================================================================================
+
+[~01:00 UTC] DIAGNOSTICO Y DEFINICION DE ESPECIFICACIONES
+- Se revisaron los 26 scripts del pipeline (00-23) y 23 helpers en _helpers/
+- Se identificaron 4 patrones de encabezado existentes:
+  * //--- (scripts 06-23, prg_ppmlhdfe_cf)
+  * /* * * * ... */ (scripts 03, 04, 05, sep_bin_con)
+  * * * * * (fix_dni_names, fix_producer_names)
+  * Sin encabezado formal (filter_randomized_ccpp, fix_ccpp_names, etc.)
+- Se acordo la especificacion final con el usuario:
+  * Header: File, Author, Email, Last Mod. Date, Description (espanol)
+  * Depends: scripts llamados via include/do (excluye 00_master.do)
+  * Input: todos los .dta/.xlsx cargados (sin abreviaciones)
+  * Output: todos los archivos producidos (sin abreviaciones)
+  * Bloques: //=== / // Step N: Verb object / //===
+  * Comentarios internos: //, espanol, max 80 chars
+  * Conversion de * y /* */ a //
+
+[~01:30 UTC] PROCESAMIENTO: 00_master.do
+- Encabezado estandarizado (sin Depends/Input/Output — script de setup)
+- 4 Steps: Load personal profile, Set up paths, Create directory structure,
+  Define pipeline execution order
+- Todos los * convertidos a //
+
+[~02:00 UTC] PROCESAMIENTO: 01_ingest_copy_files.do
+- Encabezado con Depends: (ninguno), Input: directorios fuente,
+  Output: copias en Raw/
+- 2 Steps: Create input directory structure, Copy source files to Raw
+- /* */ convertidos a // NOTA:
+- 65 -> 76 lineas
+
+[~02:30 UTC] PROCESAMIENTO: 02_clean_survey_modules.do
+- Encabezado largo con 9 Input y 9 Output listados explicitamente
+- Depends: to_miss_neg_cat, lab_cle, std_strings
+- 10 Steps (setup + 9 modulos detectados via patron { // ENCUESTA })
+- 368 -> 430 lineas
+
+[~04:00 UTC] PROCESAMIENTO: 03_make_treated_producers.do
+- Encabezado detallado: 4 Depends, 2 Input, 3 Output
+- 4 Steps via { // } blocks: Process SENASA roster, Process BID attendance
+  report, Merge SENASA and BID sources for 2021, Clean up intermediate files
+- * y /* */ convertidos a //
+- 452 -> 466 lineas
+
+[~04:00 UTC] PROCESAMIENTO: 04_make_ccpp_assignment.do
+- 1 Depends (prg_procesa_eca), 7 Input, 2 Output
+- 4 Steps insertados por indice: Set up environment, Process ECA bases by
+  year, Append and select first ECA, Merge with randomization list
+- 174 -> 186 lineas
+
+[~04:00 UTC] PROCESAMIENTO: 04T_table_ccpp_descriptives.do
+- 1 Input, 1 Output, sin Depends
+- 2 Steps: Load data, Generate descriptive tables
+- 38 -> 53 lineas
+
+[~04:00 UTC] PROCESAMIENTO: 05_merge_panels.do
+- 6 Depends, 8 Input (LB+LS x 4 modulos), 4 Output (paneles)
+- 8 Steps via { // } blocks (4 prepare + 4 merge)
+- /* NOTA: ... */ multi-linea convertido a //
+- 358 -> 402 lineas
+
+[~04:30 UTC] PROCESAMIENTO: Scripts 06-14 (Build phase, 9 scripts)
+- Todos tenian encabezado //--- con nombre viejo y "Short Desc."
+- Actualizados a formato estandar: File (nuevo), Description (expandido),
+  Depends e Input/Output donde aplica
+- Scripts procesados:
+  06_build_obs_chars.do        (142 -> 146)
+  07_build_producer_sociodem.do (190 -> 196)
+  08_build_household.do        (437 -> 445)
+  09_build_crops.do            (705 -> 715) — 4 Depends
+  10_build_farm.do             (810 -> 814)
+  11_build_bpa_knowledge.do    (549 -> 553)
+  12_build_bpa_practices.do    (187 -> 191)
+  13_build_records_storage.do  (92 -> 95)
+  14_build_food_safety.do      (134 -> 137)
+
+[~05:00 UTC] PROCESAMIENTO: Scripts 15-23 (Validation, Estimation, Reporting)
+- Encabezados estandarizados con Input/Output detallados
+- * convertidos a // en scripts 21, 21S, 23
+- Scripts procesados:
+  15_test_falsification.do     (265 -> 274) — 1 Depends
+  16_test_balance.do           (166 -> 172)
+  17_estimate_knowledge_scores.do (283 -> 292)
+  18_estimate_bpa_uncond.do    (400 -> 410)
+  19_estimate_bpa_cond.do      (443 -> 453)
+  20_estimate_records_safety.do (400 -> 411)
+  21_estimate_crops_levels.do  (617 -> 628)
+  21S_summary_crops_levels.do  (107 -> 113)
+  22_report_compile.do         (82 -> 98)
+  23_plot_yield_outliers.do    (142 -> 142)
+
+[~05:30 UTC] PROCESAMIENTO: 23 scripts en _helpers/
+- Todos estandarizados con File, Author, Email, Last Mod. Date, Description
+- Input/Output incluidos donde aplica (make_ccpp_database, make_producer_product)
+- Patrones heterogeneos (/* */, * * *, *, sin header) homogenizados a //---
+- * y /* */ convertidos a //
+- Scripts procesados:
+  clean_pesticide_names.do     (556 -> 546)
+  filter_randomized_ccpp.do    (138 -> 144)
+  fix_ccpp_names.do            (25 -> 32)
+  fix_dni_names.do             (104 -> 103)
+  fix_producer_names.do        (68 -> 67)
+  lab_cle.do                   (46 -> 55)
+  make_ccpp_database.do        (167 -> 176)
+  make_eval_product.do         (149 -> 153)
+  make_producer_product.do     (10 -> 19)
+  map_crop_names.do            (564 -> 562)
+  merge_ccpp_status.do         (33 -> 42)
+  merge_producer_eca.do        (62 -> 70)
+  outliers_crop_prices.do      (70 -> 78)
+  outliers_crop_yields.do      (76 -> 81)
+  outliers_pesticide_prices.do (131 -> 138)
+  prg_appendmodels.do          (42 -> 48)
+  prg_falsification_tests.do   (63 -> 57)
+  prg_ppmlhdfe_cf.do           (31 -> 27)
+  prg_procesa_eca.do           (86 -> 95)
+  relab_yesno.do               (20 -> 22)
+  sep_bin_con.do               (28 -> 27)
+  std_strings.do               (115 -> 118)
+  to_miss_neg_cat.do           (20 -> 27)
+
+[~05:50 UTC] LIMPIEZA
+- Scripts Python temporales eliminados (_proc_03_04_04T_05.py,
+  _proc_06_to_23.py, _proc_helpers.py)
+- Actualizado este registro de progreso
+
+================================================================================
+RESUMEN
+================================================================================
+Total de scripts procesados: 49 (26 pipeline + 23 helpers)
+Todos los encabezados homogenizados con:
+  File, Author, Email, Last Mod. Date, Description
+Depends/Input/Output incluidos en scripts con flujo de datos
+Comentarios * y /* */ convertidos a //
+Bloques //=== Step N agregados en scripts 01-05 (estructura clara)
+Codigo ejecutable: sin modificaciones
+
+================================================================================
+FIN DEL REGISTRO
+================================================================================

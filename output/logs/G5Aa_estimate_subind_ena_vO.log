@@ -1,0 +1,354 @@
+-------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  E:\Consultorías\\BID\HRC0052956\\3_Logs\G5Aa_estimate_subind_ena_v
+> O.log
+  log type:  text
+ opened on:  29 May 2026, 12:37:42
+
+. 
+. 
+. // Cargar los programas (ruta_helpers es GLOBAL definido por A_master.do)
+. qui do "${ruta_helpers}/prg_load_panel.do"
+
+. qui do "${ruta_helpers}/prg_table_3panels.do"
+
+. qui do "${ruta_helpers}/prg_table_3way_het.do"
+
+. 
+. //---------------------------------------------------------------------------
+> ---
+. // 1. Cargar la base maestra + outcome + vars crudas para D_c/P_i
+. //---------------------------------------------------------------------------
+> ---
+. prg_load_panel, ///
+>         outcome_file("BPAs_Compuestos_LByLS") ///
+>         outcome_vars(bpa_ena_*_vO) ///
+>         extra_vars(i1aECA_PE_ccpp ptcp_ECA_prod)
+(Características de la observación: identificadores, efectos fijos, ECA y expos
+> ic)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                             0
+    Matched                             2,727  
+    -----------------------------------------
+(label sino already defined)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                             0
+    Matched                             2,727  
+    -----------------------------------------
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                             0
+    Matched                             2,727  
+    -----------------------------------------
+(label sino already defined)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                             0
+    Matched                             2,727  
+    -----------------------------------------
+(label sino already defined)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                             0
+    Matched                             2,727  
+    -----------------------------------------
+Obs. descartadas por panel no balanceado: 163
+(163 observations deleted)
+
+. 
+. //---------------------------------------------------------------------------
+> ---
+. // 2. Construir D_c y P_i (definiciones operacionales — explícitas y visibles
+> )
+. //    D_c: el cluster implementó la 1a ECA en el producto a evaluar
+. //    P_i: el productor participó de la ECA en cultivo de interés
+. //    Missings → 0 (no implementación / no participación)
+. //---------------------------------------------------------------------------
+> ---
+. gen byte D_c = (i1aECA_PE_ccpp == 1) if !mi(asig_ccpp)
+
+. gen byte P_i = (ptcp_ECA_prod  == 1) if !mi(asig_ccpp)
+
+. 
+. //---------------------------------------------------------------------------
+> ---
+. // 3. Label update (versión ENA — vO)
+. //---------------------------------------------------------------------------
+> ---
+. lab var bpa_ena_riego_vO        "Prácticas adecuadas de riego"
+
+. lab var bpa_ena_suelo_vO        "Prácticas contra la degradación del suelo"
+
+. lab var bpa_ena_fert_abo_vO     "Uso de Fert./Abo. adecuado"
+
+. lab var bpa_ena_plag_vO         "Uso de Plag. adecuado"
+
+. lab var bpa_ena_biocontrol_vO   "Control biológico adecuado"
+
+. lab var bpa_ena_mip_vO          "Manejo Integrado de Plagas adecuado"
+
+. lab var bpa_ena_inoc_vO         "Buenas Prácticas de Inocuidad"
+
+. 
+. //---------------------------------------------------------------------------
+> ---
+. // 4. Generar las 7 tablas de sub-indicadores ENA (vO) en un loop
+. //---------------------------------------------------------------------------
+> ---
+. // Set de controles unificado (no varía entre outcomes ni entre helpers).
+. // Prefijos c./i. explícitos: areg/ivregress los aceptan nativo y
+. // prg_table_3way_het los reusa directamente para saturar como `tok'#ibn.`het
+> _var'.
+. local ctrl_set c.edad c.edadsq i.sexo c.educ i.castell c.ilogsact c.icondvid 
+> ///
+>         c.tot_miem_1564 c.tot_miem_depen c.tot_has_prod i.riego_tec_prod ///
+>         c.años_tenen_prod i.mes_enc
+
+. 
+. // Loop sobre los 7 sub-indicadores ENA en vO. El label de variable se usa
+. // como encabezado de columna; la frase del título y la nota se redacta
+. // explícitamente vía `outcome_phrase' (no se hereda del label).
+. local stubs    riego suelo fert_abo plag biocontrol mip inoc
+
+. local phrases  `" "la adopción de prácticas adecuadas de riego" "la adopción 
+> de prácticas contra la degradación del suelo" "el uso adecuado de fertilizant
+> es y abonos" "el uso adecuado de plaguicidas" "la adopción de control biológi
+> co" "la adopción de Manejo Integrado de Plagas" "la adopción de buenas prácti
+> cas de inocuidad" "'
+
+. 
+. forvalues k = 1/7 {
+  2.         gettoken stub   stubs   : stubs
+  3.         gettoken phrase phrases : phrases
+  4.         local var bpa_ena_`stub'_vO
+  5. 
+.         // El sub-indicador de riego se define solo para productores con rieg
+> o
+.         // tecnificado (E10); la estimación queda restringida a esa submuestr
+> a.
+.         // Se declara como calificador para que título y nota lo reflejen,
+.         // coherente con el análisis a nivel de pregunta (G2).
+.         local qual_opt  ""
+  6.         local extra_opt ""
+  7.         if "`stub'" == "riego" {
+  8.                 local qual_opt  `"outcome_qualifier("submuestra: riego tec
+> nificado")"'
+  9.                 local extra_opt `"note_extra("La submuestra se limita a pr
+> oductores con riego tecnificado en la parcela principal de línea base; el res
+> to queda excluido por definición del sub-indicador.")"'
+ 10.         }
+ 11. 
+.         // Tabla cuerpo: 3 paneles (F-U / DiD / LATE), numeración 8.5a-k
+.         prg_table_3panels, ///
+>                 outcome(`var') ///
+>                 outcome_phrase("`phrase'") ///
+>                 `qual_opt' `extra_opt' ///
+>                 table_num("8.5a-`k'") ///
+>                 out("${ruta_tablas}/4_Indicadores_Compuestos_BPAs/8.5a-`k'_Ta
+> b_SubInd_`stub'_vO.docx") ///
+>                 z_var(asig_ccpp) ///
+>                 dc_var(D_c) ///
+>                 pi_var(P_i) ///
+>                 post_var(post) ///
+>                 controls("`ctrl_set'") ///
+>                 absorb(cod_rgn_PE) ///
+>                 cluster(cod_cpb)
+ 12. 
+.         // El HetEff por cultivo del sub-indicador de riego NO es estimable: 
+> al
+.         // restringirse a la submuestra con riego tecnificado (~180 obs, ~5% 
+> de
+.         // éxito) y saturar el modelo IV por cultivo, la primera etapa LATE q
+> ueda
+.         // no identificada ("equation not identified"). Se omite la tabla A-6
+> -1; la
+.         // tabla cuerpo 8.5a-1 (sin desglose por cultivo) sí corre y se conse
+> rva.
+.         if "`stub'" == "riego" continue
+ 13. 
+.         // Tabla anexa HetEff: efectos heterogéneos por cultivo, numeración A
+> .6-k
+.         prg_table_3way_het, ///
+>                 outcome(`var') ///
+>                 outcome_phrase("`phrase'") ///
+>                 `qual_opt' `extra_opt' ///
+>                 table_num("A.6-`k'") ///
+>                 out("${ruta_anexos}/Indicadores_Compuestos_BPAs/A-6-`k'_Tab_S
+> ubInd_`stub'_vO_het.docx") ///
+>                 z_var(asig_ccpp) ///
+>                 dc_var(D_c) ///
+>                 pi_var(P_i) ///
+>                 post_var(post) ///
+>                 controls("`ctrl_set'") ///
+>                 absorb(cod_rgn_PE) ///
+>                 cluster(cod_cpb) ///
+>                 het_var(prod_ECA_eval) ///
+>                 het_levels(26 16 19) ///
+>                 het_labels("Cítrico|Papa|Plátano") ///
+>                 het_panel_phrase("cultivos de") ///
+>                 het_short("cultivo")
+ 14. }
+successfully replaced "E:/Consultorías/BID/HRC0052956/5_Entregables/Reporte Fin
+> al_VPaper/Tablas/4_Indicadores_Compuestos_BPAs/8.5a-1_Tab_SubInd_riego_vO.doc
+> x"
+Bordes dobles engrosados a 1.5pt en: E:\Consultorías\\BID\HRC0052956\\5_Entrega
+> bles\\Reporte Final_VPaper\\Tablas/4_Indicadores_Compuestos_BPAs/8.5a-1_Tab_S
+> ubInd_riego_vO.docx
+Archivo guardado: E:\Consultorías\\BID\HRC0052956\\5_Entregables\\Reporte Final
+> _VPaper\\Tablas/4_Indicadores_Compuestos_BPAs/8.5a-1_Tab_SubInd_riego_vO.docx
+successfully replaced "E:/Consultorías/BID/HRC0052956/5_Entregables/Reporte Fin
+> al_VPaper/Tablas/4_Indicadores_Compuestos_BPAs/8.5a-2_Tab_SubInd_suelo_vO.doc
+> x"
+Bordes dobles engrosados a 1.5pt en: E:\Consultorías\\BID\HRC0052956\\5_Entrega
+> bles\\Reporte Final_VPaper\\Tablas/4_Indicadores_Compuestos_BPAs/8.5a-2_Tab_S
+> ubInd_suelo_vO.docx
+Archivo guardado: E:\Consultorías\\BID\HRC0052956\\5_Entregables\\Reporte Final
+> _VPaper\\Tablas/4_Indicadores_Compuestos_BPAs/8.5a-2_Tab_SubInd_suelo_vO.docx
+
+=== Diagnóstico modelo saturado: bpa_ena_suelo_vO (het_var=prod_ECA_eval) ===
+N (sección cruzada):     1,276   N (DiD panel):     2,558
+F primera etapa por endógena (g1=Cítrico, g2=Papa, g3=Plátano):
+  LATE-cluster:    g1= 19.65  g2=2292.43  g3= 10.01
+  LATE-individual: g1= 72.49  g2= 37.28  g3= 15.54
+successfully replaced "E:/Consultorías/BID/HRC0052956/5_Entregables/Reporte Fin
+> al_VPaper/Anexos/Indicadores_Compuestos_BPAs/A-6-2_Tab_SubInd_suelo_vO_het.do
+> cx"
+Bordes dobles engrosados a 1.5pt en: E:\Consultorías\\BID\HRC0052956\\5_Entrega
+> bles\\Reporte Final_VPaper\\Anexos/Indicadores_Compuestos_BPAs/A-6-2_Tab_SubI
+> nd_suelo_vO_het.docx
+Archivo guardado: E:\Consultorías\\BID\HRC0052956\\5_Entregables\\Reporte Final
+> _VPaper\\Anexos/Indicadores_Compuestos_BPAs/A-6-2_Tab_SubInd_suelo_vO_het.doc
+> x
+successfully replaced "E:/Consultorías/BID/HRC0052956/5_Entregables/Reporte Fin
+> al_VPaper/Tablas/4_Indicadores_Compuestos_BPAs/8.5a-3_Tab_SubInd_fert_abo_vO.
+> docx"
+Bordes dobles engrosados a 1.5pt en: E:\Consultorías\\BID\HRC0052956\\5_Entrega
+> bles\\Reporte Final_VPaper\\Tablas/4_Indicadores_Compuestos_BPAs/8.5a-3_Tab_S
+> ubInd_fert_abo_vO.docx
+Archivo guardado: E:\Consultorías\\BID\HRC0052956\\5_Entregables\\Reporte Final
+> _VPaper\\Tablas/4_Indicadores_Compuestos_BPAs/8.5a-3_Tab_SubInd_fert_abo_vO.d
+> ocx
+
+=== Diagnóstico modelo saturado: bpa_ena_fert_abo_vO (het_var=prod_ECA_eval) ==
+> =
+N (sección cruzada):     1,282   N (DiD panel):     2,564
+F primera etapa por endógena (g1=Cítrico, g2=Papa, g3=Plátano):
+  LATE-cluster:    g1= 20.16  g2=1146.35  g3=  9.87
+  LATE-individual: g1= 36.09  g2= 24.86  g3= 15.23
+  ⚠ F LATE-cluster g3 =   9.87 (<10, instrumento posiblemente débil)
+successfully replaced "E:/Consultorías/BID/HRC0052956/5_Entregables/Reporte Fin
+> al_VPaper/Anexos/Indicadores_Compuestos_BPAs/A-6-3_Tab_SubInd_fert_abo_vO_het
+> .docx"
+Bordes dobles engrosados a 1.5pt en: E:\Consultorías\\BID\HRC0052956\\5_Entrega
+> bles\\Reporte Final_VPaper\\Anexos/Indicadores_Compuestos_BPAs/A-6-3_Tab_SubI
+> nd_fert_abo_vO_het.docx
+Archivo guardado: E:\Consultorías\\BID\HRC0052956\\5_Entregables\\Reporte Final
+> _VPaper\\Anexos/Indicadores_Compuestos_BPAs/A-6-3_Tab_SubInd_fert_abo_vO_het.
+> docx
+successfully replaced "E:/Consultorías/BID/HRC0052956/5_Entregables/Reporte Fin
+> al_VPaper/Tablas/4_Indicadores_Compuestos_BPAs/8.5a-4_Tab_SubInd_plag_vO.docx
+> "
+Bordes dobles engrosados a 1.5pt en: E:\Consultorías\\BID\HRC0052956\\5_Entrega
+> bles\\Reporte Final_VPaper\\Tablas/4_Indicadores_Compuestos_BPAs/8.5a-4_Tab_S
+> ubInd_plag_vO.docx
+Archivo guardado: E:\Consultorías\\BID\HRC0052956\\5_Entregables\\Reporte Final
+> _VPaper\\Tablas/4_Indicadores_Compuestos_BPAs/8.5a-4_Tab_SubInd_plag_vO.docx
+
+=== Diagnóstico modelo saturado: bpa_ena_plag_vO (het_var=prod_ECA_eval) ===
+N (sección cruzada):     1,276   N (DiD panel):     2,558
+F primera etapa por endógena (g1=Cítrico, g2=Papa, g3=Plátano):
+  LATE-cluster:    g1= 19.65  g2=2292.43  g3= 10.01
+  LATE-individual: g1= 72.49  g2= 37.28  g3= 15.54
+successfully replaced "E:/Consultorías/BID/HRC0052956/5_Entregables/Reporte Fin
+> al_VPaper/Anexos/Indicadores_Compuestos_BPAs/A-6-4_Tab_SubInd_plag_vO_het.doc
+> x"
+Bordes dobles engrosados a 1.5pt en: E:\Consultorías\\BID\HRC0052956\\5_Entrega
+> bles\\Reporte Final_VPaper\\Anexos/Indicadores_Compuestos_BPAs/A-6-4_Tab_SubI
+> nd_plag_vO_het.docx
+Archivo guardado: E:\Consultorías\\BID\HRC0052956\\5_Entregables\\Reporte Final
+> _VPaper\\Anexos/Indicadores_Compuestos_BPAs/A-6-4_Tab_SubInd_plag_vO_het.docx
+successfully replaced "E:/Consultorías/BID/HRC0052956/5_Entregables/Reporte Fin
+> al_VPaper/Tablas/4_Indicadores_Compuestos_BPAs/8.5a-5_Tab_SubInd_biocontrol_v
+> O.docx"
+Bordes dobles engrosados a 1.5pt en: E:\Consultorías\\BID\HRC0052956\\5_Entrega
+> bles\\Reporte Final_VPaper\\Tablas/4_Indicadores_Compuestos_BPAs/8.5a-5_Tab_S
+> ubInd_biocontrol_vO.docx
+Archivo guardado: E:\Consultorías\\BID\HRC0052956\\5_Entregables\\Reporte Final
+> _VPaper\\Tablas/4_Indicadores_Compuestos_BPAs/8.5a-5_Tab_SubInd_biocontrol_vO
+> .docx
+
+=== Diagnóstico modelo saturado: bpa_ena_biocontrol_vO (het_var=prod_ECA_eval) 
+> ===
+N (sección cruzada):     1,272   N (DiD panel):     2,554
+F primera etapa por endógena (g1=Cítrico, g2=Papa, g3=Plátano):
+  LATE-cluster:    g1= 13.02  g2=2292.24  g3= 10.08
+  LATE-individual: g1= 36.09  g2= 37.31  g3= 15.60
+successfully replaced "E:/Consultorías/BID/HRC0052956/5_Entregables/Reporte Fin
+> al_VPaper/Anexos/Indicadores_Compuestos_BPAs/A-6-5_Tab_SubInd_biocontrol_vO_h
+> et.docx"
+Bordes dobles engrosados a 1.5pt en: E:\Consultorías\\BID\HRC0052956\\5_Entrega
+> bles\\Reporte Final_VPaper\\Anexos/Indicadores_Compuestos_BPAs/A-6-5_Tab_SubI
+> nd_biocontrol_vO_het.docx
+Archivo guardado: E:\Consultorías\\BID\HRC0052956\\5_Entregables\\Reporte Final
+> _VPaper\\Anexos/Indicadores_Compuestos_BPAs/A-6-5_Tab_SubInd_biocontrol_vO_he
+> t.docx
+successfully replaced "E:/Consultorías/BID/HRC0052956/5_Entregables/Reporte Fin
+> al_VPaper/Tablas/4_Indicadores_Compuestos_BPAs/8.5a-6_Tab_SubInd_mip_vO.docx"
+Bordes dobles engrosados a 1.5pt en: E:\Consultorías\\BID\HRC0052956\\5_Entrega
+> bles\\Reporte Final_VPaper\\Tablas/4_Indicadores_Compuestos_BPAs/8.5a-6_Tab_S
+> ubInd_mip_vO.docx
+Archivo guardado: E:\Consultorías\\BID\HRC0052956\\5_Entregables\\Reporte Final
+> _VPaper\\Tablas/4_Indicadores_Compuestos_BPAs/8.5a-6_Tab_SubInd_mip_vO.docx
+
+=== Diagnóstico modelo saturado: bpa_ena_mip_vO (het_var=prod_ECA_eval) ===
+N (sección cruzada):     1,276   N (DiD panel):     2,558
+F primera etapa por endógena (g1=Cítrico, g2=Papa, g3=Plátano):
+  LATE-cluster:    g1= 19.65  g2=2292.43  g3= 10.01
+  LATE-individual: g1= 72.49  g2= 37.28  g3= 15.54
+successfully replaced "E:/Consultorías/BID/HRC0052956/5_Entregables/Reporte Fin
+> al_VPaper/Anexos/Indicadores_Compuestos_BPAs/A-6-6_Tab_SubInd_mip_vO_het.docx
+> "
+Bordes dobles engrosados a 1.5pt en: E:\Consultorías\\BID\HRC0052956\\5_Entrega
+> bles\\Reporte Final_VPaper\\Anexos/Indicadores_Compuestos_BPAs/A-6-6_Tab_SubI
+> nd_mip_vO_het.docx
+Archivo guardado: E:\Consultorías\\BID\HRC0052956\\5_Entregables\\Reporte Final
+> _VPaper\\Anexos/Indicadores_Compuestos_BPAs/A-6-6_Tab_SubInd_mip_vO_het.docx
+successfully replaced "E:/Consultorías/BID/HRC0052956/5_Entregables/Reporte Fin
+> al_VPaper/Tablas/4_Indicadores_Compuestos_BPAs/8.5a-7_Tab_SubInd_inoc_vO.docx
+> "
+Bordes dobles engrosados a 1.5pt en: E:\Consultorías\\BID\HRC0052956\\5_Entrega
+> bles\\Reporte Final_VPaper\\Tablas/4_Indicadores_Compuestos_BPAs/8.5a-7_Tab_S
+> ubInd_inoc_vO.docx
+Archivo guardado: E:\Consultorías\\BID\HRC0052956\\5_Entregables\\Reporte Final
+> _VPaper\\Tablas/4_Indicadores_Compuestos_BPAs/8.5a-7_Tab_SubInd_inoc_vO.docx
+
+=== Diagnóstico modelo saturado: bpa_ena_inoc_vO (het_var=prod_ECA_eval) ===
+N (sección cruzada):     1,261   N (DiD panel):     2,538
+F primera etapa por endógena (g1=Cítrico, g2=Papa, g3=Plátano):
+  LATE-cluster:    g1= 40.62  g2=2198.19  g3=  9.81
+  LATE-individual: g1= 35.72  g2= 36.41  g3= 15.18
+  ⚠ F LATE-cluster g3 =   9.81 (<10, instrumento posiblemente débil)
+successfully replaced "E:/Consultorías/BID/HRC0052956/5_Entregables/Reporte Fin
+> al_VPaper/Anexos/Indicadores_Compuestos_BPAs/A-6-7_Tab_SubInd_inoc_vO_het.doc
+> x"
+Bordes dobles engrosados a 1.5pt en: E:\Consultorías\\BID\HRC0052956\\5_Entrega
+> bles\\Reporte Final_VPaper\\Anexos/Indicadores_Compuestos_BPAs/A-6-7_Tab_SubI
+> nd_inoc_vO_het.docx
+Archivo guardado: E:\Consultorías\\BID\HRC0052956\\5_Entregables\\Reporte Final
+> _VPaper\\Anexos/Indicadores_Compuestos_BPAs/A-6-7_Tab_SubInd_inoc_vO_het.docx
+
+. 
+. log close
+      name:  <unnamed>
+       log:  E:\Consultorías\\BID\HRC0052956\\3_Logs\G5Aa_estimate_subind_ena_v
+> O.log
+  log type:  text
+ closed on:  29 May 2026, 12:38:26
+-------------------------------------------------------------------------------

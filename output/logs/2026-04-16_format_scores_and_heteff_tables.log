@@ -1,0 +1,293 @@
+================================================================================
+REGISTRO DE PROGRESO — Formato BID en Script 18 + Tablas HetEff en 25A/25B
+Proyecto: HRC0052956 (Evaluación de Impacto ECAs Perú)
+Fecha: 2026-04-16
+Autor: Carlos Marena (asistido por Claude Code)
+================================================================================
+
+OBJETIVO:
+Tres cambios en el pipeline de estimación:
+
+  (1) Aplicar al script 18_estimate_knowledge_scores.do el formato visual BID
+      actualmente usado en 25A_estimate_subind_ena.do y
+      25B_estimate_pilares_compuesto_ena.do (header azul BID, tamaños 8.5/7.5,
+      mat widths fijas, collect style putdocx nombrado).
+
+  (2) Agregar tablas de efectos heterogéneos por cultivo (prod_ECA_eval) a
+      los scripts 25A y 25B, con sufijo de archivo _HetEff. Estas tablas NO
+      se adjuntan a las existentes sino que son archivos separados, en
+      paralelo a las tablas pooled.
+
+  (3) Actualizar referencias del proyecto (CLAUDE.md y encabezados de los
+      tres scripts afectados).
+
+================================================================================
+FASE 1: DISEÑO (decisiones de alineación con el usuario)
+================================================================================
+
+[D1] Adaptación del formato BID al script 18
+     El script 18 estima sobre LS únicamente (post==1), no sobre panel
+     balanceado, por lo que NO tiene columnas DiD — solo Follow-Up. El
+     usuario confirmó (opción c): aplicar la plantilla BID completa pero
+     SIN forzar filas DiD. Se preservan:
+       - Header azul BID (shading 0 78 112 + texto blanco)
+       - Roboto 8.5pt / 7.5pt
+       - mat widths con columna izquierda ancha (30) + columnas numéricas
+         iguales
+       - collect style putdocx name(Tabla_Ptjes_Comb) width(widths)
+       - Estilos separados por dimensión (crop central, score_type bold
+         izquierda, cmdset/result sin bold explícito)
+
+[D2] Tablas HetEff en 25A y 25B
+     Se replicó el patrón de 22_estimate_crops_levels.do:
+       FU : areg y 1.asig_ccpp#i.prod_ECA_eval [ctrls] if post==1, ...
+       DiD: areg y (1.asig_ccpp##1.post)#prod_ECA_eval [ctrls], ...
+     Extracción por cultivo a partir de los coeficientes de interacción:
+       _b[1.asig_ccpp#knum.prod_ECA_eval]         (FU)
+       _b[1.asig_ccpp#1.post#knum.prod_ECA_eval]  (DiD)
+
+[D3] Columnas de las tablas HetEff: SOLO 3 CULTIVOS (sin Pooled)
+     El usuario indicó expresamente: "solo 3 cultivos sin pooled porque eso
+     va en una tabla aparte". Cultivos:
+       - Cítricos (prod_ECA_eval == 26)
+       - Papa     (prod_ECA_eval == 16)
+       - Plátano  (prod_ECA_eval == 19)
+     Los tres cultivos se apilan verticalmente como niveles de una
+     dimensión `crop`, incluyendo un pseudo-nivel `Footer` para sostener
+     los estadísticos compartidos (Ns, Controles) ya que provienen de una
+     única regresión por pilar/indicador.
+
+[D4] Covariable `prod_ECA_eval` incluida en vlist1
+     Se añadió explícitamente `prod_ECA_eval` a `local vlist1` en ambos
+     scripts. Es la variable que define la interacción y viene de la base
+     Vars_Caract_Obs (ya utilizada por 22_estimate_crops_levels.do).
+
+[D5] Nomenclatura de archivos (actualizada 2026-04-16 por compactación)
+     Regla: Tab_{SubInd/Comp}_{grp}[_Anx][_HetEff]
+     Abreviaturas: Tabla→Tab, Anexa→Anx, Pilares_Comp→Comp.
+     Script 25A (por pilar, pooled y HetEff, main y anexa):
+       8.5-{grp_idx}_Tab_SubInd_{grp}.{docx,stcol}
+       A-{grp_idx}_Tab_SubInd_{grp}_Anx.{docx,stcol}
+       8.5-{grp_idx}_Tab_SubInd_{grp}_HetEff.{docx,stcol}
+       A-{grp_idx}_Tab_SubInd_{grp}_Anx_HetEff.{docx,stcol}
+     Script 25B:
+       8.5-4_Tab_Comp.{docx,stcol}
+       A-4_Tab_Comp_Anx.{docx,stcol}
+       8.5-4_Tab_Comp_HetEff.{docx,stcol}
+       A-4_Tab_Comp_Anx_HetEff.{docx,stcol}
+
+[D6] Layout de las tablas HetEff
+     Filas: crop × model × tipo × result
+       - Bold solo en super-filas de crop (cmdset/result/model sin bold)
+       - `Footer` como nivel final del orden de crop para Ns y Controles
+     Columnas: cmdset × spec (idéntico a las tablas pooled)
+
+[D7] Reportes agregados (23_report_compile.do)
+     Revisado: opera con globs sobre patrones `A.1-*.stcol`/`A.2-*.stcol`
+     etc., no indexa por nombre los nuevos `.docx _HetEff`. NO se requiere
+     cambio en 23 por el momento. Si el usuario desea incorporar las
+     tablas HetEff al reporte compilado, se deberá agregar una rutina
+     específica.
+
+================================================================================
+FASE 2: IMPLEMENTACIÓN
+================================================================================
+
+[09:40] MODIFICACIÓN DE 18_estimate_knowledge_scores.do
+
+  Cambios aplicados (preservando la lógica de estimación, solo F-U):
+    - Encabezado: Date 16/04/2026; Description aclara formato BID
+      unificado; Output apunta a la ruta completa en
+      Tablas/1_Conocimiento_Agronómico/3_ITT/.
+    - Tamaños: 9.5/9.5/8.5 → 8.5/8.5/7.5 (coherencia con 25A/25B).
+    - Nuevo: `mat widths = (30, 8.75, 8.75, 8.75, 8.75, 8.75, 8.75, 8.75,
+      8.75)` para columnas fijas.
+    - Header azul BID (cell_type[corner column-header] con shading
+      background(0 78 112) y font color(white)).
+    - `nobold` explícito en estilos de cmdset/result; bold reservado para
+      score_type (super-filas por tipo de puntaje).
+    - `collect style putdocx, name(Tabla_Ptjes_Comb) width(widths)` antes
+      del export.
+
+[10:05] MODIFICACIÓN DE 25A_estimate_subind_ena.do
+
+  Cambios aplicados:
+    - Encabezado: Description expandida (4 tablas por pilar: main pooled +
+      anexa pooled + main HetEff + anexa HetEff); Output lista los nuevos
+      _HetEff.docx y _Anexa_HetEff.docx.
+    - `local vlist1 ... prod_ECA_eval` agregado.
+    - Locals `crops_het` declarados al inicio del Step 4 (códigos 26/16/19
+      y sus etiquetas Cítricos/Papa/Plátano).
+    - Nuevo bloque 4C (Tabla HetEff principal, vO) dentro del loop
+      foreach grp:
+        * Loop interno por cultivo con cmdset acumulativo.
+        * FU: areg y 1.asig_ccpp#i.prod_ECA_eval if post==1
+        * DiD: areg y (1.asig_ccpp##1.post)#prod_ECA_eval
+        * collect get con tag crop[Citricos Papa Platano] por iteración.
+        * Ns y Controles al Footer (compartidos entre cultivos).
+        * Export a 8.5-{grp_idx}_Tab_SubInd_{grp}_HetEff.{docx,stcol}.
+    - Nuevo bloque 4D (Tabla HetEff anexa, vF + vE) dentro del loop
+      foreach grp:
+        * Dimensión adicional panel (Flex/Estricto).
+        * Misma estructura crop × model × tipo × result.
+        * Export a A-{grp_idx}_Tab_SubInd_{grp}_Anx_HetEff.{docx,stcol}.
+
+[10:40] MODIFICACIÓN DE 25B_estimate_pilares_compuesto_ena.do
+
+  Cambios aplicados (mismo patrón que 25A pero sin loop externo):
+    - Encabezado actualizado con los 4 tipos de tabla.
+    - `prod_ECA_eval` agregado a vlist1.
+    - Locals `crops_het` declarados tras definir `ruta_docx_anex`.
+    - Nuevo Step 5C (Tabla Pilares+Compuesto HetEff principal, vO) al
+      final del script.
+    - Nuevo Step 5D (Tabla Pilares+Compuesto HetEff anexa, vF + vE) al
+      final del script.
+    - Archivos: 8.5-4_Tab_Comp_HetEff.{docx,stcol} y
+      A-4_Tab_Comp_Anx_HetEff.{docx,stcol}.
+
+[10:50] ACTUALIZACIÓN DE REFERENCIAS
+
+  CLAUDE.md (HRC0052956):
+    - Filas 25A y 25B de la tabla de pipeline ahora incluyen "(+ HetEff
+      por cultivo)" en la descripción.
+
+  Encabezados de scripts (ya incluidos en cada modificación anterior):
+    - 18_estimate_knowledge_scores.do: Date actualizada, Description
+      aclarada, Output corregido.
+    - 25A_estimate_subind_ena.do: Description expandida, Output lista
+      las 4 tablas por pilar (main/anexa × pooled/HetEff).
+    - 25B_estimate_pilares_compuesto_ena.do: Description expandida,
+      Output lista las 4 tablas (main/anexa × pooled/HetEff).
+
+  Archivos NO modificados (revisados y no requieren cambio):
+    - 23_report_compile.do: globs .stcol por patrón A.*; no indexa por
+      nombre los archivos _HetEff.
+    - 7_Ayuda/Sintesis_Efectos_Heterogeneos_por_Cultivo.txt: hace
+      referencia genérica a "Tabla 8.1-1"; no menciona 25A/25B.
+    - 00_master.do: ya exporta los globals de ruta requeridos; las
+      carpetas de salida se crean con `cap mkdir` dentro de cada script.
+
+[11:00] CREACIÓN DE ESTE REGISTRO
+
+[12:30] COMPACTACIÓN DE NOMBRES DE OUTPUTS (25A, 25B, y este log)
+
+  Motivación: los nombres `Tabla_SubInd_{grp}_Anexa_HetEff.docx` y
+  `Tabla_Pilares_Comp_Anexa_HetEff.docx` resultaban demasiado largos.
+
+  Regla aplicada:
+    Tabla → Tab
+    Anexa → Anx
+    Pilares_Comp → Comp
+    (Nombres 25A ahora Tab_SubInd_{grp}[_Anx][_HetEff];
+     25B ahora Tab_Comp[_Anx][_HetEff].)
+
+  Archivos modificados:
+    - 2_Scripts/25A_estimate_subind_ena.do
+        * Encabezado (sección Output)
+        * 4 locals tag/tag_anex/tag_het/tag_het_anex
+        * 4 rutas en `collect export`
+    - 2_Scripts/25B_estimate_pilares_compuesto_ena.do
+        * Encabezado (sección Output)
+        * 4 locals tag/tag_anex/tag_het/tag_het_anex
+        * 4 rutas en `collect export`
+    - 3_Logs/2026-04-16_format_scores_and_heteff_tables.log (este archivo)
+        * [D5] reescrito con la nueva nomenclatura
+        * INVENTARIO DE TABLAS GENERADAS regenerado con prefijos completos
+
+  No modificados (por diseño):
+    - 17A/17B (nombres `Tabla_SubInd_ENA`/`Tabla_Pilares_Compuesto_ENA`)
+      no entran en la regla de compactación; son balance tables con su
+      propio esquema.
+    - 18 (`Tabla_Ptjes_Comb`) no entra en la regla; ya es corto.
+    - CLAUDE.md no referencia nombres de archivos específicos.
+
+================================================================================
+INVENTARIO DE TABLAS GENERADAS (estado post-refactor)
+================================================================================
+
+  Script 18 — Puntajes de Conocimiento (formato BID aplicado):
+  ┌──────────────┬──────────────────────────────────────────────┬────────┐
+  │ Archivo      │ Contenido                                    │ Tipo   │
+  ├──────────────┼──────────────────────────────────────────────┼────────┤
+  │ 8.1-1        │ Puntajes de test (F-U, sin DiD)              │ Main   │
+  └──────────────┴──────────────────────────────────────────────┴────────┘
+
+  Script 25A — Sub-indicadores ENA por pilar:
+  ┌────────────────────────────────────┬──────────────────────────────────┬────────┐
+  │ Archivo (prefijo)                  │ Contenido                        │ Tipo   │
+  ├────────────────────────────────────┼──────────────────────────────────┼────────┤
+  │ 8.5-1_Tab_SubInd_Agro              │ Pilar Agronómico (vO) pooled     │ Main   │
+  │ 8.5-2_Tab_SubInd_Insumos           │ Pilar Insumos (vO) pooled        │ Main   │
+  │ 8.5-3_Tab_SubInd_Inoc              │ Pilar Inocuidad (vO) pooled      │ Main   │
+  │ A-1_Tab_SubInd_Agro_Anx            │ Pilar Agronómico (vF+vE) pooled  │ Anexa  │
+  │ A-2_Tab_SubInd_Insumos_Anx         │ Pilar Insumos (vF+vE) pooled     │ Anexa  │
+  │ A-3_Tab_SubInd_Inoc_Anx            │ Pilar Inocuidad (vF+vE) pooled   │ Anexa  │
+  │ 8.5-1_Tab_SubInd_Agro_HetEff       │ Pilar Agro (vO) por cultivo      │ Main   │
+  │ 8.5-2_Tab_SubInd_Insumos_HetEff    │ Pilar Insumos (vO) por cultivo   │ Main   │
+  │ 8.5-3_Tab_SubInd_Inoc_HetEff       │ Pilar Inocuidad (vO) por cultivo │ Main   │
+  │ A-1_Tab_SubInd_Agro_Anx_HetEff     │ Pilar Agro (vF+vE) por cultivo   │ Anexa  │
+  │ A-2_Tab_SubInd_Insumos_Anx_HetEff  │ Pilar Insumos (vF+vE) por cult.  │ Anexa  │
+  │ A-3_Tab_SubInd_Inoc_Anx_HetEff     │ Pilar Inoc (vF+vE) por cultivo   │ Anexa  │
+  └────────────────────────────────────┴──────────────────────────────────┴────────┘
+
+  Script 25B — Pilares y Compuesto ENA:
+  ┌────────────────────────────────────┬──────────────────────────────────┬────────┐
+  │ Archivo (prefijo)                  │ Contenido                        │ Tipo   │
+  ├────────────────────────────────────┼──────────────────────────────────┼────────┤
+  │ 8.5-4_Tab_Comp                     │ Pilares+Compuesto (vO) pooled    │ Main   │
+  │ A-4_Tab_Comp_Anx                   │ Pilares+Compuesto (vF+vE) pooled │ Anexa  │
+  │ 8.5-4_Tab_Comp_HetEff              │ Pilares+Compuesto (vO) x cultivo │ Main   │
+  │ A-4_Tab_Comp_Anx_HetEff            │ Pilares+Compuesto (vF+vE) x cult.│ Anexa  │
+  └────────────────────────────────────┴──────────────────────────────────┴────────┘
+
+  Totales por script:
+    Script 18  : 1 tabla (formato actualizado).
+    Script 25A : 12 tablas (6 pooled pre-existentes + 6 HetEff nuevas).
+    Script 25B : 4 tablas (2 pooled pre-existentes + 2 HetEff nuevas).
+
+================================================================================
+NOTAS Y PENDIENTES
+================================================================================
+
+1. Los scripts NO han sido ejecutados en Stata todavía. Antes de
+   correrlos verificar:
+   - Que `prod_ECA_eval` esté presente en Vars_Caract_Obs.dta y sea
+     numérica con los códigos 26 (Cítricos), 16 (Papa), 19 (Plátano).
+   - Que Vars_BPAs_Compuestos_LByLS.dta exista (output del script 15).
+   - Que la carpeta
+     `Tablas/1_Conocimiento_Agronómico/3_ITT/` exista; de lo contrario,
+     18 fallará al exportar. Considerar agregar `cap mkdir` en 18.
+
+2. Las tablas HetEff se construyen a partir de UNA sola regresión con
+   interacción completa. Los coeficientes por cultivo se extraen vía
+   `_b[1.asig_ccpp#knum.prod_ECA_eval]`. Asegurarse de que los códigos
+   26/16/19 no se hayan recodificado desde la última revisión de
+   22_estimate_crops_levels.do.
+
+3. `23_report_compile.do` no incorpora automáticamente las tablas
+   HetEff. Si el usuario quiere que el reporte compilado las incluya,
+   será necesario:
+   - Extender los globs de 23 a patrones `*_HetEff.stcol`, o
+   - Agregar una sección dedicada de efectos heterogéneos al final del
+     reporte.
+
+4. Las tablas HetEff apilan 3 cultivos verticalmente. Si el usuario
+   prefiere una presentación horizontal (cultivos como columnas
+   adicionales dentro de cada spec), habría que rediseñar los layouts
+   con `collect layout (cmdset#spec#crop) (model#tipo#result)`.
+
+5. El script 18 ahora usa tamaños 8.5/7.5 (antes 9.5/9.5/8.5). Si el
+   documento final requiere uniformar al tamaño previo, ajustar los
+   locals `sz_*` al principio del script.
+
+6. La carpeta de output de las tablas principales de 18 fue corregida
+   a `Tablas/1_Conocimiento_Agronómico/3_ITT/` (coherente con la
+   estructura del reporte final). Verificar que el resto de referencias
+   al archivo `8.1-1_Tabla_Ptjes_Comb.docx` apunten a la nueva ruta.
+
+7. Renumeración futura: sigue pendiente la decisión sobre si 25A/25B
+   deben renumerarse a 22A/22B. No se tomó acción aquí.
+
+================================================================================
+FIN DEL REGISTRO
+================================================================================

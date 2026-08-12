@@ -1,0 +1,132 @@
+//------------------------------------------------------------------------------
+// File           : G1_estimate_knowledge_scores.do
+// Author         : Carlos Marena
+// Email          : carlosmarena1995@gmail.com
+// Last Mod. Date : 21/05/2026
+// Description    : Genera una tabla unificada con estimaciones del efecto del
+//                  programa sobre los puntajes del test de conocimientos
+//                  (Puntaje Total y Sección BPA) en formato de 4 paneles
+//                  (Pooled + 3 cultivos) × 6 columnas (ITT-OLS / LATE-cluster
+//                  / LATE-individual, cada uno sin/con controles) × 2 filas
+//                  (los 2 outcomes), con sub-bloque de descriptivos en
+//                  escala original al pie de cada panel.
+//                  Flujo: (1) carga manual de módulos LB + LS de puntajes
+//                  (G1 no usa prg_load_panel porque los puntajes solo viven
+//                  en LS, lo que rompe el restrict-to-balanced-panel),
+//                  (2) construye D_c y P_i con definiciones operacionales
+//                  explícitas (mismas que G5Aa), (3) declara los labels
+//                  amigables con `lab var` (single source of truth — el
+//                  helper los lee con `: variable label`), y (4) invoca
+//                  prg_table_4panels una sola vez.
+//
+// Input          : Out/5_.../Caract_Obs_Trat_ECA.dta
+//                  Out/5_.../Sociodem_Prod_JH_LB.dta
+//                  Out/5_.../Viv_Act_SEA_LB.dta
+//                  Out/5_.../Demog_Ing_Hog_LB.dta
+//                  Out/5_.../Productor_Predio_LB.dta
+//                  Out/5_.../Ptjs_Test_BPAs_LS.dta
+// Output         : Tablas/1_Conocimiento_Agronómico/8.1-1_Tabla_Ptjes_Comb.docx
+// Depends        : _helpers/prg_table_3panels.do  (define _fmt_* helpers
+//                                                  reutilizados por el 4-paneles)
+//                  _helpers/prg_table_4panels.do
+//                  _helpers/fix_table_borders.ps1 (invocado por el programa)
+//------------------------------------------------------------------------------
+
+cls
+
+// Bootstrap del entorno (define globals: ruta_data, ruta_tablas, ruta_helpers, ...)
+if "${CONSULT}" == "" qui do "C:\\Users\\carlo\\ado\\personal\\profile.do"
+qui include "${CONSULT}\\BID\\HRC0052956\\2_Scripts\\A_master.do"
+
+// Redirige el log de stata-batch a 3_Logs/ (limpia el log auto en 2_Scripts).
+cap log close
+cap erase "${ruta_scripts}\G1_estimate_knowledge_scores.log"
+log using "${ruta_logs}\G1_estimate_knowledge_scores.log", replace text
+
+
+// Cargar los programas. prg_table_3panels primero porque define _fmt_b,
+// _fmt_se, _fmt_N, _fmt_F al top-level y prg_table_4panels los reusa
+// (también los redefine como fallback).
+qui do "${ruta_helpers}/prg_table_3panels.do"
+qui do "${ruta_helpers}/prg_table_4panels.do"
+
+
+//------------------------------------------------------------------------------
+// 1. Carga manual de módulos LB + puntajes LS
+//    G1 NO usa prg_load_panel: los puntajes solo viven en línea de seguimiento
+//    (post==1), lo que rompe la restricción a panel balanceado que ese helper
+//    aplica. Se conserva el patrón original de 5 merges + restricción a post==1
+//    + merge 1:1 con el archivo de puntajes.
+//------------------------------------------------------------------------------
+local vbase Codprod22 post cod_rgn_PE cod_cpb mes_enc asig_ccpp prod_ECA_eval
+// Vars crudas de tratamiento — necesarias para construir D_c y P_i abajo.
+local vtrt  i1aECA_PE_ccpp ptcp_ECA_prod
+// Controles de línea base (mismo set que G5Aa).
+local vsoc  edad edadsq sexo educ castell
+local vviv  ilogsact icondvid
+local vdem  tot_miem_1564 tot_miem_depen
+local vpre  tot_has_prod años_tenen_prod riego_tec_prod
+// Puntajes: estandarizados (outcomes) + crudos (descriptivos en escala original).
+local vpts_std ptj_test_std ptj_BPA_std
+local vpts_raw ptj_test     ptj_BPA
+
+local outc5 "${ruta_data}/Out/5_BDs por grupos de vars"
+
+use `vbase' `vtrt' using "`outc5'/Caract_Obs_Trat_ECA.dta", clear
+merge m:1 Codprod22 using "`outc5'/Sociodem_Prod_JH_LB.dta", keepus(`vsoc') keep(3) nogen
+merge m:1 Codprod22 using "`outc5'/Viv_Act_SEA_LB.dta",      keepus(`vviv') keep(3) nogen
+merge m:1 Codprod22 using "`outc5'/Demog_Ing_Hog_LB.dta",    keepus(`vdem') keep(3) nogen
+merge m:1 Codprod22 using "`outc5'/Productor_Predio_LB.dta", keepus(`vpre') keep(3) nogen
+
+// Restringir a línea de seguimiento — los puntajes solo existen en post==1.
+keep if post == 1
+merge 1:1 Codprod22 using "`outc5'/Ptjs_Test_BPAs_LS.dta", ///
+	keepus(`vpts_std' `vpts_raw') keep(3) nogen
+
+sort Codprod22
+
+//------------------------------------------------------------------------------
+// 2. Construir D_c y P_i (definiciones operacionales — explícitas y visibles)
+//    D_c: el cluster implementó la 1a ECA en el producto a evaluar
+//    P_i: el productor participó de la ECA en cultivo de interés
+//    Missings → 0 (no implementación / no participación)
+//    Mismas definiciones que G5Aa para mantener coherencia metodológica
+//    entre las tablas del paper.
+//------------------------------------------------------------------------------
+gen byte D_c = (i1aECA_PE_ccpp == 1) if !mi(asig_ccpp)
+gen byte P_i = (ptcp_ECA_prod  == 1) if !mi(asig_ccpp)
+
+//------------------------------------------------------------------------------
+// 3. Labels amigables — single source of truth para encabezados de columna y
+//    sub-bloque de descriptivos al pie de cada panel. El título y la nota se
+//    redactan abajo vía title_phrase/title_qualifier (no usan estos labels).
+//------------------------------------------------------------------------------
+lab var ptj_test_std "Puntaje Total"
+lab var ptj_BPA_std  "Sección BPA"
+
+//------------------------------------------------------------------------------
+// 4. Generar tabla 4-paneles (Combinado + Cítricos + Papa + Plátano)
+//    Códigos de prod_ECA_eval: 26 = Cítricos, 16 = Papa, 19 = Plátano.
+//    Panel "Combinado" usa cond("1") = sin restricción (toda la muestra LS).
+//------------------------------------------------------------------------------
+local ctrl_set c.edad c.edadsq i.sexo c.educ i.castell c.ilogsact c.icondvid ///
+	c.tot_miem_1564 c.tot_miem_depen c.tot_has_prod i.riego_tec_prod ///
+	c.años_tenen_prod i.mes_enc
+
+prg_table_4panels, ///
+	out1(ptj_test_std) raw1(ptj_test) ///
+	out2(ptj_BPA_std)  raw2(ptj_BPA)  ///
+	title_phrase("los puntajes del test de conocimientos agronómicos") ///
+	title_qualifier("puntaje total y sección BPA") ///
+	panel1_lbl("Combinado") panel1_cond("1")                  ///
+	panel2_lbl("Cítricos") panel2_cond("prod_ECA_eval==26")   ///
+	panel3_lbl("Papa")     panel3_cond("prod_ECA_eval==16")   ///
+	panel4_lbl("Plátano")  panel4_cond("prod_ECA_eval==19")   ///
+	table_num("8.1-1") ///
+	out("${ruta_tablas}/1_Conocimiento_Agronómico/8.1-1_Tabla_Ptjes_Comb.docx") ///
+	z_var(asig_ccpp) ///
+	dc_var(D_c) pi_var(P_i) ///
+	controls("`ctrl_set'") ///
+	absorb(cod_rgn_PE) cluster(cod_cpb)
+
+log close

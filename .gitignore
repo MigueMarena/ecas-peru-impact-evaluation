@@ -1,0 +1,44 @@
+# .gitignore del repositorio público.
+#
+# Esto es una RED DE REFUERZO, no el control primario. Lo que decide qué se
+# publica es la lista blanca de `_publish/manifest.toml` en el repositorio de
+# trabajo: nada llega hasta acá si no está declarado ahí. Estas reglas existen
+# para el caso de que alguien copie un archivo a mano dentro de este repo.
+
+# --- Datos: nunca ---
+*.dta
+*.sav
+*.csv
+*.xls
+*.xlsx
+!docs/codebook/*.xlsx
+*.zip
+*.7z
+*.rar
+
+# --- Documentos temporales de Office ---
+~$*
+*.tmp
+*.wbk
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.ipynb_checkpoints/
+
+# --- Stata ---
+*.stswp
+*.smcl
+profile.do
+
+# --- Rutas locales del replicador ---
+# Fallback opcional para máquinas con un layout distinto; es específico de
+# cada máquina y por eso no se versiona.
+config/local_paths.do
+
+# --- Sistema operativo ---
+.DS_Store
+Thumbs.db
+desktop.ini

@@ -1,0 +1,31 @@
+cff-version: 1.2.0
+title: >-
+  Evaluación de impacto de las Escuelas de Campo Agrícolas (ECAs) en Perú —
+  paquete de replicación
+message: >-
+  Si usás este código o te apoyás en el análisis, citalo con estos metadatos.
+type: software
+authors:
+  - given-names: Carlos
+    family-names: Marena
+    email: carlosmarena1995@gmail.com
+abstract: >-
+  Código y documentación del análisis de impacto del programa de Escuelas de Campo
+  Agrícolas implementado por SENASA en el marco del proyecto PRODESA, financiado por
+  el Banco Interamericano de Desarrollo. Ensayo aleatorizado por conglomerados con
+  asignación a nivel de centro poblado y medición a nivel de productor sobre un panel
+  de dos rondas (línea base 2021, seguimiento 2022). Cubre la construcción de
+  variables de conocimiento agronómico, adopción de buenas prácticas agrícolas,
+  registros e inocuidad alimentaria, e indicadores compuestos alineados al catálogo
+  de la Encuesta Nacional Agropecuaria. El repositorio no contiene microdatos.
+keywords:
+  - impact evaluation
+  - cluster randomized trial
+  - farmer field schools
+  - agricultural extension
+  - good agricultural practices
+  - food safety
+  - Peru
+  - Stata
+license: MIT
+repository-code: 'https://github.com/carlosmarena/ecas-peru-impact-evaluation'

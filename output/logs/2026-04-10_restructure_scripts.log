@@ -1,0 +1,129 @@
+================================================================================
+REGISTRO DE PROGRESO — Reestructuracion de Scripts
+Proyecto: HRC0052956 (Evaluacion de Impacto ECAs Peru)
+Fecha: 2026-04-10
+Hora: 20:58 UTC (15:58 Peru)
+Autor: Carlos Marena (asistido por Claude Code)
+================================================================================
+
+OBJETIVO:
+Reestructurar la carpeta 2_Scripts/ para mejorar la organizacion, legibilidad
+y mantenibilidad del pipeline de analisis. Renombrar scripts con convencion
+en ingles usando verbos funcionales, crear subcarpeta _helpers/ para scripts
+auxiliares, y actualizar todas las dependencias internas.
+
+================================================================================
+ACCIONES REALIZADAS
+================================================================================
+
+[20:45 UTC] DIAGNOSTICO
+- Se leyeron los encabezados de los 50 archivos .do para clasificarlos
+- Se identificaron 7 fases funcionales: Ingest, Treatment, Merge, Build,
+  Validation, Estimation, Reporting
+- Se mapearon todas las dependencias internas (do/include entre scripts)
+- Se verifico que FALSIFICATION_TESTS.do e ITT_LATE.do no son usados por
+  ningun script activo del pipeline
+
+[20:50 UTC] CREACION DE _helpers/
+- Se creo la subcarpeta 2_Scripts/_helpers/
+- Se movieron y renombraron 23 scripts auxiliares:
+  05-1_do_corregir_DNIs_y_Nombres.do    -> _helpers/fix_dni_names.do
+  05-4_do_corregir_Nombres_Productores.do -> _helpers/fix_producer_names.do
+  do_corregir_nombres_ccpps.do           -> _helpers/fix_ccpp_names.do
+  do_keep_lista_ccpps_alea.do            -> _helpers/filter_randomized_ccpp.do
+  do_crear_base_ccpps.do                 -> _helpers/make_ccpp_database.do
+  03-1_do_prod_a_eval.do                 -> _helpers/make_eval_product.do
+  extra_do_crear_Productor-Producto.do   -> _helpers/make_producer_product.do
+  05-5_do_Nombre_Cultivo.do              -> _helpers/map_crop_names.do
+  nombres_plagui_corre.do                -> _helpers/clean_pesticide_names.do
+  extra_do_std_strings.do                -> _helpers/std_strings.do
+  extra_do_relab_yesnoq.do               -> _helpers/relab_yesno.do
+  to_miss_neg_cat.do                     -> _helpers/to_miss_neg_cat.do
+  lab_cle.do                             -> _helpers/lab_cle.do
+  extra_sep_bin_o_con.do                 -> _helpers/sep_bin_con.do
+  outliers_rend_cultivos.do              -> _helpers/outliers_crop_yields.do
+  outliers_precios_cultivos.do           -> _helpers/outliers_crop_prices.do
+  outliers_precios_plagui.do             -> _helpers/outliers_pesticide_prices.do
+  FALSIFICATION_TESTS.do                 -> _helpers/prg_falsification_tests.do
+  ppmlhdfe_cf.do                         -> _helpers/prg_ppmlhdfe_cf.do
+  procesaECA.do                          -> _helpers/prg_procesa_eca.do
+  appendmodels.do                        -> _helpers/prg_appendmodels.do
+  05-2_do_cruce_1.do                     -> _helpers/merge_ccpp_status.do
+  05-3_do_cruce_2.do                     -> _helpers/merge_producer_eca.do
+
+[20:52 UTC] RENOMBRAMIENTO DE SCRIPTS DEL PIPELINE (26 archivos)
+  00_do_master.do                        -> 00_master.do
+  01_do_crear_copiar_archivos.do         -> 01_ingest_copy_files.do
+  02_do_analizar_preprocesar_insumos.do  -> 02_clean_survey_modules.do
+  03_do_identificar_tratados.do          -> 03_make_treated_producers.do
+  04_do_ccpp_asignacion_y_tratamiento.do -> 04_make_ccpp_assignment.do
+  04-T_Tabla_ESTDES_CCPPs_ECAs.do        -> 04T_table_ccpp_descriptives.do
+  05_do_cruces.do                        -> 05_merge_panels.do
+  06-0_do_vars_caract_obs.do             -> 06_build_obs_chars.do
+  06-1_do_vars_fin_productor_scdm.do     -> 07_build_producer_sociodem.do
+  06-2_do_vars_fin_hogar_lb.do           -> 08_build_household.do
+  06-3_do_vars_fin_cultivos.do           -> 09_build_crops.do
+  06-4_do_vars_fin_predio.do             -> 10_build_farm.do
+  06-5_do_vars_test_conocimento_bpa.do   -> 11_build_bpa_knowledge.do
+  06-6_do_vars_bpas_cync.do              -> 12_build_bpa_practices.do
+  06-7_do_vars_registros_almacen.do      -> 13_build_records_storage.do
+  06-8_do_vars_inocuidad.do              -> 14_build_food_safety.do
+  07-1_Falsification_Test.do             -> 15_test_falsification.do
+  07-2_Balance_Test.do                   -> 16_test_balance.do
+  08_1_Tablas_Ptje_Test.do               -> 17_estimate_knowledge_scores.do
+  08_2_Tablas_BPA_NoCond_Main.do         -> 18_estimate_bpa_uncond.do
+  08_3_Tablas_BPA_Cond_Main.do           -> 19_estimate_bpa_cond.do
+  08_4_Tablas_Registros_Ino_Main.do      -> 20_estimate_records_safety.do
+  08_5_Tablas_Cultivos_Pcpl_Nvls.do      -> 21_estimate_crops_levels.do
+  08_S_Tablas_Cultivos_Pcpl_Nvls.do      -> 21S_summary_crops_levels.do
+  do_Reporte_Final.do                    -> 22_report_compile.do
+  qplot_rend_outliers.do                 -> 23_plot_yield_outliers.do
+
+[20:53 UTC] SCRIPTS MOVIDOS A TRASH
+  ITT_LATE.do -> Trash (evaluar, aun no eliminar archivos)/ITT_LATE.do
+  Motivo: programa no invocado por ningun script activo; solo referenciado
+  desde scripts ya en Trash. Ademas referencia controles.do que solo existe
+  en Trash.
+  Nota: FALSIFICATION_TESTS.do se conservo en _helpers/ como
+  prg_falsification_tests.do porque define un programa reutilizable, aunque
+  actualmente 15_test_falsification.do tiene su propia implementacion inline.
+
+[20:54 UTC] ACTUALIZACION DE DEPENDENCIAS INTERNAS
+- Se actualizaron todas las referencias include/do en scripts activos:
+  * 00_do_master.do -> 00_master.do (afecto ~30 scripts)
+  * Todas las referencias a helpers ahora usan ${ruta_helpers} en vez de
+    ${ruta_scripts}
+- Scripts actualizados: 02, 03, 04, 05, 09, 15 (pipeline) y
+  make_ccpp_database.do (helper)
+- Verificacion final: cero referencias huerfanas a nombres viejos en
+  llamadas do/include funcionales
+
+[20:56 UTC] ACTUALIZACION DE 00_master.do
+- Actualizado campo File en encabezado
+- Actualizado Last Mod. Date a 10/04/2026
+- Agregada macro global: ruta_helpers = "${ruta_scripts}\_helpers"
+- Agregada seccion comentada de pipeline de ejecucion (Fases 1-7)
+
+[20:57 UTC] ACTUALIZACION DE CLAUDE.md
+- Reescrita tabla del pipeline con nueva nomenclatura (26 scripts)
+- Actualizada seccion de scripts auxiliares para reflejar _helpers/
+- Actualizadas convenciones de codigo con verbos estandar y regla de
+  ${ruta_helpers}
+
+[20:58 UTC] CREACION DE REGISTRO DE PROGRESO
+- Creado este archivo: 3_Logs/2026-04-10_restructure_scripts.log
+
+================================================================================
+NOTAS Y PENDIENTES
+================================================================================
+1. Los encabezados internos de los scripts (linea "File:") conservan el
+   nombre viejo como referencia historica. Esto no afecta la ejecucion.
+2. Los scripts en Trash/ no fueron modificados (referencias a nombres
+   viejos persisten ahi, lo cual es esperado).
+3. browse.do se mantuvo sin cambios (script ad-hoc, no parte del pipeline).
+4. ITT_LATE.do en _helpers/ -> NO existe. Se movio a Trash directamente.
+   El programa prg_falsification_tests.do SI quedo en _helpers/.
+
+================================================================================
+FIN DEL REGISTRO
+================================================================================

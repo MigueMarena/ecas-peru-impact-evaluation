@@ -1,0 +1,147 @@
+================================================================================
+REGISTRO DE PROGRESO — Reestructuración de Carpetas de Tablas
+Proyecto: HRC0052956 (Evaluación de Impacto ECAs Perú)
+Fecha: 2026-04-15
+Autor: Carlos Marena (asistido por Claude Code)
+================================================================================
+
+OBJETIVO:
+Reorganizar la estructura de carpetas dentro de Tablas/ para que cada categoría
+de resultado contenga subcarpetas por tipo de análisis (Balance, Falsificación,
+ITT, LATE), eliminar las subcarpetas docx/stcol (solo se guarda .docx), y
+centralizar la creación de carpetas en 00_master.do.
+
+================================================================================
+CAMBIOS REALIZADOS
+================================================================================
+
+[C1] 00_master.do — Creación centralizada de carpetas
+     Se agregó un bloque que crea la jerarquía completa de Tablas/:
+       ${ruta_tablas}/
+         1_Conocimiento_Agronómico/
+           1_Test_Balance/
+           2_Test_Falsificación/
+           3_ITT/
+           4_LATE/
+         2_Prácticas_Agronómicas/
+           (mismas 4 subcarpetas)
+         3_Registros_e_Inocuidad_Alimentaria/
+           (mismas 4 subcarpetas)
+         5_Resultados_Productivos_y_Económicos/
+           (mismas 4 subcarpetas)
+         4_Indicadores_Compuestos_BPAs/
+           (mismas 4 subcarpetas)
+       ${ruta_anexos}/
+         Indicadores_Compuestos_BPAs/
+     También se agregaron 25A y 25B al pipeline (Fase 6: Estimation).
+
+[C2] 25A_estimate_subind_ena.do — Limpieza de rutas
+     - Eliminado: bloque de cap mkdir (6 líneas)
+     - Eliminado: locals ruta_stcol_main y ruta_stcol_anex
+     - Actualizado: ruta_docx_main → .../4_Indicadores_Compuestos_BPAs/3_ITT
+     - Actualizado: ruta_docx_anex → .../Indicadores_Compuestos_BPAs (sin /docx)
+     - Descomentadas las líneas de collect export (solo .docx)
+     - Actualizado header del archivo (Output section)
+
+[C3] 25B_estimate_pilares_compuesto_ena.do — Limpieza de rutas
+     Mismos cambios que C2, adaptados a las rutas de pilares/compuesto.
+
+[C4] 17A_test_balance_subind_ena.do — Nueva ruta
+     - Eliminado: local ruta_stcol y collect save .stcol
+     - Cambiado: Balance_BPAs_PreIntervencion/docx →
+                 4_Indicadores_Compuestos_BPAs/1_Test_Balance
+
+[C5] 17B_test_balance_pilares_compuesto_ena.do — Nueva ruta
+     Mismos cambios que C4.
+
+[C6] 18_estimate_knowledge_scores.do — Nueva ruta
+     - Eliminado: local ruta_stcol y collect save .stcol
+     - Cambiado: 1_Conocimiento_Agronómico/docx →
+                 1_Conocimiento_Agronómico/3_ITT
+
+[C7] 19_estimate_bpa_uncond.do — Nueva ruta
+     - Eliminado: local ruta_stcol y 2x collect save .stcol (principal + EH)
+     - Cambiado: 2_Prácticas_Agronómicas/docx →
+                 2_Prácticas_Agronómicas/3_ITT
+
+[C8] 20_estimate_bpa_cond.do — Nueva ruta
+     Mismos cambios que C7.
+
+[C9] 21_estimate_records_safety.do — Nueva ruta
+     - Eliminado: local ruta_stcol y 2x collect save .stcol (principal + EH)
+     - Cambiado: 3_Registros_e_Inocuidad_Alimentaria/docx →
+                 3_Registros_e_Inocuidad_Alimentaria/3_ITT
+
+[C10] 22_estimate_crops_levels.do — Nueva ruta
+      - Eliminado: local ruta_stcol y 2x collect save .stcol (principal + EH)
+      - Cambiado: 5_Resultados_Productivos_y_Económicos/docx →
+                  5_Resultados_Productivos_y_Económicos/3_ITT
+
+[C11] 16_test_falsification.do — Rutas por categoría
+      - Eliminado: collect save .stcol
+      - Agregado: bloque condicional que mapea cada grupo (suffix) a su
+        categoría de resultado:
+          bpas      → 2_Prácticas_Agronómicas/2_Test_Falsificación/
+          regis/inoc → 3_Registros_e_Inocuidad_Alimentaria/2_Test_Falsificación/
+          dmy_pp/gtot_pp → 5_Resultados_Productivos_y_Económicos/2_Test_Falsificación/
+      - Descomentada la línea de collect export (ahora con ruta dinámica)
+
+[C12] 17_test_balance.do — Solo .docx
+      - Eliminado: collect save .stcol
+      - El .docx se mantiene en la raíz de ${ruta_tablas} (la tabla de
+        balance de covariables es transversal, no pertenece a ninguna
+        categoría de resultado específica).
+
+[C13] CLAUDE.md — Actualización
+      - Actualizada la estructura de carpetas con la nueva jerarquía
+      - Agregados scripts 17A, 17B, 25A, 25B al pipeline
+      - Actualizada la convención de exportación: solo .docx, subcarpetas
+        por tipo de análisis
+
+================================================================================
+RESUMEN DE SCRIPTS MODIFICADOS
+================================================================================
+
+  ┌──────────────────────────────────────────┬───────────────────────────────┐
+  │ Script                                    │ Cambios                       │
+  ├──────────────────────────────────────────┼───────────────────────────────┤
+  │ 00_master.do                              │ +mkdir jerarquía, +pipeline   │
+  │ 16_test_falsification.do                  │ -stcol, +rutas por categoría  │
+  │ 17_test_balance.do                        │ -stcol                        │
+  │ 17A_test_balance_subind_ena.do            │ -stcol, ruta → 5_.../1_TB     │
+  │ 17B_test_balance_pilares_compuesto_ena.do │ -stcol, ruta → 5_.../1_TB     │
+  │ 18_estimate_knowledge_scores.do           │ -stcol, ruta → 1_.../3_ITT    │
+  │ 19_estimate_bpa_uncond.do                 │ -stcol ×2, ruta → 2_.../3_ITT │
+  │ 20_estimate_bpa_cond.do                   │ -stcol ×2, ruta → 2_.../3_ITT │
+  │ 21_estimate_records_safety.do             │ -stcol ×2, ruta → 3_.../3_ITT │
+  │ 22_estimate_crops_levels.do               │ -stcol ×2, ruta → 4_.../3_ITT │
+  │ 25A_estimate_subind_ena.do                │ -mkdir, -stcol, ruta→5_.../ITT│
+  │ 25B_estimate_pilares_compuesto_ena.do     │ -mkdir, -stcol, ruta→5_.../ITT│
+  │ CLAUDE.md                                 │ +jerarquía, +pipeline, +conv  │
+  └──────────────────────────────────────────┴───────────────────────────────┘
+
+  Total: 13 archivos modificados
+
+================================================================================
+NOTAS Y PENDIENTES
+================================================================================
+
+1. La carpeta Balance_BPAs_PreIntervencion/ ya no se usa. Las tablas de
+   balance de 17A/17B ahora van a 4_Indicadores_Compuestos_BPAs/1_Test_Balance/.
+   Pendiente: mover o eliminar la carpeta antigua si existe.
+
+2. Script 17 (balance de covariables) mantiene su tabla en la raíz de
+   ${ruta_tablas} porque es transversal a todas las categorías.
+
+3. Script 22S no tiene collect save/export, no requirió cambios.
+
+4. Las subcarpetas 4_LATE/ están vacías por ahora (pendiente implementar
+   estimaciones LATE).
+
+5. Los scripts NO han sido re-ejecutados en Stata después de estos cambios.
+   Verificar que las carpetas se creen correctamente al correr 00_master.do
+   antes de ejecutar los scripts de estimación.
+
+================================================================================
+FIN DEL REGISTRO
+================================================================================

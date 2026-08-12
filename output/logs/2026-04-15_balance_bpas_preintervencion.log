@@ -1,0 +1,357 @@
+================================================================================
+REGISTRO DE PROGRESO — Tablas de Balance Pre-Intervención para BPAs compuestas
+Proyecto: HRC0052956 (Evaluación de Impacto ECAs Perú)
+Fecha: 2026-04-15
+Autor: Carlos Marena (asistido por Claude Code)
+================================================================================
+
+OBJETIVO:
+Generar tablas de balance pre-intervención (post==0) para los indicadores
+compuestos de BPAs construidos en 15_build_composite_bpas.do. Reportar, para
+cada indicador: (i) media en asignados al tratamiento, (ii) media en no
+asignados, (iii) p-valor de una regresión del indicador contra la asignación
+inicial con EF de diseño (región) y errores clusterizados a nivel de centro
+poblado. Usar el framework `collect` siguiendo el patrón de los scripts 18-22.
+
+Las tablas están pensadas para integrarse en el reporte final del paper como
+evidencia de que la aleatorización también balanceó a los grupos en los
+indicadores compuestos (no solo en las variables primitivas cubiertas por
+17_test_balance.do).
+
+================================================================================
+FASE 1: DISEÑO (alineación con el usuario)
+================================================================================
+
+Discusión inicial con el usuario — refinamiento del pedido vía /refine:
+
+[D1] Familias de indicadores a reportar
+     Originalmente: 3 tablas independientes (sub-indicadores, pilares,
+     compuesto final). Decisión final del usuario: COLAPSAR a 2 tablas.
+       Tabla 1 -> Sub-indicadores ENA (21 filas = 7 sub-ind x 3 versiones)
+       Tabla 2 -> Pilares ENA + Indicador compuesto (12 filas = 4 x 3 vers)
+
+[D2] Estructura de las tablas
+     Cada tabla se organiza en 3 paneles verticales correspondientes a las
+     3 versiones ENA: Flexibles (vF), En base a ENA (vO), Estrictos (vE).
+     Los paneles comparten el mismo orden de sub-indicadores/pilares para
+     facilitar la lectura cruzada.
+
+[D3] Etiquetas diferenciadas por versión (en la Tabla 1)
+     Requisito del usuario: las etiquetas de los sub-indicadores deben
+     reflejar la definición específica de cada versión, no repetir "BPA X"
+     literal. Ejemplos acordados:
+       vF riego : ">=2 practicas de riego"
+       vO riego : "BPAs de riego (ENA)"
+       vE riego : "Todas las BPAs de riego"
+     Tope duro: 30 caracteres por etiqueta.
+
+[D4] Etiquetas comunes para pilares y compuesto (Tabla 2)
+     En los pilares y el compuesto las definiciones son más claras y
+     conceptualmente idénticas entre versiones; las 3 versiones comparten
+     la misma etiqueta de fila y la discriminación la hace el header del
+     panel.
+
+[D5] Headers de panel
+     Flex     -> "Indicadores Flexibles"
+     ENA      -> "Indicadores en base a ENA"
+     Estricto -> "Indicadores Estrictos"
+
+[D6] Numeración y nomenclatura
+     Scripts   : 17A_test_balance_subind_ena.do,
+                 17B_test_balance_pilares_compuesto_ena.do
+       Razón: son extensiones naturales del 17_test_balance.do existente.
+     Carpeta   : 5_Entregables/Reporte Final_VPaper/Tablas/
+                 Balance_BPAs_PreIntervencion/{docx,stcol}/
+       (Nombre corregido del inicial propuesto Balance_ENA_PreIntervencion
+        a pedido del usuario.)
+     Archivos  : A-1_Tabla_SubInd_ENA.{docx,stcol}
+                 A-2_Tabla_Pilares_Compuesto_ENA.{docx,stcol}
+       Prefijo "A-N" provisional: la sección del paper aún no está asignada.
+       Cuando se defina, se reemplaza por el prefijo "{sección}-N".
+
+[D7] Especificación econométrica del p-valor
+     Para cada variable `y`:
+       areg y i.asig_ccpp if post==0, absorb(cod_rgn_PE) cluster(cod_cpb)
+     El p-valor reportado es el del coeficiente de 1.asig_ccpp:
+       pval = 2*ttail(e(df_r), abs(_b[1.asig_ccpp]/_se[1.asig_ccpp]))
+
+[D8] Muestra
+     Panel balanceado (mismo filtro que scripts 18-22: bys Codprod22 n_obs==2).
+     Aunque solo se usa post==0 en las regresiones, el filtro de panel
+     balanceado se aplica previamente para que la muestra sea consistente
+     con la del reporte final.
+
+[D9] Notas al pie
+     Se redactan dentro de cada script. Documentan: (i) la especificación
+     econométrica, (ii) la definición de cada versión ENA, (iii) los
+     rangos de N de observaciones y N de clusters en el panel balanceado.
+     El usuario las revisará al ver el output y se ajustarán si es necesario.
+
+================================================================================
+FASE 2: IMPLEMENTACIÓN
+================================================================================
+
+[15:00] CREACIÓN DE CARPETA DE OUTPUT
+  Se creó:
+    5_Entregables/Reporte Final_VPaper/Tablas/Balance_BPAs_PreIntervencion/
+    ├── docx/
+    └── stcol/
+
+[15:05] CREACIÓN DE 17A_test_balance_subind_ena.do
+
+Estructura del script (~170 líneas):
+
+  Step 1  : Load Data
+            - qui include 00_master.do
+            - use Vars_Caract_Obs (ids: Codprod22 post cod_rgn_PE cod_cpb
+              asig_ccpp)
+            - merge 1:1 con Vars_BPAs_Compuestos_LByLS, keepus(bpa_ena_*)
+            - Restriccion a panel balanceado
+
+  Step 2  : Label Update
+            - 21 etiquetas diferenciadas por version (<=30 chars)
+
+  Step 3  : Define Variables per Panel
+            - locals: Flex_v, ENA_v, Estricto_v con los 7 sub-ind cada uno
+            - locals: Flex_h, ENA_h, Estricto_h con los headers de panel
+
+  Step 4  : Generate Balance Table with Collect Framework
+            - Loop anidado: panel -> variables dentro del panel
+            - Para cada var: summ medias t/c y areg con EF y cluster
+            - collect get con tags(panel[pnl] cmdset[i] tipo[Mean_T/C/Pval])
+            - Rangos min-max de N_obs y N_clust acumulados en locals
+              para la nota al pie
+
+  Step 5  : Labels, Styles and Layout
+            - Labels de panel con los headers largos
+            - Labels de tipo: "Media Asignados", "Media No Asignados", "p-valor"
+            - Estilos de celda con fuente Roboto 10pt (consistente con 18-22
+              para tablas con 3 columnas de datos)
+
+  Step 6  : Notes and Title
+            - 5 notas: (i) especificacion general, (ii-iv) definicion de
+              cada version, (v) rangos de N
+
+  Step 7  : Export
+            - collect save   .../stcol/A-1_Tabla_SubInd_ENA.stcol
+            - collect export .../docx/A-1_Tabla_SubInd_ENA.docx
+
+[15:15] CREACIÓN DE 17B_test_balance_pilares_compuesto_ena.do
+
+Mismo esqueleto que 17A con las siguientes diferencias:
+  - keepus(ena_pilar_* implementa_bpa_ena_*) en el merge.
+  - 12 etiquetas, todas comunes entre versiones (Pilar agronomico,
+    Pilar insumos, Pilar inocuidad, Implementa BPAs (>=2 pilares)).
+  - Paneles con 4 filas cada uno.
+  - Notas al pie adaptadas: explican (i) la definicion de los pilares via
+    OR tolerante a missings, (ii) el indicador compuesto como ">=2 de 3
+    pilares", (iii) el mapeo vF/vO/vE -> sub-indicadores de su propia
+    version, (iv) rangos de N.
+
+[15:20] ACTUALIZACIÓN DE 00_master.do
+  - Last Mod. Date: 14/04/2026 -> 15/04/2026
+  - Agregadas dos lineas comentadas en la Fase 5 (Validation), debajo del
+    17_test_balance.do existente:
+      // do "${ruta_scripts}\\17A_test_balance_subind_ena.do"
+      // do "${ruta_scripts}\\17B_test_balance_pilares_compuesto_ena.do"
+
+[15:25] CREACIÓN DE ESTE REGISTRO
+
+================================================================================
+FASE 3: REFINAMIENTO ITERATIVO (post-ejecución inicial)
+================================================================================
+
+Tras ver el primer output, el usuario pidió una serie de ajustes que se
+implementaron en sucesivas iteraciones sobre AMBOS scripts (17A y 17B).
+Se listan en orden cronológico.
+
+[R1] Resaltado de celdas con p-valor < 0.10
+     Requisito: pintar las tres celdas del triplete (mean_t, mean_c, pv)
+     para cada indicador donde el p-valor del balance sea significativo al
+     10%, usando un color de la paleta BID. Elección: cian claro (tonalidad
+     primaria) RGB (147 202 235) / hex #93caeb.
+
+     Implementación final (tras varios tropezones):
+       - Se acumula un `local sig_idx' con los indices `i' de cmdset cuyo
+         p-valor < 0.10 dentro del loop de construccion.
+       - Post-loop, se aplica el shading por interseccion:
+             foreach s of local sig_idx {
+                 collect style cell cmdset[`s']#result[mean_t mean_c pv], ///
+                     shading(background(147 202 235))
+             }
+       - Tropezón 1: intentar usar una dimension `sig' ad-hoc
+         (collect get ... tags(sig[sig])) no funcionó porque la dimension
+         no aparece en el layout y el estilo no se aplica al render.
+       - Tropezón 2: usar RGB separado por espacios en formato "147 202 235"
+         como string falla; debe ir SIN comillas o en hex "#93caeb" (ambos
+         funcionan; el usuario prefirió RGB sin comillas al editar 17A).
+
+[R2] Estrellas de significancia en la columna de p-valor
+     Se usa `collect stars' con attach(pv):
+       collect stars pv 0.01 "***" 0.05 "**" 0.1 "*", attach(pv)
+     Se omite la opción `shownote' para evitar conflictos con el bloque
+     de notas ya redactado. La leyenda se integra manualmente como nota6.
+
+[R3] Renombrado de `collect get' a nombres semánticos
+     Se eliminó el dim `tipo' con niveles Mean_T/Mean_C/Pval (copiado sin
+     adaptación del patrón de los scripts 18-22). En su lugar se usan tres
+     result items nombrados semánticamente: `mean_t', `mean_c', `pv'.
+       qui collect get mean_t=`mean_t', tags(panel[`pnl'] cmdset[`i']) ...
+       qui collect get mean_c=`mean_c', tags(panel[`pnl'] cmdset[`i']) ...
+       qui collect get pv    =`pval',   tags(panel[`pnl'] cmdset[`i']) ...
+     Lección: no duplicar nombres de convenciones de estimation (coef/_se/
+     p) en contextos descriptivos — adaptar al significado.
+
+[R4] Nuevos headers de panel
+     Flex     -> "Grupo 1 - Criterios Flexibles"
+     ENA      -> "Grupo 2 - Criterios Equilibrados"
+     Estricto -> "Grupo 3 - Criterios Estrictos"
+     Reemplaza los headers originales ("Indicadores Flexibles" etc.)
+     del D5. Motivo del usuario: enfatizar la agrupación por rigurosidad
+     como "grupos" de criterios y no como "versiones ENA".
+
+[R5] Negrita solo en super-filas de panel
+     Requisito: ni los labels de sub-indicadores/pilares (cmdset) ni los
+     valores de datos deben quedar en negrita. Solo los headers de panel
+     (Grupo 1/2/3) van en bold.
+
+     Primer intento: ordenar las reglas de estilo para que `panel' vaya
+     antes que `cmdset' y `result'. Falló porque `font(Roboto, size(10pt))'
+     sin `bold|nobold' NO resetea el bold heredado de la regla anterior —
+     el atributo bold queda sticky.
+
+     Solución final: `nobold' explícito en las reglas de cmdset y result:
+         collect style cell cmdset, font(Roboto, size(`size_m') nobold) ...
+         collect style cell result, font(Roboto, size(`size_m') nobold) ...
+
+[R6] Homogenización de etiquetas entre versiones (Tabla 17A)
+     Requisito: eliminar redundancias (no más "BPA", "ENA", "flexible" en
+     las etiquetas). Las 3 versiones comparten el mismo nombre base; la
+     discriminación la hace un sufijo parentético corto.
+     Ejemplos finales (17A):
+       vF riego : "Prácticas adecuadas de riego (>=2)"
+       vO riego : "Prácticas adecuadas de riego"
+       vE riego : "Prácticas adecuadas de riego (todas)"
+     En 17B no aplica — los pilares y el compuesto ya usaban etiquetas
+     comunes.
+
+[R7] Medias en porcentaje
+     Los sub-indicadores y pilares son binarios {0,1}. Requisito: reportar
+     las medias como porcentaje (x100) con 2 decimales (%9.2f).
+         local mean_t = r(mean)*100
+         local mean_c = r(mean)*100
+         collect style cell result[mean_t mean_c], nformat(%9.2f)
+     Labels actualizados: "Media Asignados (%)" y "Media No Asignados (%)".
+
+[R8] Header superior en azul oscuro BID con texto blanco
+     Requisito: toda la fila superior de headers (los 3 labels de columna
+     + la celda esquina que los cubre encima de los labels de fila) debe
+     ir con fondo azul oscuro BID (RGB 0 78 112 / hex #004e70) y texto
+     blanco. SIN tocar las celdas de datos.
+
+     Primer intento: `collect style cell result[mean_t mean_c pv], shading
+     (background("#004e70")) font(... color(white))' + override via
+     `#cmdset' para revertir las celdas de datos. Problema: la celda esquina
+     (arriba de los labels de panel/cmdset) NO queda cubierta porque no
+     tiene tag `result'.
+
+     Solución final: usar la dimensión especial `cell_type':
+         collect style cell cell_type[corner column-header], ///
+             shading(background(0 78 112)) ///
+             font(Roboto, size(`size_m') color(white) nobold)
+     Esto cubre la fila entera de headers superior (incluida la corner)
+     sin tocar datos ni super-filas de panel. La regla es mucho más limpia
+     que el patrón anterior con override.
+
+[R9] Ancho de columnas
+     Originalmente: mat widths = (40, 20, 20, 20).
+     Final: mat widths = (55, 15, 15, 15) — labels más anchos, columnas
+     de datos más estrechas, para acomodar las etiquetas homogenizadas
+     que son más largas.
+
+[R10] Notas al pie reescritas (ambos scripts)
+     Cambios estilísticos uniformes:
+       - Quitar "(post==0)" de la nota1.
+       - Quitar referencia explícita a "15_build_composite_bpas.do".
+       - "BPAs" -> "Buenas Prácticas" en el cuerpo.
+       - "(asig_ccpp)" -> "del centro poblado".
+       - "EF de region" -> "efectos fijos de diseño".
+       - "errores estandar" -> "errores estándar".
+       - Las notas de versión se reescriben en clave "El Grupo 1/2/3 ..."
+         alineadas con los nuevos headers de panel de R4.
+       - Quitar "panel balanceado," de la nota5.
+       - nota6: "se resaltan en cian claro" -> "se resaltan en color cian
+         claro".
+
+     Contenido específico en 17B que se preserva (no se estiliza como 17A
+     porque estructuralmente es distinto): las notas que definen los pilares
+     como OR tolerante a missings y el indicador compuesto como ">=2 de 3
+     pilares".
+
+     Títulos:
+       17A: "Balance pre-intervencion - Sub-indicadores de Buenas Prácticas"
+       17B: "Balance pre-intervencion - Pilares y Compuesto de Buenas Prácticas"
+
+[R11] Cambio de esquema de columnas: Media Control + Diferencia Estimada + p-valor
+     Decisión metodológica: en lugar de reportar medias de ambos grupos
+     (asignados y no asignados), se pasa a:
+       Col 1: Media Control (%) — media incondicional del grupo no asignado
+       Col 2: Diferencia Estimada en t=0 (p.p.) — coef. de 1.asig_ccpp × 100
+       Col 3: p-valor — del mismo coeficiente
+     Ventajas: (i) las 3 columnas son internamente consistentes (la diferencia
+     y el p-valor vienen del mismo modelo condicional al estrato); (ii) la
+     media del control ancla la interpretación sustantiva; (iii) el lector
+     reconstruye la media del grupo tratado como Control + Diferencia.
+
+     Cambios en código (ambos scripts):
+       - Se elimina `qui summ `var' if asig_ccpp==1 & post==0' (media de
+         asignados ya no se computa por separado).
+       - Se agrega `local diff = _b[1.asig_ccpp]*100' tras la regresión.
+       - `collect get mean_t=...' se reemplaza por `collect get diff=...'.
+       - Labels: mean_c "Media Control (%)", diff "Diferencia Estimada en
+         t=0 (p.p.)", pv "p-valor".
+       - nformat, shading, layout, etc. actualizados: mean_t → diff.
+       - Notas actualizadas para describir el nuevo esquema.
+
+[R12] Nota de pilares sin jerga técnica (solo 17B)
+     La nota2 de 17B describía los pilares como "OR tolerante a missings".
+     Se reescribió en lenguaje accesible: "toma valor 1 cuando el productor
+     cumple al menos uno de los sub-indicadores de X o Y (tolerando valores
+     faltantes en el otro/los demás)".
+
+================================================================================
+NOTAS Y PENDIENTES
+================================================================================
+
+1. Los scripts NO han sido ejecutados en Stata todavia. Antes de correrlos
+   en produccion verificar:
+   - Que Vars_BPAs_Compuestos_LByLS.dta exista (output del script 15).
+   - Que Vars_Caract_Obs.dta contenga la variable asig_ccpp (no es parte
+     del vlist1 original de otros scripts estimate; si falta, agregar el
+     merge con el archivo que la contiene o ajustar el vlist_id).
+   - Que cod_rgn_PE este disponible en Vars_Caract_Obs (estrato de region
+     como FE).
+
+2. Si al ejecutar el layout de collect no se ve el header de panel como
+   banda completa, probar con collect style cell panel, font(...) bold
+   border(bottom, pattern(single)) o ajustar el style row stack.
+
+3. Seccion del paper: aun no asignada. Cuando se defina, reemplazar:
+     local sec "A"  -> local sec "{N.M}"
+   en ambos scripts (17A y 17B), y renombrar los archivos de salida.
+
+4. Notas al pie: redactadas dentro del script. El usuario revisara el
+   output y pedira ajustes si es necesario.
+
+5. No se reportan N_obs y N_clust como filas dentro de la tabla (para no
+   recargar el layout). Se reportan como rangos en la nota 5 al pie. Si
+   el usuario prefiere filas explicitas, agregar un bloque model[Stats]
+   siguiendo el patron de 19_estimate_bpa_uncond.do.
+
+6. [SUPERADO] Formato de p-valor: ahora con estrellas (ver R2 en Fase 3)
+   y esquema de columnas cambiado a Media Control + Diferencia + p-valor
+   (ver R11 en Fase 3).
+
+================================================================================
+FIN DEL REGISTRO
+================================================================================

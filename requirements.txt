@@ -1,0 +1,21 @@
+# Dependencias Python del paquete de replicación.
+#
+# Solo cubren el código publicado en code/. Las versiones son mínimos probados,
+# no pines exactos: el pipeline no depende de APIs recientes de ninguna.
+#
+#   pip install -r requirements.txt
+
+# Figuras (I2_graph_consort.py, plot_knowledge_distributions.py)
+matplotlib>=3.7
+numpy>=1.24
+pandas>=2.0
+scipy>=1.10
+
+# Lectura de bases Stata en Python (plot_knowledge_distributions.py)
+pyreadstat>=1.2
+
+# Construcción de diccionarios y catálogos de variables (_build_*.py)
+openpyxl>=3.1
+
+# Validación y saneamiento del paquete .docx del reporte (check_sections.py)
+lxml>=4.9

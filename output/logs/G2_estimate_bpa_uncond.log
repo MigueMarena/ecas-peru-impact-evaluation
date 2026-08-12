@@ -1,0 +1,270 @@
+--------------------------------------------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  E:\Consultorías\\BID\HRC0052956\\3_Logs\G2_estimate_bpa_uncond.log
+  log type:  text
+ opened on:  25 May 2026, 23:13:29
+
+. 
+. 
+. // Cargar programas (prg_table_3panels primero porque define _fmt_*)
+. qui do "${ruta_helpers}/prg_load_panel.do"
+
+. qui do "${ruta_helpers}/prg_table_3panels.do"
+
+. qui do "${ruta_helpers}/prg_table_2panels.do"
+
+. 
+. //------------------------------------------------------------------------------
+. // 1. Cargar la base maestra + outcomes + vars crudas para D_c/P_i
+. //------------------------------------------------------------------------------
+. prg_load_panel, ///
+>         outcome_file("BPAs_CondyNoCond_LByLS") ///
+>         outcome_vars(bpa_1-bpa_14) ///
+>         extra_vars(i1aECA_PE_ccpp ptcp_ECA_prod)
+(Características de la observación: identificadores, efectos fijos, ECA y exposic)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                             0
+    Matched                             2,727  
+    -----------------------------------------
+(label sino already defined)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                             0
+    Matched                             2,727  
+    -----------------------------------------
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                             0
+    Matched                             2,727  
+    -----------------------------------------
+(label sino already defined)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                             0
+    Matched                             2,727  
+    -----------------------------------------
+(label sino already defined)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                             0
+    Matched                             2,727  
+    -----------------------------------------
+Obs. descartadas por panel no balanceado: 163
+(163 observations deleted)
+
+. 
+. //------------------------------------------------------------------------------
+. // 2. Construir D_c y P_i (definiciones operacionales — explícitas y visibles)
+. //    D_c: el cluster implementó la 1a ECA en el producto a evaluar
+. //    P_i: el productor participó de la ECA en cultivo de interés
+. //    Missings → 0 (no implementación / no participación)
+. //------------------------------------------------------------------------------
+. gen byte D_c = (i1aECA_PE_ccpp == 1) if !mi(asig_ccpp)
+
+. gen byte P_i = (ptcp_ECA_prod  == 1) if !mi(asig_ccpp)
+
+. 
+. //------------------------------------------------------------------------------
+. // 3. Labels amigables — single source of truth. El helper los lee con
+. //    `: variable label` para componer el título de la tabla.
+. //------------------------------------------------------------------------------
+. lab var bpa_1  "Análisis de suelo"
+
+. lab var bpa_2  "Suelo + materia orgánica"
+
+. lab var bpa_3  "Asociaron cultivos"
+
+. lab var bpa_4  "Surcos en contorno"
+
+. lab var bpa_5  "Demanda hídrica del cultivo"
+
+. lab var bpa_6  "Frecuencia de riego"
+
+. lab var bpa_7  "Volumen de agua aplicada"
+
+. lab var bpa_8  "Mantenim. sistema de riego"
+
+. lab var bpa_9  "Análisis de agua"
+
+. lab var bpa_10 "Uso de abonos"
+
+. lab var bpa_11 "Uso de fertilizantes"
+
+. lab var bpa_12 "Uso de plaguicidas"
+
+. lab var bpa_13 "Control biológico"
+
+. lab var bpa_14 "Manejo Integrado de Plagas"
+
+. 
+. //------------------------------------------------------------------------------
+. // 4. Generar las 14 tablas anexas en 3 bloques
+. //------------------------------------------------------------------------------
+. local ctrl_set c.edad c.edadsq i.sexo c.educ i.castell c.ilogsact c.icondvid ///
+>         c.tot_miem_1564 c.tot_miem_depen c.tot_has_prod i.riego_tec_prod ///
+>         c.años_tenen_prod i.mes_enc
+
+. 
+. local outdir "${ruta_anexos}/Prácticas_Agronómicas"
+
+. 
+. // --- BPA Suelo: bpa_1..bpa_4 (toda la muestra) ---
+. local phrases_suelo `" "la realización de análisis de suelo" "la incorporación de materia orgánica al suelo" "la asociac
+> ión de cultivos" "la siembra en surcos a contorno" "'
+
+. forvalues k = 1/4 {
+  2.         gettoken phrase phrases_suelo : phrases_suelo
+  3.         local var bpa_`k'
+  4.         prg_table_2panels, ///
+>                 outcome(`var') outcome_phrase("`phrase'") ///
+>                 table_num("A.2-`k'") ///
+>                 out("`outdir'/A-2-`k'_Tab_BPA_`var'.docx") ///
+>                 z_var(asig_ccpp) dc_var(D_c) pi_var(P_i) post_var(post) ///
+>                 controls("`ctrl_set'") absorb(cod_rgn_PE) cluster(cod_cpb)
+  5. }
+successfully replaced "E:/Consultorías/BID/HRC0052956/5_Entregables/Reporte Final_VPaper/Anexos/Prácticas_Agronómicas/A-2-
+> 1_Tab_BPA_bpa_1.docx"
+Bordes dobles engrosados a 1.5pt en: E:\Consultorías\\BID\HRC0052956\\5_Entregables\\Reporte Final_VPaper\\Anexos/Práctica
+> s_Agronómicas/A-2-1_Tab_BPA_bpa_1.docx
+Archivo guardado: E:\Consultorías\\BID\HRC0052956\\5_Entregables\\Reporte Final_VPaper\\Anexos/Prácticas_Agronómicas/A-2-1
+> _Tab_BPA_bpa_1.docx
+successfully replaced "E:/Consultorías/BID/HRC0052956/5_Entregables/Reporte Final_VPaper/Anexos/Prácticas_Agronómicas/A-2-
+> 2_Tab_BPA_bpa_2.docx"
+Bordes dobles engrosados a 1.5pt en: E:\Consultorías\\BID\HRC0052956\\5_Entregables\\Reporte Final_VPaper\\Anexos/Práctica
+> s_Agronómicas/A-2-2_Tab_BPA_bpa_2.docx
+Archivo guardado: E:\Consultorías\\BID\HRC0052956\\5_Entregables\\Reporte Final_VPaper\\Anexos/Prácticas_Agronómicas/A-2-2
+> _Tab_BPA_bpa_2.docx
+successfully replaced "E:/Consultorías/BID/HRC0052956/5_Entregables/Reporte Final_VPaper/Anexos/Prácticas_Agronómicas/A-2-
+> 3_Tab_BPA_bpa_3.docx"
+Bordes dobles engrosados a 1.5pt en: E:\Consultorías\\BID\HRC0052956\\5_Entregables\\Reporte Final_VPaper\\Anexos/Práctica
+> s_Agronómicas/A-2-3_Tab_BPA_bpa_3.docx
+Archivo guardado: E:\Consultorías\\BID\HRC0052956\\5_Entregables\\Reporte Final_VPaper\\Anexos/Prácticas_Agronómicas/A-2-3
+> _Tab_BPA_bpa_3.docx
+successfully replaced "E:/Consultorías/BID/HRC0052956/5_Entregables/Reporte Final_VPaper/Anexos/Prácticas_Agronómicas/A-2-
+> 4_Tab_BPA_bpa_4.docx"
+Bordes dobles engrosados a 1.5pt en: E:\Consultorías\\BID\HRC0052956\\5_Entregables\\Reporte Final_VPaper\\Anexos/Práctica
+> s_Agronómicas/A-2-4_Tab_BPA_bpa_4.docx
+Archivo guardado: E:\Consultorías\\BID\HRC0052956\\5_Entregables\\Reporte Final_VPaper\\Anexos/Prácticas_Agronómicas/A-2-4
+> _Tab_BPA_bpa_4.docx
+
+. 
+. // --- BPA Riego: bpa_5..bpa_9 (submuestra: riego_tec_prod==1) ---
+. // Pasa outcome_qualifier corto + note_extra con el detalle de la submuestra,
+. // para mantener el título bajo 20 palabras y la definición operativa en la nota.
+. local phrases_riego `" "la estimación de la demanda hídrica del cultivo" "la programación de la frecuencia de riego" "el
+>  ajuste del volumen de agua aplicada" "el mantenimiento del sistema de riego" "la realización de análisis del agua de ri
+> ego" "'
+
+. local q_riego     "submuestra: riego tecnificado"
+
+. local extra_riego "La submuestra incluye productores con al menos un predio bajo riego tecnificado."
+
+. preserve
+
+. keep if riego_tec_prod == 1
+(2,204 observations deleted)
+
+. forvalues k = 5/9 {
+  2.         gettoken phrase phrases_riego : phrases_riego
+  3.         local var bpa_`k'
+  4.         prg_table_2panels, ///
+>                 outcome(`var') outcome_phrase("`phrase'") ///
+>                 outcome_qualifier("`q_riego'") ///
+>                 note_extra("`extra_riego'") ///
+>                 table_num("A.2-`k'") ///
+>                 out("`outdir'/A-2-`k'_Tab_BPA_`var'.docx") ///
+>                 z_var(asig_ccpp) dc_var(D_c) pi_var(P_i) post_var(post) ///
+>                 controls("`ctrl_set'") absorb(cod_rgn_PE) cluster(cod_cpb)
+  5. }
+successfully replaced "E:/Consultorías/BID/HRC0052956/5_Entregables/Reporte Final_VPaper/Anexos/Prácticas_Agronómicas/A-2-
+> 5_Tab_BPA_bpa_5.docx"
+Bordes dobles engrosados a 1.5pt en: E:\Consultorías\\BID\HRC0052956\\5_Entregables\\Reporte Final_VPaper\\Anexos/Práctica
+> s_Agronómicas/A-2-5_Tab_BPA_bpa_5.docx
+Archivo guardado: E:\Consultorías\\BID\HRC0052956\\5_Entregables\\Reporte Final_VPaper\\Anexos/Prácticas_Agronómicas/A-2-5
+> _Tab_BPA_bpa_5.docx
+successfully replaced "E:/Consultorías/BID/HRC0052956/5_Entregables/Reporte Final_VPaper/Anexos/Prácticas_Agronómicas/A-2-
+> 6_Tab_BPA_bpa_6.docx"
+Bordes dobles engrosados a 1.5pt en: E:\Consultorías\\BID\HRC0052956\\5_Entregables\\Reporte Final_VPaper\\Anexos/Práctica
+> s_Agronómicas/A-2-6_Tab_BPA_bpa_6.docx
+Archivo guardado: E:\Consultorías\\BID\HRC0052956\\5_Entregables\\Reporte Final_VPaper\\Anexos/Prácticas_Agronómicas/A-2-6
+> _Tab_BPA_bpa_6.docx
+successfully replaced "E:/Consultorías/BID/HRC0052956/5_Entregables/Reporte Final_VPaper/Anexos/Prácticas_Agronómicas/A-2-
+> 7_Tab_BPA_bpa_7.docx"
+Bordes dobles engrosados a 1.5pt en: E:\Consultorías\\BID\HRC0052956\\5_Entregables\\Reporte Final_VPaper\\Anexos/Práctica
+> s_Agronómicas/A-2-7_Tab_BPA_bpa_7.docx
+Archivo guardado: E:\Consultorías\\BID\HRC0052956\\5_Entregables\\Reporte Final_VPaper\\Anexos/Prácticas_Agronómicas/A-2-7
+> _Tab_BPA_bpa_7.docx
+successfully replaced "E:/Consultorías/BID/HRC0052956/5_Entregables/Reporte Final_VPaper/Anexos/Prácticas_Agronómicas/A-2-
+> 8_Tab_BPA_bpa_8.docx"
+Bordes dobles engrosados a 1.5pt en: E:\Consultorías\\BID\HRC0052956\\5_Entregables\\Reporte Final_VPaper\\Anexos/Práctica
+> s_Agronómicas/A-2-8_Tab_BPA_bpa_8.docx
+Archivo guardado: E:\Consultorías\\BID\HRC0052956\\5_Entregables\\Reporte Final_VPaper\\Anexos/Prácticas_Agronómicas/A-2-8
+> _Tab_BPA_bpa_8.docx
+successfully replaced "E:/Consultorías/BID/HRC0052956/5_Entregables/Reporte Final_VPaper/Anexos/Prácticas_Agronómicas/A-2-
+> 9_Tab_BPA_bpa_9.docx"
+Bordes dobles engrosados a 1.5pt en: E:\Consultorías\\BID\HRC0052956\\5_Entregables\\Reporte Final_VPaper\\Anexos/Práctica
+> s_Agronómicas/A-2-9_Tab_BPA_bpa_9.docx
+Archivo guardado: E:\Consultorías\\BID\HRC0052956\\5_Entregables\\Reporte Final_VPaper\\Anexos/Prácticas_Agronómicas/A-2-9
+> _Tab_BPA_bpa_9.docx
+
+. restore
+
+. 
+. // --- BPA Insumos: bpa_10..bpa_14 (toda la muestra) ---
+. local phrases_insumos `" "el uso de abonos" "el uso de fertilizantes" "el uso de plaguicidas" "la aplicación de control 
+> biológico" "la implementación de Manejo Integrado de Plagas" "'
+
+. forvalues k = 10/14 {
+  2.         gettoken phrase phrases_insumos : phrases_insumos
+  3.         local var bpa_`k'
+  4.         prg_table_2panels, ///
+>                 outcome(`var') outcome_phrase("`phrase'") ///
+>                 table_num("A.2-`k'") ///
+>                 out("`outdir'/A-2-`k'_Tab_BPA_`var'.docx") ///
+>                 z_var(asig_ccpp) dc_var(D_c) pi_var(P_i) post_var(post) ///
+>                 controls("`ctrl_set'") absorb(cod_rgn_PE) cluster(cod_cpb)
+  5. }
+successfully replaced "E:/Consultorías/BID/HRC0052956/5_Entregables/Reporte Final_VPaper/Anexos/Prácticas_Agronómicas/A-2-
+> 10_Tab_BPA_bpa_10.docx"
+Bordes dobles engrosados a 1.5pt en: E:\Consultorías\\BID\HRC0052956\\5_Entregables\\Reporte Final_VPaper\\Anexos/Práctica
+> s_Agronómicas/A-2-10_Tab_BPA_bpa_10.docx
+Archivo guardado: E:\Consultorías\\BID\HRC0052956\\5_Entregables\\Reporte Final_VPaper\\Anexos/Prácticas_Agronómicas/A-2-1
+> 0_Tab_BPA_bpa_10.docx
+successfully replaced "E:/Consultorías/BID/HRC0052956/5_Entregables/Reporte Final_VPaper/Anexos/Prácticas_Agronómicas/A-2-
+> 11_Tab_BPA_bpa_11.docx"
+Bordes dobles engrosados a 1.5pt en: E:\Consultorías\\BID\HRC0052956\\5_Entregables\\Reporte Final_VPaper\\Anexos/Práctica
+> s_Agronómicas/A-2-11_Tab_BPA_bpa_11.docx
+Archivo guardado: E:\Consultorías\\BID\HRC0052956\\5_Entregables\\Reporte Final_VPaper\\Anexos/Prácticas_Agronómicas/A-2-1
+> 1_Tab_BPA_bpa_11.docx
+successfully replaced "E:/Consultorías/BID/HRC0052956/5_Entregables/Reporte Final_VPaper/Anexos/Prácticas_Agronómicas/A-2-
+> 12_Tab_BPA_bpa_12.docx"
+Bordes dobles engrosados a 1.5pt en: E:\Consultorías\\BID\HRC0052956\\5_Entregables\\Reporte Final_VPaper\\Anexos/Práctica
+> s_Agronómicas/A-2-12_Tab_BPA_bpa_12.docx
+Archivo guardado: E:\Consultorías\\BID\HRC0052956\\5_Entregables\\Reporte Final_VPaper\\Anexos/Prácticas_Agronómicas/A-2-1
+> 2_Tab_BPA_bpa_12.docx
+successfully replaced "E:/Consultorías/BID/HRC0052956/5_Entregables/Reporte Final_VPaper/Anexos/Prácticas_Agronómicas/A-2-
+> 13_Tab_BPA_bpa_13.docx"
+Bordes dobles engrosados a 1.5pt en: E:\Consultorías\\BID\HRC0052956\\5_Entregables\\Reporte Final_VPaper\\Anexos/Práctica
+> s_Agronómicas/A-2-13_Tab_BPA_bpa_13.docx
+Archivo guardado: E:\Consultorías\\BID\HRC0052956\\5_Entregables\\Reporte Final_VPaper\\Anexos/Prácticas_Agronómicas/A-2-1
+> 3_Tab_BPA_bpa_13.docx
+successfully replaced "E:/Consultorías/BID/HRC0052956/5_Entregables/Reporte Final_VPaper/Anexos/Prácticas_Agronómicas/A-2-
+> 14_Tab_BPA_bpa_14.docx"
+Bordes dobles engrosados a 1.5pt en: E:\Consultorías\\BID\HRC0052956\\5_Entregables\\Reporte Final_VPaper\\Anexos/Práctica
+> s_Agronómicas/A-2-14_Tab_BPA_bpa_14.docx
+Archivo guardado: E:\Consultorías\\BID\HRC0052956\\5_Entregables\\Reporte Final_VPaper\\Anexos/Prácticas_Agronómicas/A-2-1
+> 4_Tab_BPA_bpa_14.docx
+
+. 
+. log close
+      name:  <unnamed>
+       log:  E:\Consultorías\\BID\HRC0052956\\3_Logs\G2_estimate_bpa_uncond.log
+  log type:  text
+ closed on:  25 May 2026, 23:13:50
+--------------------------------------------------------------------------------------------------------------------------
