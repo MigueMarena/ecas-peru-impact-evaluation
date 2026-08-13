@@ -76,13 +76,38 @@ foreach f of local files{
 
 // Ruta insumo Marcos Agurto
 local path_from "${ruta_docum}\Identificacion_tratados\Acompañamiento_linea_base_marcos"
-// `unzipfile' extrae siempre al directorio de trabajo y no admite destino, así
-// que el `cd' es inevitable acá. Se guarda el directorio previo y se restaura:
-// dejarlo cambiado afectaría a cualquier script que corra después en la sesión.
-local pwd_previo "`c(pwd)'"
-cd "${ruta_data}\Raw\3_Centros Poblados y su Estatus de Tratamiento\Insumos Consultoría M.A\Entregable 2"
-unzipfile "`path_from'\Entregable_2_Inocuidad_SENASA.zip", replace
-cd "`pwd_previo'"
+local path_to   "${ruta_data}\Raw\3_Centros Poblados y su Estatus de Tratamiento\Insumos Consultoría M.A\Entregable 2"
+
+// El insumo de la consultoría M.A. llegó originalmente como .zip, pero en el
+// árbol actual ya está descomprimido como carpeta y el .zip no existe. Se
+// aceptan las dos formas: con solo `unzipfile', B1 aborta con r(601) y el
+// pipeline no arranca — es lo que pasaba antes del 2026-08-13.
+capture confirm file "`path_from'\Entregable_2_Inocuidad_SENASA.zip"
+if !_rc {
+	// `unzipfile' extrae al directorio de trabajo y no admite destino, así que
+	// el `cd' es inevitable. Se guarda el directorio previo y se restaura:
+	// dejarlo cambiado afectaría a cualquier script posterior de la sesión.
+	local pwd_previo "`c(pwd)'"
+	cd "`path_to'"
+	unzipfile "`path_from'\Entregable_2_Inocuidad_SENASA.zip", replace
+	cd "`pwd_previo'"
+}
+else {
+	local carpeta "`path_from'\Entregable_2_Inocuidad_SENASA"
+	capture local ent2 : dir "`carpeta'" files "*"
+	if _rc {
+		di as error "No encuentro el insumo de la consultoría M.A., ni como"
+		di as error ".zip ni como carpeta, en:"
+		di as error "    `path_from'"
+		exit 601
+	}
+	foreach f of local ent2 {
+		// Los ~$ son archivos de bloqueo de Word, no contenido.
+		if substr("`f'", 1, 2) != "~$" {
+			capture copy "`carpeta'\\`f'" "`path_to'\\`f'", replace
+		}
+	}
+}
 
 // NOTA: En que difieren ccpp_intervencion.xlsx y
 // ccpp_senasa_validado_final_12.02.xlsx?

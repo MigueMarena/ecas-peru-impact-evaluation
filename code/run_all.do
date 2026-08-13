@@ -39,8 +39,13 @@ if "${ruta_data}" == "" {
 	exit 601
 }
 
-cap log close
-log using "${ruta_logs}/run_all.log", replace text
+// El log del orquestador va en un CANAL con nombre. Cada script del pipeline
+// abre el suyo con `log using` sin nombre y lo cierra con `cap log close`, así
+// que un log anónimo acá quedaría secuestrado por el primer script y el
+// orquestador perdería el rastro de qué fase falló — que es justo lo que hay
+// que ver cuando algo se rompe.
+cap log close _all
+log using "${ruta_logs}/run_all.log", replace text name(runall)
 
 //==============================================================================
 // Step 2: Qué fases correr
@@ -116,7 +121,7 @@ foreach fase of local fases_pedidas {
 		if _rc {
 			di as error _n "El pipeline se detuvo en `s'.do (r(" _rc "))."
 			di as error "Revisá ${ruta_logs}/`s'.log."
-			cap log close
+			cap log close runall
 			exit _rc
 		}
 
@@ -137,4 +142,4 @@ di as text _n "{hline 78}"
 di as text "Pipeline completo. Inicio `t_inicio' — fin " c(current_time)
 di as text "{hline 78}"
 
-log close
+cap log close runall

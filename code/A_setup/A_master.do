@@ -56,8 +56,15 @@ if _rc {
 //==============================================================================
 // Step 2: Set up absolute and relative paths
 //==============================================================================
-// Ruta absoluta del proyecto
-global ruta_abs "${ECAS}"
+// Ruta absoluta del proyecto.
+// Se normalizan los separadores a "\": Stata acepta "/" y "\" indistintamente en
+// Windows, pero las herramientas externas que el pipeline invoca no. Word por COM
+// (update_fields_export_pdf.ps1, verify_compiled_docx.ps1) rechaza una ruta con
+// separadores mezclados —"D:/ruta/al/repo\5_Entregables\..."— con un
+// "no encontramos el archivo" que no dice nada del separador. Como ${ECAS} la
+// escribe el usuario, puede venir de cualquier forma; acá se unifica una vez.
+local ecas_norm = subinstr("${ECAS}", "/", "\", .)
+global ruta_abs "`ecas_norm'"
 
 // Rutas relativas
 global ruta_share   "${ruta_abs}\\0_1 Compartidos"
@@ -89,10 +96,10 @@ global ruta_diagnostics   "${ruta_scripts}\\I_diagnostics"
 // Programas y utilidades reusables (invocados desde los scripts de fase)
 global ruta_utils  "${ruta_scripts}\\_utils"
 
-// Redirige el log de stata-batch a 3_Logs/ (limpia el log auto en 2_Scripts).
-cap log close
-cap erase "${ruta_scripts}\A_master.log"
-log using "${ruta_logs}\A_master.log", replace text
+// A_master.do NO abre ni cierra ningún log, a propósito. Se incluye desde
+// decenas de scripts y helpers, y un `cap log close' acá le cerraría el log al
+// que lo llamó a mitad de ejecución — que es lo que rompía D_merge_panels.do
+// cuando uno de sus helpers hacía el bootstrap. El log lo maneja cada script.
 
 
 //==============================================================================
@@ -170,5 +177,3 @@ local basesCultivo  ""`outc1'\pcl_Cultivo_LB" 	"`outc2'\pcl_Cultivo_LS""
 // (Tenerlos juntos era la trampa: los 35 scripts hacen `include` de este
 // archivo, así que activar aquí las llamadas del pipeline habría producido
 // recursión infinita.)
-
-log close

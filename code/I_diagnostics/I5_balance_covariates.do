@@ -37,14 +37,17 @@ clear all
 //==============================================================================
 // Bootstrap del entorno: define las globals ${ruta_*} a partir de ${ECAS},
 // la única entrada de configuración del pipeline (ver A_master.do).
+// A_master.do se incluye SIEMPRE, sin guardarlo tras un `if' sobre alguna
+// global: define locales (`outc1', `rawc1', …) y `do' abre un scope nuevo,
+// así que los locales del llamador NO llegan hasta acá. Saltarse el include
+// porque las globals ya existan deja al script sin rutas y falla con r(601).
+// `include' es idempotente: solo redefine rutas y crea carpetas con `cap'.
+capture qui include "${ECAS}/2_Scripts/A_setup/A_master.do"
+if _rc capture qui include "2_Scripts/A_setup/A_master.do"
 if "${ruta_data}" == "" {
-	capture qui include "${ECAS}/2_Scripts/A_setup/A_master.do"
-	if _rc capture qui include "2_Scripts/A_setup/A_master.do"
-	if "${ruta_data}" == "" {
-		di as error "No encuentro A_master.do. Definí la global ECAS con la ruta"
-		di as error "a la raíz del repositorio, o corré Stata desde esa raíz."
-		exit 601
-	}
+	di as error "No encuentro A_master.do. Definí la global ECAS con la ruta"
+	di as error "a la raíz del repositorio, o corré Stata desde esa raíz."
+	exit 601
 }
 
 // Redirige el log de stata-batch a 3_Logs/ (limpia el log auto en 2_Scripts).
@@ -298,7 +301,11 @@ program define _format_export
 
 	mat widths = (38, 12, 6, 12, 6, 8, 8, 10)
 	collect style putdocx, name(`tag') width(widths)
-	collect export "`outanx'\\`outfile'.docx", as(docx) name(`tag') replace
+	// Se usa `outdir', que ES un parámetro del programa. Antes decía `outanx',
+	// un local del script principal: dentro de un `program' no es visible, así
+	// que la ruta quedaba vacía y el export fallaba. El caller decide si la
+	// tabla va a Cuerpo/ o a Anexo/.
+	collect export "`outdir'\\`outfile'.docx", as(docx) name(`tag') replace
 end
 
 //==============================================================================
@@ -387,7 +394,7 @@ collect notes "`nota1' `nota2' `nota3' `nota4'"
 
 _format_export, tag(`tag4') ///
 	titulo("Tabla B.5-1 — Balance en covariables en línea base (especificación ajustada)") ///
-	outfile("B-5-1_Tabla_Balance_Covariables") outdir("`outdir'") ///
+	outfile("B-5-1_Tabla_Balance_Covariables") outdir("`outanx'") ///
 	hdr_panel(`idx_hdrA' `idx_hdrB' `idx_hdrC')
 
 //==============================================================================
@@ -508,7 +515,7 @@ collect notes "`nota1' `nota2' `nota3'"
 
 _format_export, tag(`tag5') ///
 	titulo("Tabla B.5-2 — Balance en variables resultado en línea base (versión ENA)") ///
-	outfile("B-5-2_Tabla_Balance_Vars_Resultado") outdir("`outdir'")
+	outfile("B-5-2_Tabla_Balance_Vars_Resultado") outdir("`outanx'")
 
 //==============================================================================
 // Step 8: Tabla B.5-3 — Balance en recolección (timing)
@@ -546,7 +553,7 @@ collect notes "`nota1' `nota2' `nota3' `nota4'"
 
 _format_export, tag(`tag6') ///
 	titulo("Tabla B.5-3 — Balance en el momento de recolección") ///
-	outfile("B-5-3_Tabla_Balance_Timing") outdir("`outdir'")
+	outfile("B-5-3_Tabla_Balance_Timing") outdir("`outanx'")
 
 di as text ""
 di as text "Listo: D4 (covariables), D5 (resultado vO) y D6 (timing) exportadas en `outdir'."

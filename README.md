@@ -239,7 +239,12 @@ en la misma carpeta, que es como se las consulta.
 Figuras en `output/figures/`: diagrama CONSORT, love plot de balance y etapas de
 selección de centros poblados — las tres que cita el reporte.
 
-Logs de ejecución de Stata en `output/logs/`.
+**Los logs de ejecución no se publican.** Un log de Stata registra todo lo que el
+script echó por pantalla, y eso incluye el código de los helpers que ejecuta: el
+del cruce de paneles queda con decenas de líneas de DNIs y apellidos reales,
+porque ejecuta las correcciones manuales de identificadores. Garantizar que un
+log futuro esté limpio depende de qué eche cada script, así que la regla es no
+publicarlos.
 
 ---
 
