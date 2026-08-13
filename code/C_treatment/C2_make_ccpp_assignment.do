@@ -85,7 +85,13 @@ save "`outc3ccpp'\\CCPPsALEAy1aECA", replace
 //==============================================================================
 // Step 4: Merge with randomization list and build analysis variables
 //==============================================================================
-// Cargar data de los CCPPs Aleatorizados
+// Cargar data de los CCPPs Aleatorizados.
+// El helper GENERA esa base (la lista de centros poblados aleatorizados está
+// hardcodeada ahí, es el padrón del experimento). Antes no se invocaba desde
+// ningún lado: el .dta existía en disco de una corrida vieja, así que C2 corría
+// en la máquina del autor y fallaba en un clon limpio. Mismo caso que
+// make_producer_product.do en E4.
+qui do "${ruta_utils}\make_ccpp_database.do"
 use "`rawc3'\CCPPs_ALEATORIZADOS_Y_REEMPLAZOS", clear
 
 // Merge con bases a nivel CCPP-ECA

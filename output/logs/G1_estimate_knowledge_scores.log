@@ -3,16 +3,16 @@
        log:  E:/Consultorías/BID/HRC0052956\\3_Logs\G1_estimate_knowledge_score
 > s.log
   log type:  text
- opened on:  12 Aug 2026, 13:17:45
+ opened on:  13 Aug 2026, 00:02:14
 
 . 
 . 
 . // Cargar los programas. prg_table_3panels primero porque define _fmt_b,
 . // _fmt_se, _fmt_N, _fmt_F al top-level y prg_table_4panels los reusa
 . // (también los redefine como fallback).
-. qui do "${ruta_helpers}/prg_table_3panels.do"
+. qui do "${ruta_utils}/prg_table_3panels.do"
 
-. qui do "${ruta_helpers}/prg_table_4panels.do"
+. qui do "${ruta_utils}/prg_table_4panels.do"
 
 . 
 . 
@@ -164,19 +164,20 @@
 >         panel3_lbl("Papa")     panel3_cond("prod_ECA_eval==16")   ///
 >         panel4_lbl("Plátano")  panel4_cond("prod_ECA_eval==19")   ///
 >         table_num("8.1-1") ///
->         out("${ruta_tablas}/1_Conocimiento_Agronómico/8.1-1_Tabla_Ptjes_Comb.
-> docx") ///
+>         out("${ruta_tablas}/1_Conocimiento_Agronómico/Cuerpo/8.1-1_Tabla_Ptje
+> s_Comb.docx") ///
 >         z_var(asig_ccpp) ///
 >         dc_var(D_c) pi_var(P_i) ///
 >         controls("`ctrl_set'") ///
 >         absorb(cod_rgn_PE) cluster(cod_cpb)
 successfully replaced "E:/Consultorías/BID/HRC0052956/5_Entregables/Reporte Fin
-> al_VPaper/Tablas/1_Conocimiento_Agronómico/8.1-1_Tabla_Ptjes_Comb.docx"
+> al_VPaper/Tablas/1_Conocimiento_Agronómico/Cuerpo/8.1-1_Tabla_Ptjes_Comb.docx
+> "
 Bordes dobles engrosados a 1.5pt en: E:/Consultorías/BID/HRC0052956\\5_Entregab
-> les\\Reporte Final_VPaper\\Tablas/1_Conocimiento_Agronómico/8.1-1_Tabla_Ptjes
-> _Comb.docx
+> les\\Reporte Final_VPaper\\Tablas/1_Conocimiento_Agronómico/Cuerpo/8.1-1_Tabl
+> a_Ptjes_Comb.docx
 Archivo guardado: E:/Consultorías/BID/HRC0052956\\5_Entregables\\Reporte Final_
-> VPaper\\Tablas/1_Conocimiento_Agronómico/8.1-1_Tabla_Ptjes_Comb.docx
+> VPaper\\Tablas/1_Conocimiento_Agronómico/Cuerpo/8.1-1_Tabla_Ptjes_Comb.docx
 
 . 
 . log close
@@ -184,5 +185,5 @@ Archivo guardado: E:/Consultorías/BID/HRC0052956\\5_Entregables\\Reporte Final_
        log:  E:/Consultorías/BID/HRC0052956\\3_Logs\G1_estimate_knowledge_score
 > s.log
   log type:  text
- closed on:  12 Aug 2026, 13:17:54
+ closed on:  13 Aug 2026, 00:02:22
 -------------------------------------------------------------------------------

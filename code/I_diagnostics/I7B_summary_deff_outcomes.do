@@ -18,7 +18,7 @@
 //                  cálculos de poder a futuros investigadores.
 // Input          : Out/5_BDs por grupos de vars/Caract_Obs_Trat_ECA.dta
 //                  Out/5_BDs por grupos de vars/BPAs_Compuestos_LByLS.dta
-// Output         : Anexos/Diagnóstico_del_Diseño/B-5-5_Tabla_DEFF_Outcomes.docx
+// Output         : Tablas/0_Diseño_y_Diagnóstico/Anexo/B-5-5_Tabla_DEFF_Outcomes.docx
 //------------------------------------------------------------------------------
 
 cls
@@ -45,8 +45,8 @@ cap log close
 cap erase "${ruta_scripts}\\I7B_summary_deff_outcomes.log"
 log using "${ruta_logs}\\I7B_summary_deff_outcomes.log", replace text
 
-local outdir "${ruta_tablas}\\0_Diseño_y_Diagnóstico\\2_Cluster_Descriptivos"
-local outanx "${ruta_anexos}\\Diagnóstico_del_Diseño"
+local outdir "${ruta_tablas}\\0_Diseño_y_Diagnóstico\\Cuerpo"
+local outanx "${ruta_tablas}\\0_Diseño_y_Diagnóstico\\Anexo"
 
 // Convención del proyecto: notas a (datos − 1) pt.
 local _pt_dat 10

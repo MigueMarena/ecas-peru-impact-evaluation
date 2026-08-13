@@ -12,7 +12,7 @@
 //                  El cálculo del Design Effect (DEFF) por outcome principal
 //                  se reporta en una tabla aparte: I7B_summary_deff_outcomes.do.
 // Input          : Out/5_BDs por grupos de vars/Caract_Obs_Trat_ECA.dta
-// Output         : Anexos/Diagnóstico_del_Diseño/B-5-4_Tabla_Cluster_Size.docx
+// Output         : Tablas/0_Diseño_y_Diagnóstico/Anexo/B-5-4_Tabla_Cluster_Size.docx
 //------------------------------------------------------------------------------
 
 cls
@@ -39,8 +39,8 @@ cap log close
 cap erase "${ruta_scripts}\\I7A_summary_cluster_size.log"
 log using "${ruta_logs}\\I7A_summary_cluster_size.log", replace text
 
-local outdir "${ruta_tablas}\\0_Diseño_y_Diagnóstico\\2_Cluster_Descriptivos"
-local outanx "${ruta_anexos}\\Diagnóstico_del_Diseño"
+local outdir "${ruta_tablas}\\0_Diseño_y_Diagnóstico\\Cuerpo"
+local outanx "${ruta_tablas}\\0_Diseño_y_Diagnóstico\\Anexo"
 
 // Convención del proyecto: el tamaño de las notas es siempre (datos − 1) pt.
 local _pt_dat 10

@@ -82,7 +82,10 @@ local f_diagnostics I1_summary_consort I3_summary_cluster               ///
                     I9_summary_takeup I10_summary_intensity             ///
                     I11_robust_timing
 // H1 va al final de todo: consolida las secciones .docx ya terminadas.
-local f_reporting   H2_plot_yield_outliers H1_report_compile
+// H2_plot_yield_outliers.do se retiró el 2026-08-12: sus 50 gráficos Q-Q por
+// cultivo no aparecen en el reporte (que no menciona Q-Q ni cuantiles) y eran
+// en su mayoría de cultivos ajenos a los tres del estudio.
+local f_reporting   H1_report_compile
 
 //==============================================================================
 // Step 4: Ejecución

@@ -21,7 +21,7 @@
 //                  truth — sobreescribe los labels técnicos de E10); (4)
 //                  itera con `forvalues k` invocando prg_table_2panels.
 //
-// Output         : Anexos/Indicadores_Compuestos_BPAs/B-4-<k+1>_Tab_SubInd_<stub>_vF.docx (×7)
+// Output         : Tablas/4_Indicadores_Compuestos_BPAs/Anexo/B-4-<k+1>_Tab_SubInd_<stub>_vF.docx (×7)
 // Depends        : _utils/prg_load_panel.do
 //                  _utils/prg_table_3panels.do   (carga los helpers _fmt_*)
 //                  _utils/prg_table_2panels.do
@@ -126,7 +126,7 @@ forvalues k = 1/7 {
 		`extra_opt' ///
 		robustez ///
 		table_num("B.4-`bnum'") ///
-		out("${ruta_anexos}/Indicadores_Compuestos_BPAs/B-4-`bnum'_Tab_SubInd_`stub'_vF.docx") ///
+		out("${ruta_tablas}/4_Indicadores_Compuestos_BPAs/Anexo/B-4-`bnum'_Tab_SubInd_`stub'_vF.docx") ///
 		z_var(asig_ccpp) ///
 		dc_var(D_c) ///
 		pi_var(P_i) ///

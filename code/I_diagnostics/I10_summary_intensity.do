@@ -12,8 +12,8 @@
 //                         ≥90% (cumplidores estrictos), 50-89% (parcial),
 //                         <50% (bajo compliance).
 // Input          : Out/4_BDs Fusionadas/Panel_Inicio.dta
-// Output         : Anexos/Diagnóstico_del_Diseño/B-5-6_Tabla_Intensidad_Stats.docx
-//                  Tablas/0_Diseño_y_Diagnóstico/5_Compliance/D13_Tabla_Intensidad_Categorias.docx
+// Output         : Tablas/0_Diseño_y_Diagnóstico/Anexo/B-5-6_Tabla_Intensidad_Stats.docx
+//                  Tablas/0_Diseño_y_Diagnóstico/Cuerpo/D13_Tabla_Intensidad_Categorias.docx
 //------------------------------------------------------------------------------
 
 cls
@@ -40,8 +40,8 @@ cap log close
 cap erase "${ruta_scripts}\\I10_summary_intensity.log"
 log using "${ruta_logs}\\I10_summary_intensity.log", replace text
 
-local outdir "${ruta_tablas}\\0_Diseño_y_Diagnóstico\\5_Compliance"
-local outanx "${ruta_anexos}\\Diagnóstico_del_Diseño"
+local outdir "${ruta_tablas}\\0_Diseño_y_Diagnóstico\\Cuerpo"
+local outanx "${ruta_tablas}\\0_Diseño_y_Diagnóstico\\Anexo"
 
 // Convención del proyecto: el tamaño de las notas es siempre (datos − 1) pt.
 local _pt_dat 10

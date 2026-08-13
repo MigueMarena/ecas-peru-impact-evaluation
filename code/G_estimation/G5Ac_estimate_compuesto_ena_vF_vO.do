@@ -24,9 +24,9 @@
 //                  P_i; (3) invoca prg_table_3panels (vO cuerpo), luego
 //                  prg_table_3way_het (vO het) y prg_table_2panels (vF anexo).
 //
-// Output         : Tablas/4_Indicadores_Compuestos_BPAs/8.2-8_Tab_Comp_ENA_vO.docx
-//                  Anexos/Indicadores_Compuestos_BPAs/B-1-7_Tab_Comp_ENA_vO_het.docx
-//                  Anexos/Indicadores_Compuestos_BPAs/B-4-1_Tab_Comp_ENA_vF.docx
+// Output         : Tablas/4_Indicadores_Compuestos_BPAs/Cuerpo/8.2-8_Tab_Comp_ENA_vO.docx
+//                  Tablas/4_Indicadores_Compuestos_BPAs/Anexo/B-1-7_Tab_Comp_ENA_vO_het.docx
+//                  Tablas/4_Indicadores_Compuestos_BPAs/Anexo/B-4-1_Tab_Comp_ENA_vF.docx
 // Depends        : _utils/prg_load_panel.do
 //                  _utils/prg_table_3panels.do
 //                  _utils/prg_table_3way_het.do
@@ -100,7 +100,7 @@ prg_table_3panels, ///
 	outcome_qualifier("indicador compuesto ENA") ///
 	note_extra("`extra_comp'") ///
 	table_num("8.2-8") ///
-	out("${ruta_tablas}/4_Indicadores_Compuestos_BPAs/8.2-8_Tab_Comp_ENA_vO.docx") ///
+	out("${ruta_tablas}/4_Indicadores_Compuestos_BPAs/Cuerpo/8.2-8_Tab_Comp_ENA_vO.docx") ///
 	z_var(asig_ccpp) ///
 	dc_var(D_c) ///
 	pi_var(P_i) ///
@@ -118,7 +118,7 @@ prg_table_3way_het, ///
 	outcome_qualifier("indicador compuesto ENA") ///
 	note_extra("`extra_comp'") ///
 	table_num("B.1-7") ///
-	out("${ruta_anexos}/Indicadores_Compuestos_BPAs/B-1-7_Tab_Comp_ENA_vO_het.docx") ///
+	out("${ruta_tablas}/4_Indicadores_Compuestos_BPAs/Anexo/B-1-7_Tab_Comp_ENA_vO_het.docx") ///
 	z_var(asig_ccpp) ///
 	dc_var(D_c) ///
 	pi_var(P_i) ///
@@ -142,7 +142,7 @@ prg_table_2panels, ///
 	note_extra("`extra_comp'") ///
 	robustez ///
 	table_num("B.4-1") ///
-	out("${ruta_anexos}/Indicadores_Compuestos_BPAs/B-4-1_Tab_Comp_ENA_vF.docx") ///
+	out("${ruta_tablas}/4_Indicadores_Compuestos_BPAs/Anexo/B-4-1_Tab_Comp_ENA_vF.docx") ///
 	z_var(asig_ccpp) ///
 	dc_var(D_c) ///
 	pi_var(P_i) ///

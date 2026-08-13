@@ -23,8 +23,8 @@
 //                  Out/5_BDs por grupos de vars/Viv_Act_SEA_LB.dta
 //                  Out/5_BDs por grupos de vars/Demog_Ing_Hog_LB.dta
 //                  Out/5_BDs por grupos de vars/Productor_Predio_LB.dta
-// Output         : Tablas/0_Diseño_y_Diagnóstico/4_Atricion/D9_Tabla_Atricion_Productor.docx (+ xlsx)
-//                  Tablas/0_Diseño_y_Diagnóstico/4_Atricion/D10_Tabla_Balance_Atritos_Productor.docx (+ xlsx)
+// Output         : Tablas/0_Diseño_y_Diagnóstico/Cuerpo/D9_Tabla_Atricion_Productor.docx (+ xlsx)
+//                  Tablas/0_Diseño_y_Diagnóstico/Cuerpo/D10_Tabla_Balance_Atritos_Productor.docx (+ xlsx)
 //------------------------------------------------------------------------------
 
 cls
@@ -51,7 +51,7 @@ cap log close
 cap erase "${ruta_scripts}\\I8_balance_attrition.log"
 log using "${ruta_logs}\\I8_balance_attrition.log", replace text
 
-local outdir "${ruta_tablas}\\0_Diseño_y_Diagnóstico\\4_Atricion"
+local outdir "${ruta_tablas}\\0_Diseño_y_Diagnóstico\\Cuerpo"
 
 // Convención del proyecto: el tamaño de las notas es siempre (datos − 1) pt.
 local _pt_dat 10

@@ -15,7 +15,7 @@ do code/run_all.do "build estimation" // varias
 ```
 
 Requiere la global `ECAS` con la ruta a la raíz del repositorio, o correr Stata
-desde esa raíz. Ver `config` en el README.
+desde esa raíz. Ver *Cómo correrlo* en el README.
 
 ## Flujo
 
@@ -61,7 +61,6 @@ flowchart TB
     end
 
     subgraph H["H · Reporte"]
-        H2["H2 gráficos Q-Q"]
         H1["H1 compila cuerpo y anexos<br/>→ .docx + .pdf"]
     end
 
@@ -70,7 +69,7 @@ flowchart TB
     D1 --> E1 --> E23 --> E45 --> E69 --> E10
     E10 --> G1 & G24 & G5
     E10 --> I1
-    G1 & G24 & G5 & I1 & H2 --> H1
+    G1 & G24 & G5 & I1 --> H1
 ```
 
 ## Las fases, una por una
@@ -81,9 +80,9 @@ flowchart TB
 | **C · Tratamiento** | `C1`, `C2` | Identifica qué productores participaron y qué centros poblados implementaron una ECA. Cruza registros de SENASA con el padrón aleatorizado | `Out/3_` |
 | **D · Cruces** | `D` | Arma los cuatro paneles LB-LS y asigna el estatus de tratamiento a nivel de CCPP y de productor | `Out/4_` |
 | **E · Construcción** | `E1`–`E10` | Diez módulos temáticos que construyen las variables de resultado y los controles de línea base | `Out/5_` |
-| **G · Estimación** | `G1`–`G5Ac` | ITT, DiD y LATE. Escribe las tablas directamente en `.docx` | `Tablas/`, `Anexos/` |
-| **I · Diagnóstico** | `I1`–`I11` | CONSORT, balance, atrición, cumplimiento, intensidad, robustez al timing | `Tablas/0_`, `Anexos/` |
-| **H · Reporte** | `H2`, `H1` | Gráficos y compilación final del documento | `Versiones/` |
+| **G · Estimación** | `G1`–`G5Ac` | ITT, DiD y LATE. Escribe las tablas directamente en `.docx` | `Tablas/<tema>/{Cuerpo,Anexo}/` |
+| **I · Diagnóstico** | `I1`–`I11` | CONSORT, balance, atrición, cumplimiento, intensidad, robustez al timing | `Tablas/0_Diseño_y_Diagnóstico/{Cuerpo,Anexo}/` |
+| **H · Reporte** | `H1` | Compilación final del documento | `Versiones/` |
 
 La fase **F (validación)** está vacía desde el 2026-08-12: `F1_test_balance.do`
 se retiró porque su tabla no está en el reporte y su función quedó cubierta por
@@ -112,5 +111,8 @@ python code/_utils/build_table_map.py
 ```
 
 El generador además **verifica cada salida declarada contra el disco**. Una
-declaración sin archivo correspondiente es una señal: así se detectó que
-`H2_plot_yield_outliers.do` decía producir `.png` cuando exporta `.emf`.
+declaración sin archivo correspondiente es una señal, no ruido: así se detectó
+que `H2_plot_yield_outliers.do` declaraba `.png` cuando exportaba `.emf` —y, al
+revisarlo, que sus gráficos no aparecían en el reporte, lo que llevó a
+retirarlo—; y así se cazaron las cabeceras que quedaron desactualizadas al
+reorganizar las carpetas de tablas.

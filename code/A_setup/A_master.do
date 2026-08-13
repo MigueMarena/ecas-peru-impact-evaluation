@@ -69,7 +69,6 @@ global ruta_deliv   "${ruta_abs}\\5_Entregables"
 
 global ruta_images  "${ruta_deliv}\\Reporte Final_VPaper\\Imágenes"
 global ruta_tablas  "${ruta_deliv}\\Reporte Final_VPaper\\Tablas"
-global ruta_anexos	"${ruta_deliv}\\Reporte Final_VPaper\\Anexos"
 global ruta_seccio  "${ruta_deliv}\\Reporte Final_VPaper\\Secciones"
 global ruta_report  "${ruta_deliv}\\Reporte Final_VPaper\\Versiones"
 
@@ -139,30 +138,19 @@ local outc3ccpp "`outc3'\\CCPP"
 cap mkdir "`outc3'\\Productor"
 cap mkdir "`outc3'\\CCPP"
 
-// Carpetas de Tablas (Reporte Final): una carpeta plana por categoría.
-// Las tablas 3-paneles producidas por prg_table_3panels unifican F-U/DiD/LATE
-// en un solo .docx; la subdivisión por estimador (antes 1_ITT/ y 2_LATE/)
-// quedó obsoleta y fue removida del pipeline.
-local tab_cats `" "1_Conocimiento_Agronómico" "2_Prácticas_Agronómicas" "3_Registros_e_Inocuidad_Alimentaria" "4_Indicadores_Compuestos_BPAs" "5_Resultados_Productivos_y_Económicos" "'
+// Carpetas de Tablas (Reporte Final).
+// El TEMA manda y dentro se separa cuerpo de anexo: una tabla del cuerpo y su
+// robustez en el anexo viven juntas, que es como se las consulta. La carpeta
+// Anexos/ de primer nivel se eliminó el 2026-08-12.
+local tab_cats `" "0_Diseño_y_Diagnóstico" "1_Conocimiento_Agronómico" "2_Prácticas_Agronómicas" "3_Registros_e_Inocuidad_Alimentaria" "4_Indicadores_Compuestos_BPAs" "5_Resultados_Productivos_y_Económicos" "'
 
 foreach cat of local tab_cats {
 	cap mkdir "${ruta_tablas}\\`cat'"
+	cap mkdir "${ruta_tablas}\\`cat'\\Cuerpo"
+	cap mkdir "${ruta_tablas}\\`cat'\\Anexo"
 }
 
-// Carpetas de Anexos
-cap mkdir "${ruta_anexos}\\Prácticas_Agronómicas"
-cap mkdir "${ruta_anexos}\\Registros_e_Inocuidad_Alimentaria"
-cap mkdir "${ruta_anexos}\\Indicadores_Compuestos_BPAs"
-cap mkdir "${ruta_anexos}\\Diagnóstico_del_Diseño"
-
-// Carpetas de Diseño y Diagnóstico (scripts 30-40)
-local diag_cats `" "1_CONSORT" "2_Cluster_Descriptivos" "3_Balance" "4_Atricion" "5_Compliance" "6_Robustez_Timing" "'
-cap mkdir "${ruta_tablas}\\0_Diseño_y_Diagnóstico"
-foreach cat of local diag_cats {
-	cap mkdir "${ruta_tablas}\\0_Diseño_y_Diagnóstico\\`cat'"
-}
-
-// Carpetas de Imágenes para Diseño y Diagnóstico
+// Carpetas de Imágenes
 cap mkdir "${ruta_images}\\Gráfico_Consort"
 cap mkdir "${ruta_images}\\Gráfico_Loveplot"
 

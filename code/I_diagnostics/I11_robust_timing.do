@@ -15,7 +15,7 @@
 //                  por timing.
 // Input          : Out/5_BDs por grupos de vars/Caract_Obs_Trat_ECA.dta
 //                  Out/5_BDs por grupos de vars/BPAs_Compuestos_LByLS.dta
-// Output         : Tablas/0_Diseño_y_Diagnóstico/6_Robustez_Timing/D14_Tabla_Robustez_Timing.docx (+ xlsx)
+// Output         : Tablas/0_Diseño_y_Diagnóstico/Cuerpo/D14_Tabla_Robustez_Timing.docx (+ xlsx)
 //------------------------------------------------------------------------------
 
 cls
@@ -42,7 +42,7 @@ cap log close
 cap erase "${ruta_scripts}\\I11_robust_timing.log"
 log using "${ruta_logs}\\I11_robust_timing.log", replace text
 
-local outdir "${ruta_tablas}\\0_Diseño_y_Diagnóstico\\6_Robustez_Timing"
+local outdir "${ruta_tablas}\\0_Diseño_y_Diagnóstico\\Cuerpo"
 
 // Convención del proyecto: el tamaño de las notas es siempre (datos − 1) pt.
 local _pt_dat 10

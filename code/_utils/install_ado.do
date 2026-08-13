@@ -28,12 +28,10 @@ version 19.0
 //==============================================================================
 // reclink2   -> E2_build_producer_sociodem.do, _utils/merge_ccpp_status.do
 //               Vinculación aproximada de nombres de productor y de CCPP.
-// qplot      -> H2_plot_yield_outliers.do
-//               Gráficos Q-Q de rendimiento por cultivo.
 // labutil    -> E1_build_obs_chars.do
 // xframeappend -> E2_build_producer_sociodem.do
 
-local paquetes reclink2 qplot labutil xframeappend
+local paquetes reclink2 labutil xframeappend
 
 foreach p of local paquetes {
 	capture which `p'

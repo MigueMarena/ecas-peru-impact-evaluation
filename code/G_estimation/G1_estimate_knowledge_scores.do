@@ -25,7 +25,7 @@
 //                  Out/5_.../Demog_Ing_Hog_LB.dta
 //                  Out/5_.../Productor_Predio_LB.dta
 //                  Out/5_.../Ptjs_Test_BPAs_LS.dta
-// Output         : Tablas/1_Conocimiento_Agronómico/8.1-1_Tabla_Ptjes_Comb.docx
+// Output         : Tablas/1_Conocimiento_Agronómico/Cuerpo/8.1-1_Tabla_Ptjes_Comb.docx
 // Depends        : _utils/prg_table_3panels.do  (define _fmt_* helpers
 //                                                  reutilizados por el 4-paneles)
 //                  _utils/prg_table_4panels.do
@@ -133,7 +133,7 @@ prg_table_4panels, ///
 	panel3_lbl("Papa")     panel3_cond("prod_ECA_eval==16")   ///
 	panel4_lbl("Plátano")  panel4_cond("prod_ECA_eval==19")   ///
 	table_num("8.1-1") ///
-	out("${ruta_tablas}/1_Conocimiento_Agronómico/8.1-1_Tabla_Ptjes_Comb.docx") ///
+	out("${ruta_tablas}/1_Conocimiento_Agronómico/Cuerpo/8.1-1_Tabla_Ptjes_Comb.docx") ///
 	z_var(asig_ccpp) ///
 	dc_var(D_c) pi_var(P_i) ///
 	controls("`ctrl_set'") ///

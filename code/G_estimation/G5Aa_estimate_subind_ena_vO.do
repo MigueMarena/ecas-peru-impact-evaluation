@@ -18,8 +18,8 @@
 //                  la versión vF como robustez en formato 2-paneles para
 //                  anexo.
 //
-// Output         : Tablas/4_Indicadores_Compuestos_BPAs/8.2-<k>_Tab_SubInd_<stub>_vO.docx (×7)
-//                  Anexos/Indicadores_Compuestos_BPAs/B-1-<k-1>_Tab_SubInd_<stub>_vO_het.docx (×6;
+// Output         : Tablas/4_Indicadores_Compuestos_BPAs/Cuerpo/8.2-<k>_Tab_SubInd_<stub>_vO.docx (×7)
+//                  Tablas/4_Indicadores_Compuestos_BPAs/Anexo/B-1-<k-1>_Tab_SubInd_<stub>_vO_het.docx (×6;
 //                  riego omitido: HetEff por cultivo no estimable en la
 //                  submuestra de riego tecnificado, ver nota en el loop)
 // Depends        : _utils/prg_load_panel.do
@@ -121,7 +121,7 @@ forvalues k = 1/7 {
 		outcome_phrase("`phrase'") ///
 		`qual_opt' `extra_opt' ///
 		table_num("8.2-`k'") ///
-		out("${ruta_tablas}/4_Indicadores_Compuestos_BPAs/8.2-`k'_Tab_SubInd_`stub'_vO.docx") ///
+		out("${ruta_tablas}/4_Indicadores_Compuestos_BPAs/Cuerpo/8.2-`k'_Tab_SubInd_`stub'_vO.docx") ///
 		z_var(asig_ccpp) ///
 		dc_var(D_c) ///
 		pi_var(P_i) ///
@@ -146,7 +146,7 @@ forvalues k = 1/7 {
 		outcome_phrase("`phrase'") ///
 		`qual_opt' `extra_opt' ///
 		table_num("B.1-`bnum'") ///
-		out("${ruta_anexos}/Indicadores_Compuestos_BPAs/B-1-`bnum'_Tab_SubInd_`stub'_vO_het.docx") ///
+		out("${ruta_tablas}/4_Indicadores_Compuestos_BPAs/Anexo/B-1-`bnum'_Tab_SubInd_`stub'_vO_het.docx") ///
 		z_var(asig_ccpp) ///
 		dc_var(D_c) ///
 		pi_var(P_i) ///

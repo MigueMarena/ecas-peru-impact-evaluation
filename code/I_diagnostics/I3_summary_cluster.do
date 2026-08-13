@@ -11,7 +11,7 @@
 //                  la muestra de baseline.
 // Input          : Out/5_BDs por grupos de vars/Caract_Obs_Trat_ECA.dta
 //                  Out/5_BDs por grupos de vars/BPAs_Compuestos_LByLS.dta
-// Output         : Tablas/0_Diseño_y_Diagnóstico/2_Cluster_Descriptivos/D2_Tabla_Descrip_Clus.docx
+// Output         : Tablas/0_Diseño_y_Diagnóstico/Cuerpo/D2_Tabla_Descrip_Clus.docx
 //------------------------------------------------------------------------------
 
 cls
@@ -38,7 +38,7 @@ cap log close
 cap erase "${ruta_scripts}\\I3_summary_cluster.log"
 log using "${ruta_logs}\\I3_summary_cluster.log", replace text
 
-local outdir "${ruta_tablas}\\0_Diseño_y_Diagnóstico\\2_Cluster_Descriptivos"
+local outdir "${ruta_tablas}\\0_Diseño_y_Diagnóstico\\Cuerpo"
 
 // Convenciones del proyecto (estilo APA-AEA híbrido):
 //   - Cuerpo y título de la tabla al mismo tamaño base (datos).

@@ -22,10 +22,10 @@
 //                  Out/5_BDs por grupos de vars/Demog_Ing_Hog_LB.dta
 //                  Out/5_BDs por grupos de vars/Productor_Predio_LB.dta
 //                  Out/5_BDs por grupos de vars/BPAs_Compuestos_LByLS.dta
-// Output         : Anexos/Diagnóstico_del_Diseño/B-5-1_Tabla_Balance_Covariables.docx
-//                  (datos: Tablas/0_Diseño_y_Diagnóstico/3_Balance/*.xlsx)
-//                  Anexos/Diagnóstico_del_Diseño/B-5-2_Tabla_Balance_Vars_Resultado.docx (+ xlsx)
-//                  Anexos/Diagnóstico_del_Diseño/B-5-3_Tabla_Balance_Timing.docx (+ xlsx)
+// Output         : Tablas/0_Diseño_y_Diagnóstico/Anexo/B-5-1_Tabla_Balance_Covariables.docx
+//                  (datos: Tablas/0_Diseño_y_Diagnóstico/Cuerpo/*.xlsx)
+//                  Tablas/0_Diseño_y_Diagnóstico/Anexo/B-5-2_Tabla_Balance_Vars_Resultado.docx (+ xlsx)
+//                  Tablas/0_Diseño_y_Diagnóstico/Anexo/B-5-3_Tabla_Balance_Timing.docx (+ xlsx)
 //------------------------------------------------------------------------------
 
 cls
@@ -52,8 +52,8 @@ cap log close
 cap erase "${ruta_scripts}\\I5_balance_covariates.log"
 log using "${ruta_logs}\\I5_balance_covariates.log", replace text
 
-local outdir "${ruta_tablas}\\0_Diseño_y_Diagnóstico\\3_Balance"
-local outanx "${ruta_anexos}\\Diagnóstico_del_Diseño"
+local outdir "${ruta_tablas}\\0_Diseño_y_Diagnóstico\\Cuerpo"
+local outanx "${ruta_tablas}\\0_Diseño_y_Diagnóstico\\Anexo"
 
 local size_m 10pt
 local size_n 9pt

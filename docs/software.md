@@ -31,7 +31,6 @@ do code/_utils/install_ado.do
 | Comando | Fuente | Usado en | Para qué |
 |---|---|---|---|
 | `reclink2` | SSC | `E2`, `merge_ccpp_status` | Vinculación aproximada de nombres de productor y de centro poblado |
-| `qplot` | SSC | `H2` | Gráficos Q-Q de rendimiento por cultivo |
 | `labutil` | SSC | `E1` | `labmask` para etiquetar códigos generados |
 | `xframeappend` | SSC | `E2` | Concatenar frames |
 
@@ -75,7 +74,6 @@ datos y estimación no tienen dependencias de plataforma; las de reporte sí
 
 ## Memoria y tiempo de ejecución
 
-Pendiente de medición. La única etapa que se cronometró hasta ahora es
-`E4_build_crops.do`, la más pesada de la fase de construcción. `run_all.do`
+Pendiente de medición. Ninguna etapa se ha cronometrado todavía. `run_all.do`
 reporta el tiempo de cada script al correr, así que la tabla se completará con
 una corrida limpia de punta a punta.

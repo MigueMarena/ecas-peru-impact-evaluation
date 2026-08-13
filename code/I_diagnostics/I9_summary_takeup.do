@@ -12,7 +12,7 @@
 //                    - Sin asistencia.
 //                    - Contaminación en control (recibió alguna sesión).
 // Input          : Out/4_BDs Fusionadas/Panel_Inicio.dta
-// Output         : Tablas/0_Diseño_y_Diagnóstico/5_Compliance/D11_Tabla_TakeUp.docx (+ xlsx)
+// Output         : Tablas/0_Diseño_y_Diagnóstico/Cuerpo/D11_Tabla_TakeUp.docx (+ xlsx)
 //------------------------------------------------------------------------------
 
 cls
@@ -39,7 +39,7 @@ cap log close
 cap erase "${ruta_scripts}\\I9_summary_takeup.log"
 log using "${ruta_logs}\\I9_summary_takeup.log", replace text
 
-local outdir "${ruta_tablas}\\0_Diseño_y_Diagnóstico\\5_Compliance"
+local outdir "${ruta_tablas}\\0_Diseño_y_Diagnóstico\\Cuerpo"
 
 // Convención del proyecto: el tamaño de las notas es siempre (datos − 1) pt.
 local _pt_dat 10

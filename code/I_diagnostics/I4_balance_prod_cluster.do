@@ -10,7 +10,7 @@
 //                  p-valor proviene de un test heterocedástico-robusto, dado
 //                  que cada cluster es una observación y no hay anidamiento).
 // Input          : Out/5_BDs por grupos de vars/Caract_Obs_Trat_ECA.dta
-// Output         : Tablas/0_Diseño_y_Diagnóstico/2_Cluster_Descriptivos/D3_Tabla_Balance_Prod_Cluster.docx
+// Output         : Tablas/0_Diseño_y_Diagnóstico/Cuerpo/D3_Tabla_Balance_Prod_Cluster.docx
 //------------------------------------------------------------------------------
 
 cls
@@ -37,7 +37,7 @@ cap log close
 cap erase "${ruta_scripts}\\I4_balance_prod_cluster.log"
 log using "${ruta_logs}\\I4_balance_prod_cluster.log", replace text
 
-local outdir "${ruta_tablas}\\0_Diseño_y_Diagnóstico\\2_Cluster_Descriptivos"
+local outdir "${ruta_tablas}\\0_Diseño_y_Diagnóstico\\Cuerpo"
 
 // Convención del proyecto: el tamaño de las notas es siempre (datos − 1) pt.
 local _pt_dat 10

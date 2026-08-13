@@ -16,7 +16,7 @@
 //                  El loop de riego corre sobre la submuestra
 //                  riego_tec_prod==1 vía preserve/keep/restore.
 //
-// Output         : Anexos/Prácticas_Agronómicas/B-2-<k>_Tab_BPA_<var>.docx (×14)
+// Output         : Tablas/2_Prácticas_Agronómicas/Anexo/B-2-<k>_Tab_BPA_<var>.docx (×14)
 // Depends        : _utils/prg_load_panel.do
 //                  _utils/prg_table_3panels.do  (define _fmt_*)
 //                  _utils/prg_table_2panels.do
@@ -93,7 +93,7 @@ local ctrl_set c.edad c.edadsq i.sexo c.educ i.castell c.ilogsact c.icondvid ///
 	c.tot_miem_1564 c.tot_miem_depen c.tot_has_prod i.riego_tec_prod ///
 	c.años_tenen_prod i.mes_enc
 
-local outdir "${ruta_anexos}/Prácticas_Agronómicas"
+local outdir "${ruta_tablas}/2_Prácticas_Agronómicas/Anexo"
 
 // --- BPA Suelo: bpa_1..bpa_4 (toda la muestra) ---
 local phrases_suelo `" "la realización de análisis de suelo" "la incorporación de materia orgánica al suelo" "la asociación de cultivos" "la siembra en surcos a contorno" "'

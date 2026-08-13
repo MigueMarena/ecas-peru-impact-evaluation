@@ -18,7 +18,7 @@
 //                  (4) declara labels amigables; (5) loop sobre las 13 vars
 //                  invocando prg_table_2panels con `nosubtitle'.
 //
-// Output         : Anexos/Registros_e_Inocuidad_Alimentaria/B-3-<k>_Tab_<var>.docx (×14)
+// Output         : Tablas/3_Registros_e_Inocuidad_Alimentaria/Anexo/B-3-<k>_Tab_<var>.docx (×14)
 // Depends        : _utils/prg_load_panel.do
 //                  _utils/prg_table_3panels.do  (define _fmt_*)
 //                  _utils/prg_table_2panels.do
@@ -100,7 +100,7 @@ local ctrl_set c.edad c.edadsq i.sexo c.educ i.castell c.ilogsact c.icondvid ///
 	c.tot_miem_1564 c.tot_miem_depen c.tot_has_prod i.riego_tec_prod ///
 	c.años_tenen_prod i.mes_enc
 
-local outdir "${ruta_anexos}/Registros_e_Inocuidad_Alimentaria"
+local outdir "${ruta_tablas}/3_Registros_e_Inocuidad_Alimentaria/Anexo"
 
 // Varlist en el orden de numeración A-3-1..14 (cuatro registros de aplicación,
 // cuatro de gestión/almacén, seis de inocuidad). Frases redactadas en paralelo.

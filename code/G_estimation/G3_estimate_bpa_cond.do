@@ -21,7 +21,7 @@
 //                  corren sobre la muestra completa. Si se quieren reactivar,
 //                  envolver el loop con preserve/keep if/restore.
 //
-// Output         : Anexos/Prácticas_Agronómicas/B-2-<k>_Tab_BPA_<var>.docx (×23)
+// Output         : Tablas/2_Prácticas_Agronómicas/Anexo/B-2-<k>_Tab_BPA_<var>.docx (×23)
 // Depends        : _utils/prg_load_panel.do
 //                  _utils/prg_table_3panels.do  (define _fmt_*)
 //                  _utils/prg_table_2panels.do
@@ -107,7 +107,7 @@ local ctrl_set c.edad c.edadsq i.sexo c.educ i.castell c.ilogsact c.icondvid ///
 	c.tot_miem_1564 c.tot_miem_depen c.tot_has_prod i.riego_tec_prod ///
 	c.años_tenen_prod i.mes_enc
 
-local outdir "${ruta_anexos}/Prácticas_Agronómicas"
+local outdir "${ruta_tablas}/2_Prácticas_Agronómicas/Anexo"
 
 // Convención de redacción: cada bloque comparte la misma frase nominal del
 // título (`phrase`) — el sub-práctica específica entra como `outcome_qualifier`

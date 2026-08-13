@@ -104,7 +104,7 @@ no diferencial entre brazos. Take-up bruto a nivel de productor: 44.0 %.
 | Encuesta de seguimiento (2022) | Mismos módulos + test de conocimiento | SENASA / BID | No incluida |
 | Registros administrativos de ECAs (2019-2023) | Implementación y asistencia | SENASA | No incluida |
 | Padrón de centros poblados aleatorizados | Asignación al tratamiento | SENASA / BID | No incluida |
-| Diccionarios de variables e instrumentos | Codebook, cuestionarios, tests | — | **Incluidos** en `docs/codebook/` |
+| Instrumentos de recolección | Cuestionarios y tests de conocimiento | — | **Incluidos** en `docs/codebook/` |
 
 Dos razones, distintas entre sí:
 
@@ -150,7 +150,6 @@ Comandos de terceros usados por el pipeline:
 | Comando | Fuente | Usado en |
 |---|---|---|
 | `reclink2` | SSC | `E2`, `merge_ccpp_status` — vinculación aproximada de nombres |
-| `qplot` | SSC | `H2` — gráficos Q-Q de rendimiento |
 | `labutil` | SSC | `E1` |
 | `xframeappend` | SSC | `E2` |
 
@@ -206,7 +205,7 @@ letra se reserva.
 | [`docs/data_map.md`](docs/data_map.md) | Las cinco llaves del estudio y dónde ocurre cada cruce |
 | [`docs/table_map.csv`](docs/table_map.csv) | Qué script produce cada tabla y figura, verificado contra disco |
 | [`docs/software.md`](docs/software.md) | Entorno, comandos de terceros, y por qué hace falta Stata 19 |
-| `docs/codebook/` | Diccionarios de variables e instrumentos de recolección |
+| `docs/codebook/` | Cuestionarios de ambas rondas y tests de conocimiento por cultivo |
 
 ### Cómo leer el pipeline
 
@@ -225,20 +224,20 @@ exactamente qué variables entran a cada estimación.
 
 ## Salidas
 
-89 tablas en formato `.docx`, bajo `output/tables/`:
+89 tablas en formato `.docx` bajo `output/tables/`. **El tema manda y dentro se
+separa cuerpo de anexo**: la tabla principal de un resultado y su robustez viven
+en la misma carpeta, que es como se las consulta.
 
-| Bloque | Tablas | Contenido |
-|---|---|---|
-| Cuerpo — conocimiento agronómico | 1 | Puntajes del test, 4 paneles |
-| Cuerpo — indicadores compuestos BPA | 8 | 7 sub-indicadores ENA (vO) + compuesto agregado |
-| Cuerpo — diseño y diagnóstico | 8 | CONSORT, descriptivos por conglomerado, atrición, cumplimiento, robustez al timing |
-| Anexo — prácticas agronómicas | 37 | Una tabla por indicador de BPA |
-| Anexo — registros e inocuidad | 14 | Una tabla por indicador |
-| Anexo — indicadores compuestos | 15 | Efectos heterogéneos por cultivo (vO) y robustez (vF) |
-| Anexo — diagnóstico del diseño | 6 | Balance de covariables, tamaño de conglomerado, efecto de diseño |
+| Tema | Cuerpo | Anexo | Contenido |
+|---|---|---|---|
+| `0_diseno_y_diagnostico/` | 8 | 6 | CONSORT, descriptivos por conglomerado, atrición, cumplimiento, robustez al timing · balance de covariables, tamaño de clúster, efecto de diseño |
+| `1_conocimiento_agronomico/` | 1 | — | Puntajes del test, 4 paneles |
+| `2_practicas_agronomicas/` | — | 37 | Una tabla por indicador de BPA |
+| `3_registros_e_inocuidad_alimentaria/` | — | 14 | Una tabla por indicador |
+| `4_indicadores_compuestos_bpas/` | 8 | 15 | 7 sub-indicadores ENA (vO) + compuesto · efectos heterogéneos por cultivo y robustez (vF) |
 
-Figuras en `output/figures/`: diagrama CONSORT, love plot de balance, etapas de
-selección de centros poblados, y gráficos Q-Q de rendimiento por cultivo.
+Figuras en `output/figures/`: diagrama CONSORT, love plot de balance y etapas de
+selección de centros poblados — las tres que cita el reporte.
 
 Logs de ejecución de Stata en `output/logs/`.
 

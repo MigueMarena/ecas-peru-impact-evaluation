@@ -36,8 +36,8 @@
 //                                       estudio distinto al asignado)
 // Input          : Out/3_Centros Poblados.../CCPP/CCPPALEAy1AECA_ESTAT_CUMPL.dta
 //                  Out/5_BDs por grupos de vars/Caract_Obs_Trat_ECA.dta
-// Output         : Tablas/0_Diseño_y_Diagnóstico/1_CONSORT/D1_Tabla_CONSORT.xlsx
-//                  Tablas/0_Diseño_y_Diagnóstico/1_CONSORT/D1_Tabla_CONSORT.docx
+// Output         : Tablas/0_Diseño_y_Diagnóstico/Cuerpo/D1_Tabla_CONSORT.xlsx
+//                  Tablas/0_Diseño_y_Diagnóstico/Cuerpo/D1_Tabla_CONSORT.docx
 //------------------------------------------------------------------------------
 
 cls
@@ -64,7 +64,7 @@ cap log close
 cap erase "${ruta_scripts}\\I1_summary_consort.log"
 log using "${ruta_logs}\\I1_summary_consort.log", replace text
 
-local outdir "${ruta_tablas}\\0_Diseño_y_Diagnóstico\\1_CONSORT"
+local outdir "${ruta_tablas}\\0_Diseño_y_Diagnóstico\\Cuerpo"
 
 // Convención del proyecto: el tamaño de las notas es siempre (datos − 1) pt.
 local _pt_dat 10
