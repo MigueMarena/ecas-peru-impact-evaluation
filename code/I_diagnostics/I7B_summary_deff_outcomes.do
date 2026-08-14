@@ -69,7 +69,13 @@ local outc_lbls `" "BPA Riego" "BPA Suelo" "BPA Fertilizantes/Abonos" "BPA Plagu
 //==============================================================================
 use Codprod22 post asig_ccpp cod_cpb ///
 	using "`outc5'\\Caract_Obs_Trat_ECA.dta", clear
-keep if post == 0
+// Panel balanceado: los diagnósticos deben describir la MISMA muestra que
+// estiman las tablas de resultados. prg_load_panel.do hace `keep if n_obs == 2';
+// sin esta restricción el balance se reporta sobre los 1,445 encuestados en
+// línea base mientras las estimaciones corren sobre los 1,282 del panel.
+bys Codprod22: gen byte _en_panel = (_N == 2)
+keep if post == 0 & _en_panel
+drop _en_panel
 
 bysort cod_cpb: gen byte _one = 1
 preserve
@@ -166,8 +172,8 @@ local mb_f  : di %5.2f `m_bar'
 local CV2_f : di %5.3f `CV2'
 
 local titulo "Tabla B.5-5 — ICC y efecto de diseño (DEFF) por variable de resultado principal (versión ENA)"
-local nota1  "Notas: La tabla reporta el coeficiente de correlación intraclúster (ICC) y el efecto de diseño aproximado (DEFF) para las variables de resultado principales del estudio (Buenas Prácticas Agrícolas, versión ENA), medidos en línea base sobre la muestra analítica (definida en la Figura 4.2-1)."
-local nota2  "El ICC se estima con un modelo lineal de efectos aleatorios a nivel de centro poblado sobre la muestra analítica en línea base."
+local nota1  "Notas: La tabla reporta el coeficiente de correlación intraclúster (ICC) y el efecto de diseño aproximado (DEFF) para las variables de resultado principales del estudio (Buenas Prácticas Agrícolas, versión ENA), medidos en línea base sobre la panel balanceado (los productores con observación en ambas rondas; ver Figura 4.2-1)."
+local nota2  "El ICC se estima con un modelo lineal de efectos aleatorios a nivel de centro poblado sobre la panel balanceado en línea base (los productores con observación en ambas rondas)."
 local nota3  "El DEFF se calcula como DEFF = 1 + CV²_m + (m̄ − 1)·ρ, donde ρ es el ICC de la variable de resultado y m̄, CV²_m son la media y el coeficiente de variación cuadrático del número de productores por centro poblado (m̄ = `mb_f', CV²_m = `CV2_f')."
 local nota4  "Un DEFF mayor a 1 indica que el agrupamiento reduce el tamaño efectivo de muestra: por ejemplo, DEFF = 2 implica que el N efectivo es la mitad del N nominal a fines de inferencia. La heterogeneidad del DEFF entre variables de resultado refleja la heterogeneidad del agrupamiento subyacente."
 

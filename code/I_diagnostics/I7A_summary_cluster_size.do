@@ -56,7 +56,13 @@ mat widths = (50, 25, 25)
 //==============================================================================
 use Codprod22 post asig_ccpp cod_cpb cod_rgn_PE ///
 	using "`outc5'\\Caract_Obs_Trat_ECA.dta", clear
-keep if post == 0
+// Panel balanceado: los diagnósticos deben describir la MISMA muestra que
+// estiman las tablas de resultados. prg_load_panel.do hace `keep if n_obs == 2';
+// sin esta restricción el balance se reporta sobre los 1,445 encuestados en
+// línea base mientras las estimaciones corren sobre los 1,282 del panel.
+bys Codprod22: gen byte _en_panel = (_N == 2)
+keep if post == 0 & _en_panel
+drop _en_panel
 
 bysort cod_cpb: gen byte _one = 1
 collapse (sum) n_prods = _one (firstnm) asig_ccpp cod_rgn_PE, by(cod_cpb)
@@ -228,7 +234,7 @@ local Dks_f3 : di %5.3f `Dks'
 local pks_f3 : di %5.3f `pks'
 
 local titulo "Tabla B.5-4 — Distribución de tamaño de clúster en línea base"
-local nota1  "Notas: La tabla reporta la distribución del número de productores observados por centro poblado sobre la muestra analítica en línea base (definida en la Figura 4.2-1)."
+local nota1  "Notas: La tabla reporta la distribución del número de productores observados por centro poblado sobre la panel balanceado en línea base (los productores con observación en ambas rondas; ver Figura 4.2-1)."
 local nota2  "Test de Kolmogorov-Smirnov de igualdad de distribuciones entre brazos: D = `Dks_f3', p = `pks_f3' (p corregido por la naturaleza discreta de la distribución)."
 
 collect title "`titulo'"

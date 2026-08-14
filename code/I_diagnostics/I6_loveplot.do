@@ -69,7 +69,13 @@ local outc_vO   bpa_ena_riego_vO bpa_ena_suelo_vO bpa_ena_fert_abo_vO ///
 //==============================================================================
 use Codprod22 post asig_ccpp cod_cpb cod_rgn_PE mes_enc ///
 	using "`outc5'\\Caract_Obs_Trat_ECA.dta", clear
-keep if post == 0
+// Panel balanceado: los diagnósticos deben describir la MISMA muestra que
+// estiman las tablas de resultados. prg_load_panel.do hace `keep if n_obs == 2';
+// sin esta restricción el balance se reporta sobre los 1,445 encuestados en
+// línea base mientras las estimaciones corren sobre los 1,282 del panel.
+bys Codprod22: gen byte _en_panel = (_N == 2)
+keep if post == 0 & _en_panel
+drop _en_panel
 duplicates drop Codprod22, force
 
 merge 1:1 Codprod22 using "`outc5'\\Sociodem_Prod_JH_LB.dta", ///

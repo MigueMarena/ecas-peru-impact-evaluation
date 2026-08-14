@@ -80,7 +80,13 @@ local binarias  sexo castell riego_tec_prod ///
 //==============================================================================
 use Codprod22 post asig_ccpp cod_cpb cod_rgn_PE mes_enc sem_enc ///
 	using "`outc5'\\Caract_Obs_Trat_ECA.dta", clear
-keep if post == 0
+// Panel balanceado: los diagnósticos deben describir la MISMA muestra que
+// estiman las tablas de resultados. prg_load_panel.do hace `keep if n_obs == 2';
+// sin esta restricción el balance se reporta sobre los 1,445 encuestados en
+// línea base mientras las estimaciones corren sobre los 1,282 del panel.
+bys Codprod22: gen byte _en_panel = (_N == 2)
+keep if post == 0 & _en_panel
+drop _en_panel
 duplicates drop Codprod22, force
 
 // fch_enc no está preservada en Caract_Obs_Trat_ECA.dta (E1_build_obs_chars.do la
@@ -373,7 +379,7 @@ collect label levels cmdset ///
 	`idx_hdrB' "Hogar y Vivienda del Productor"   ///
 	`idx_hdrC' "Predio que maneja el productor", modify
 
-local nota1 "Notas: La tabla reporta la media y desviación estándar de cada covariable basal por brazo, sobre la muestra analítica en línea base (definida en la Figura 4.2-1). Las variables binarias se reportan en escala 0-100 (porcentaje)."
+local nota1 "Notas: La tabla reporta la media y desviación estándar de cada covariable basal por brazo, sobre la panel balanceado en línea base (los productores con observación en ambas rondas; ver Figura 4.2-1). Las variables binarias se reportan en escala 0-100 (porcentaje)."
 local nota2 "La diferencia, la diferencia estandarizada de medias (SMD) y el p-valor provienen de una regresión de la covariable sobre el indicador de tratamiento, con efectos fijos del estrato de aleatorización y del mes de encuesta, y errores estándar agrupados a nivel de centro poblado. La SMD es la diferencia entre brazos dividida entre la desviación estándar combinada de ambos brazos."
 local nota3 "Significancia: *** p<0.01, ** p<0.05, * p<0.10."
 
@@ -508,10 +514,45 @@ collect set `tag5'
 // D5 sólo tiene un grupo de variables (outcomes vO), redundante con el título;
 // no se inserta header de panel.
 
-local nota1 "Notas: La tabla reporta el balance preintervención de las variables de resultado principales medidas sobre la muestra analítica en línea base (definida en la Figura 4.2-1) en su versión ENA. Todas las variables de resultado son binarias y se reportan en escala 0-100 (porcentaje)."
+// Chequeo de robustez para BPA Riego: ¿el desbalance que reporta esta tabla
+// (sobre el panel de 180) es un artefacto de restringir al panel, o ya estaba
+// en la submuestra aleatorizada completa? Se recalcula la misma especificación
+// (misma spec de _bal_var) sobre los 209 productores con riego tecnificado en
+// línea base, SIN excluir a quienes no fueron reencuestados. No usa `master_bal'
+// (ya está restringido al panel desde el Step 2); se reconstruye la base mínima
+// necesaria aparte, y se descarta al terminar.
+preserve
+	use Codprod22 post asig_ccpp cod_rgn_PE mes_enc cod_cpb ///
+		using "`outc5'\\Caract_Obs_Trat_ECA.dta", clear
+	keep if post == 0
+	duplicates drop Codprod22, force
+	merge 1:1 Codprod22 using "`outc5'\\Productor_Predio_LB.dta", ///
+		keepus(riego_tec_prod) keep(1 3) nogen
+	merge 1:1 Codprod22 post using "`outc5'\\BPAs_Compuestos_LByLS.dta", ///
+		keepus(bpa_ena_riego_vO) keep(1 3) nogen
+	replace bpa_ena_riego_vO = bpa_ena_riego_vO * 100
+	keep if riego_tec_prod == 1 & !mi(bpa_ena_riego_vO)
+
+	local n209 = _N
+	qui reg bpa_ena_riego_vO asig_ccpp i.cod_rgn_PE i.mes_enc, cluster(cod_cpb)
+	local diff209 = _b[asig_ccpp]
+	local p209 = 2*ttail(e(df_r), abs(_b[asig_ccpp]/_se[asig_ccpp]))
+	qui summ bpa_ena_riego_vO if asig_ccpp==0
+	local sdC209 = r(sd)
+	qui summ bpa_ena_riego_vO if asig_ccpp==1
+	local sdT209 = r(sd)
+	local smd209 = `diff209' / sqrt((`sdC209'^2 + `sdT209'^2)/2)
+
+	local diff209_f : di %4.1f `diff209'
+	local smd209_f  : di %4.2f `smd209'
+	local p209_f    : di %4.3f `p209'
+restore
+
+local nota1 "Notas: La tabla reporta el balance preintervención de las variables de resultado principales medidas sobre la panel balanceado en línea base (los productores con observación en ambas rondas; ver Figura 4.2-1) en su versión ENA. Todas las variables de resultado son binarias y se reportan en escala 0-100 (porcentaje)."
 local nota2 "La diferencia, la diferencia estandarizada de medias (SMD) y el p-valor provienen de la misma especificación que la Tabla B.5-1 (regresión sobre el indicador de tratamiento con efectos fijos del estrato de aleatorización y del mes de encuesta, y errores estándar agrupados a nivel de centro poblado). La SMD es la diferencia entre brazos dividida entre la desviación estándar combinada de ambos brazos."
 local nota3 "Significancia: *** p<0.01, ** p<0.05, * p<0.10."
-collect notes "`nota1' `nota2' `nota3'"
+local nota4 "Nota técnica sobre BPA Riego: el desbalance no depende de restringir al panel. Sobre los `n209' productores con riego tecnificado en línea base, sin excluir a quienes no fueron reencuestados, la diferencia es de `diff209_f' puntos porcentuales (SMD = `smd209_f'; p = `p209_f'), prácticamente idéntica a la reportada arriba sobre el panel."
+collect notes "`nota1' `nota2' `nota3' `nota4'"
 
 _format_export, tag(`tag5') ///
 	titulo("Tabla B.5-2 — Balance en variables resultado en línea base (versión ENA)") ///
@@ -545,7 +586,7 @@ local fmed_T = r(p50)
 local fmed_C_f : di %tdDD_Mon_CCYY `fmed_C'
 local fmed_T_f : di %tdDD_Mon_CCYY `fmed_T'
 
-local nota1 "Notas: La tabla reporta indicadores del momento de recolección de cada encuesta basal, sobre la muestra analítica en línea base (definida en la Figura 4.2-1). La variable 'Días desde inicio del trabajo de campo' es continua y la variable '% encuestado antes de la fecha mediana global' es binaria reportada en escala 0-100."
+local nota1 "Notas: La tabla reporta indicadores del momento de recolección de cada encuesta basal, sobre la panel balanceado en línea base (los productores con observación en ambas rondas; ver Figura 4.2-1). La variable 'Días desde inicio del trabajo de campo' es continua y la variable '% encuestado antes de la fecha mediana global' es binaria reportada en escala 0-100."
 local nota2 "La diferencia, la diferencia estandarizada de medias (SMD) y el p-valor provienen de la misma especificación que la Tabla B.5-1 (regresión sobre el indicador de tratamiento con efectos fijos del estrato de aleatorización y del mes de encuesta, y errores estándar agrupados a nivel de centro poblado). La SMD es la diferencia entre brazos dividida entre la desviación estándar combinada de ambos brazos."
 local nota3 "Fecha mediana de encuesta — Control: `fmed_C_f' · Tratamiento: `fmed_T_f'."
 local nota4 "Significancia: *** p<0.01, ** p<0.05, * p<0.10."

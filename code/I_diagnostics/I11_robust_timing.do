@@ -62,7 +62,13 @@ local outc_vO   bpa_ena_riego_vO bpa_ena_suelo_vO bpa_ena_fert_abo_vO ///
 //==============================================================================
 use Codprod22 post asig_ccpp cod_cpb cod_rgn_PE mes_enc ///
 	using "`outc5'\\Caract_Obs_Trat_ECA.dta", clear
-keep if post == 0
+// Panel balanceado: los diagnósticos deben describir la MISMA muestra que
+// estiman las tablas de resultados. prg_load_panel.do hace `keep if n_obs == 2';
+// sin esta restricción el balance se reporta sobre los 1,445 encuestados en
+// línea base mientras las estimaciones corren sobre los 1,282 del panel.
+bys Codprod22: gen byte _en_panel = (_N == 2)
+keep if post == 0 & _en_panel
+drop _en_panel
 duplicates drop Codprod22, force
 
 merge 1:1 Codprod22 post using "`outc5'\\BPAs_Compuestos_LByLS.dta", ///
@@ -267,7 +273,7 @@ collect style row stack, nobinder
 // Step 5: Title and notes
 //==============================================================================
 local titulo "Tabla D14 — Robustez al momento de recolección — variables de resultado en versión ENA, en línea base"
-local nota1 "Notas: La tabla reporta tres especificaciones del coeficiente de la asignación al tratamiento para evaluar la robustez al momento de recolección, estimadas sobre la muestra analítica en línea base (definida en la Figura 4.2-1). Todas las regresiones usan errores estándar agrupados a nivel de centro poblado."
+local nota1 "Notas: La tabla reporta tres especificaciones del coeficiente de la asignación al tratamiento para evaluar la robustez al momento de recolección, estimadas sobre la panel balanceado en línea base (los productores con observación en ambas rondas; ver Figura 4.2-1). Todas las regresiones usan errores estándar agrupados a nivel de centro poblado."
 local nota2 "La especificación (i) Cruda incluye solo efectos fijos del estrato de aleatorización. La (ii) Ajustada agrega efectos fijos del mes de encuesta. La (iii) Ventana común replica (i) pero restringe la muestra a los meses con cobertura simultánea de control y tratamiento."
 local nota3 "La columna Δ = (i) − (ii) cuantifica el aporte del ajuste por momento de recolección al coeficiente. Si las tres especificaciones convergen, el efecto es robusto al momento de recolección."
 local nota4 "Significancia: *** p<0.01, ** p<0.05, * p<0.10."

@@ -61,7 +61,13 @@ mat widths = (60, 20, 20)
 //==============================================================================
 use Codprod22 post asig_ccpp cod_cpb cod_rgn_PE prod_ECA_eval ///
 	using "`outc5'\\Caract_Obs_Trat_ECA.dta", clear
-keep if post == 0
+// Panel balanceado: los diagnósticos deben describir la MISMA muestra que
+// estiman las tablas de resultados. prg_load_panel.do hace `keep if n_obs == 2';
+// sin esta restricción el balance se reporta sobre los 1,445 encuestados en
+// línea base mientras las estimaciones corren sobre los 1,282 del panel.
+bys Codprod22: gen byte _en_panel = (_N == 2)
+keep if post == 0 & _en_panel
+drop _en_panel
 duplicates drop cod_cpb, force
 
 count if asig_ccpp == 0
@@ -96,7 +102,13 @@ local outcomes ///
 
 // Cargar Vars_Caract_Obs (tiene cod_cpb) y mergear los outcomes vO
 use Codprod22 post cod_cpb using "`outc5'\\Caract_Obs_Trat_ECA.dta", clear
-keep if post == 0
+// Panel balanceado: los diagnósticos deben describir la MISMA muestra que
+// estiman las tablas de resultados. prg_load_panel.do hace `keep if n_obs == 2';
+// sin esta restricción el balance se reporta sobre los 1,445 encuestados en
+// línea base mientras las estimaciones corren sobre los 1,282 del panel.
+bys Codprod22: gen byte _en_panel = (_N == 2)
+keep if post == 0 & _en_panel
+drop _en_panel
 merge 1:1 Codprod22 post using "`outc5'\\BPAs_Compuestos_LByLS.dta", ///
 	keepus(`outcomes') keep(3) nogen
 
@@ -171,7 +183,7 @@ putdocx begin
 putdocx table tbl = (`nrows', 3), border(all, nil) ///
 	border(top, single, "000000") border(bottom, single, "000000") ///
 	title(`"Tabla D2 — Estadísticas descriptivas del clúster"', font(Roboto,`_pt_tit') bold) ///
-	note(`"Notas: El panel superior reporta el número de centros poblados (clústeres) por brazo y por cultivo a evaluar. El panel inferior reporta el coeficiente de correlación intraclúster (ICC) estimado con un modelo lineal de efectos aleatorios a nivel de centro poblado sobre la muestra analítica en línea base (definida en la Figura 4.2-1). Las variables de resultado principales corresponden a la versión ENA."', font(Roboto,`_pt_not') italic)
+	note(`"Notas: El panel superior reporta el número de centros poblados (clústeres) por brazo y por cultivo a evaluar. El panel inferior reporta el coeficiente de correlación intraclúster (ICC) estimado con un modelo lineal de efectos aleatorios a nivel de centro poblado sobre la panel balanceado en línea base (los productores con observación en ambas rondas; ver Figura 4.2-1). Las variables de resultado principales corresponden a la versión ENA."', font(Roboto,`_pt_not') italic)
 
 //------------------------------------------------------------------------------
 // Step 5: Llenar filas (asignación de texto antes de aplicar colspan)

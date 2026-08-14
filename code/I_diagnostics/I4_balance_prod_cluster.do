@@ -55,7 +55,13 @@ mat widths = (18, 10, 6, 5, 4, 5, 10, 6, 5, 4, 5, 7, 7, 8)
 //==============================================================================
 use Codprod22 post asig_ccpp cod_cpb cod_rgn_PE ///
 	using "`outc5'\\Caract_Obs_Trat_ECA.dta", clear
-keep if post == 0
+// Panel balanceado: los diagnósticos deben describir la MISMA muestra que
+// estiman las tablas de resultados. prg_load_panel.do hace `keep if n_obs == 2';
+// sin esta restricción el balance se reporta sobre los 1,445 encuestados en
+// línea base mientras las estimaciones corren sobre los 1,282 del panel.
+bys Codprod22: gen byte _en_panel = (_N == 2)
+keep if post == 0 & _en_panel
+drop _en_panel
 
 bysort cod_cpb: gen byte _one = 1
 collapse (sum) n_prods = _one (mean) asig_ccpp (firstnm) cod_rgn_PE, by(cod_cpb)
@@ -170,7 +176,7 @@ collect style row stack, nobinder
 // Step 7: Title and notes
 //==============================================================================
 local titulo "Tabla D3 — Estadísticas descriptivas y balance de productores por clúster"
-local nota1  "Notas: La tabla reporta estadísticos descriptivos del número de productores por centro poblado, calculados a nivel de clúster (una observación por centro poblado) sobre la muestra analítica en línea base (definida en la Figura 4.2-1)."
+local nota1  "Notas: La tabla reporta estadísticos descriptivos del número de productores por centro poblado, calculados a nivel de clúster (una observación por centro poblado) sobre la panel balanceado en línea base (los productores con observación en ambas rondas; ver Figura 4.2-1)."
 local nota2  "La columna 'Dif.' corresponde al coeficiente de una regresión del número de productores sobre el indicador de tratamiento, con efectos fijos del estrato de aleatorización y errores estándar robustos."
 local nota3  "La columna 'SMD' reporta la diferencia estandarizada de medias: la diferencia entre brazos dividida entre la desviación estándar combinada de ambos brazos (raíz cuadrada del promedio simple de las varianzas en control y tratamiento)."
 
