@@ -1,5 +1,5 @@
 {
-  "last_hrc_sha": "c5a7f42fcbba2659b07cb0c550e5e67c5002a0e1",
+  "last_hrc_sha": "a0cc0345f89db4e6fbdce79f5e3b350eaa7134c0",
   "files": {
     "README.md": "a281d4c4a3ba42510b2e5f1fdec57fb9a7c316e8d8a93310251cdbf3d906dd33",
     "LICENSE": "24484df762f9d415f5622173d7ac0945d763c87227f0700a898df17c46efdf2e",
@@ -76,7 +76,7 @@
     "code/_utils/fix_producer_names.do": "250757680063c4cb9e9d2080bc65ed028c7bccb5453e9379fa397be968c55d3f",
     "docs/data_map.md": "cdd3e91cbffcf35020ac31d19d9b46a9bb2f0262a03dfa102aae6fe578ab0eeb",
     "docs/pipeline.md": "74cadfb4b24d2a43ed6049ec9ae1f9014cf71f2ca2447ced67a8d352b8a12415",
-    "docs/software.md": "6f73cbd590cc2ea5595e520ed6a2ccc0517cb5bbed990b95eb8c6b2fd5d79c58",
+    "docs/software.md": "cff38781eb510ccb04c11ca6a900ae7ab232799547a57ecc1e4be261cac1a110",
     "docs/table_map.csv": "47b46c8dd1e3af3975d2ab932debd14989ababd9fcc3dcede99fbee32fce7bba",
     "docs/codebook/cuestionario_linea_base_2021.pdf": "1350650e72dda10d9bfc9eda1bbded7a539de3049bfaf286e1c4956bf0e4ff86",
     "docs/codebook/cuestionario_seguimiento_2022.pdf": "ea8c932967331557d9be497945b127797644d5d4c59bf442d9fd3d3ae58d6d14",

@@ -74,6 +74,41 @@ datos y estimación no tienen dependencias de plataforma; las de reporte sí
 
 ## Memoria y tiempo de ejecución
 
-Pendiente de medición. Ninguna etapa se ha cronometrado todavía. `run_all.do`
-reporta el tiempo de cada script al correr, así que la tabla se completará con
-una corrida limpia de punta a punta.
+Medido en una corrida completa de punta a punta (2026-08-13), con
+`run_all.do` sin argumento de fase — desde la ingesta de las encuestas hasta
+el reporte compilado y los once diagnósticos. `run_all.do` cronometra cada
+script y deja el detalle en `output/logs/run_all.log`.
+
+**Total: 5 minutos 6 segundos.**
+
+| Fase | Scripts | Tiempo | Lo más pesado |
+|---|---|---|---|
+| Ingesta | `B1`, `B2` | 17 s | `B2` (17 s) — limpia los nueve módulos de encuesta |
+| Tratamiento | `C1`, `C2` | 44 s | `C1` (44 s) — vincula nombres con `reclink2` |
+| Cruces | `D` | 4 s | — |
+| Construcción | `E1`–`E10` | 11 s | `E4` (5 s) — el módulo de cultivos, el más grande |
+| Estimación | `G1`–`G5Ac` | 126 s | `G3` (32 s), `G5Aa` (30 s) — más especificaciones por tabla |
+| Reporte | `H1` | 64 s | Word por COM: resolver índices y exportar el PDF |
+| Diagnóstico | `I1`–`I11` | 38 s | `I3`, `I6` (7-9 s) — estiman `mixed` por clúster |
+
+Los 304 s de la tabla son la suma de lo que cronometra `run_all.do` por
+script; el total real de 306 s incluye además `I2_graph_consort.py` (un
+script Python, sin cronómetro propio en el orquestador).
+
+La fase de estimación concentra el 41 % del tiempo total, y es la más fácil
+de explicar: cada tabla corre entre 4 y 6 especificaciones (ITT-OLS, ITT-DiD,
+LATE-cluster, LATE-individual, con y sin controles) por outcome, y varios
+scripts iteran sobre 7-37 outcomes. `H1` es la segunda etapa más pesada
+porque pilotea Word por COM, no por el volumen de contenido que consolida.
+
+**Máquina de referencia**: AMD Ryzen 9 5900HX, 64 GB RAM, Windows 11, Stata
+19.5 (StataSE-64), SSD NVMe (PNY CS3030). Los tiempos son indicativos, no una
+garantía:
+dependen del disco, de si Word ya está en memoria antes de correr `H1`, y de
+cuánto tarda el sistema operativo en resolver rutas de red o de Drive si el
+repositorio vive ahí.
+
+**Memoria**: no se perfiló formalmente. Los datos del proyecto son una
+encuesta de panel de miles de observaciones —no millones—, con a lo sumo unos
+cientos de variables por base; no debería ser una restricción práctica en
+ninguna máquina con 8 GB de RAM o más.
