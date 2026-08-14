@@ -63,6 +63,8 @@ log using "${ruta_logs}\G1_estimate_knowledge_scores.log", replace text
 qui do "${ruta_utils}/prg_table_3panels.do"
 qui do "${ruta_utils}/prg_table_4panels.do"
 
+qui include "${ruta_setup}/spec.do"
+
 
 //------------------------------------------------------------------------------
 // 1. Carga manual de módulos LB + puntajes LS
@@ -122,9 +124,6 @@ lab var ptj_BPA_std  "Sección BPA"
 //    Códigos de prod_ECA_eval: 26 = Cítricos, 16 = Papa, 19 = Plátano.
 //    Panel "Combinado" usa cond("1") = sin restricción (toda la muestra LS).
 //------------------------------------------------------------------------------
-local ctrl_set c.edad c.edadsq i.sexo c.educ i.castell c.ilogsact c.icondvid ///
-	c.tot_miem_1564 c.tot_miem_depen c.tot_has_prod i.riego_tec_prod ///
-	c.años_tenen_prod i.mes_enc
 
 prg_table_4panels, ///
 	out1(ptj_test_std) raw1(ptj_test) ///
@@ -139,7 +138,7 @@ prg_table_4panels, ///
 	out("${ruta_tablas}/1_Conocimiento_Agronómico/Cuerpo/8.1-1_Tabla_Ptjes_Comb.docx") ///
 	z_var(asig_ccpp) ///
 	dc_var(D_c) pi_var(P_i) ///
-	controls("`ctrl_set'") ///
-	absorb(cod_rgn_PE) cluster(cod_cpb)
+	controls("$ctrl_set") ///
+	absorb($fe_estrato) cluster($cl_ccpp)
 
 log close

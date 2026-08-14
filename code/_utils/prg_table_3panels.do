@@ -109,9 +109,9 @@ program define _fmt_b, rclass
 	local s : di %9.3f `b'
 	local s = trim("`s'")
 	local stars = ""
-	if `p' < 0.01      local stars = "***"
-	else if `p' < 0.05 local stars = "**"
-	else if `p' < 0.10 local stars = "*"
+	if `p' < ${star_p01}      local stars = "***"
+	else if `p' < ${star_p05} local stars = "**"
+	else if `p' < ${star_p10} local stars = "*"
 	return local out = "`s'`stars'"
 end
 

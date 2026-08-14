@@ -58,6 +58,8 @@ qui do "${ruta_utils}/prg_load_panel.do"
 qui do "${ruta_utils}/prg_table_3panels.do"  // helpers _fmt_b, _fmt_se, _fmt_N, _fmt_F
 qui do "${ruta_utils}/prg_table_2panels.do"
 
+qui include "${ruta_setup}/spec.do"
+
 //------------------------------------------------------------------------------
 // 1. Cargar la base maestra + outcomes vF + vars crudas para D_c/P_i
 //------------------------------------------------------------------------------
@@ -94,9 +96,6 @@ lab var bpa_ena_inoc_vF       "Buenas Prácticas de Inocuidad"
 // 4. Generar las 7 tablas anexas en un loop sobre los sub-indicadores
 //------------------------------------------------------------------------------
 // Insumos fijos (no varían entre outcomes)
-local ctrl_set c.edad c.edadsq i.sexo c.educ i.castell c.ilogsact c.icondvid ///
-	c.tot_miem_1564 c.tot_miem_depen c.tot_has_prod i.riego_tec_prod ///
-	c.años_tenen_prod i.mes_enc
 
 // vF se reporta en el bloque A-5 de los Anexos. La tabla LLEVA "Robustez. "
 // en el título porque es la versión alternativa (flexible) del outcome que
@@ -134,9 +133,9 @@ forvalues k = 1/7 {
 		dc_var(D_c) ///
 		pi_var(P_i) ///
 		post_var(post) ///
-		controls("`ctrl_set'") ///
-		absorb(cod_rgn_PE) ///
-		cluster(cod_cpb)
+		controls("$ctrl_set") ///
+		absorb($fe_estrato) ///
+		cluster($cl_ccpp)
 }
 
 log close

@@ -55,6 +55,8 @@ qui do "${ruta_utils}/prg_load_panel.do"
 qui do "${ruta_utils}/prg_table_3panels.do"
 qui do "${ruta_utils}/prg_table_2panels.do"
 
+qui include "${ruta_setup}/spec.do"
+
 //------------------------------------------------------------------------------
 // 1. Cargar la base maestra + registros vía prg_load_panel
 //------------------------------------------------------------------------------
@@ -99,9 +101,6 @@ lab var ino_info_conta_alim "Información sobre contaminación de alimentos"
 //------------------------------------------------------------------------------
 // 4. Generar las 13 tablas anexas en un loop sobre la varlist consolidada
 //------------------------------------------------------------------------------
-local ctrl_set c.edad c.edadsq i.sexo c.educ i.castell c.ilogsact c.icondvid ///
-	c.tot_miem_1564 c.tot_miem_depen c.tot_has_prod i.riego_tec_prod ///
-	c.años_tenen_prod i.mes_enc
 
 local outdir "${ruta_tablas}/3_Registros_e_Inocuidad_Alimentaria/Anexo"
 
@@ -121,7 +120,7 @@ foreach var of local vars {
 		table_num("B.3-`k'") ///
 		out("`outdir'/B-3-`k'_Tab_`var'.docx") ///
 		z_var(asig_ccpp) dc_var(D_c) pi_var(P_i) post_var(post) ///
-		controls("`ctrl_set'") absorb(cod_rgn_PE) cluster(cod_cpb)
+		controls("$ctrl_set") absorb($fe_estrato) cluster($cl_ccpp)
 	local ++k
 }
 

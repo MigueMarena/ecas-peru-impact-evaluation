@@ -58,6 +58,8 @@ qui do "${ruta_utils}/prg_load_panel.do"
 qui do "${ruta_utils}/prg_table_3panels.do"
 qui do "${ruta_utils}/prg_table_3way_het.do"
 
+qui include "${ruta_setup}/spec.do"
+
 //------------------------------------------------------------------------------
 // 1. Cargar la base maestra + outcome + vars crudas para D_c/P_i
 //------------------------------------------------------------------------------
@@ -89,12 +91,6 @@ lab var bpa_ena_inoc_vO         "Buenas Prácticas de Inocuidad"
 //------------------------------------------------------------------------------
 // 4. Generar las 7 tablas de sub-indicadores ENA (vO) en un loop
 //------------------------------------------------------------------------------
-// Set de controles unificado (no varía entre outcomes ni entre helpers).
-// Prefijos c./i. explícitos: areg/ivregress los aceptan nativo y
-// prg_table_3way_het los reusa directamente para saturar como `tok'#ibn.`het_var'.
-local ctrl_set c.edad c.edadsq i.sexo c.educ i.castell c.ilogsact c.icondvid ///
-	c.tot_miem_1564 c.tot_miem_depen c.tot_has_prod i.riego_tec_prod ///
-	c.años_tenen_prod i.mes_enc
 
 // Loop sobre los 7 sub-indicadores ENA en vO. El label de variable se usa
 // como encabezado de columna; la frase del título y la nota se redacta
@@ -129,9 +125,9 @@ forvalues k = 1/7 {
 		dc_var(D_c) ///
 		pi_var(P_i) ///
 		post_var(post) ///
-		controls("`ctrl_set'") ///
-		absorb(cod_rgn_PE) ///
-		cluster(cod_cpb)
+		controls("$ctrl_set") ///
+		absorb($fe_estrato) ///
+		cluster($cl_ccpp)
 
 	// El HetEff por cultivo del sub-indicador de riego NO es estimable: al
 	// restringirse a la submuestra con riego tecnificado (~180 obs, ~5% de
@@ -154,9 +150,9 @@ forvalues k = 1/7 {
 		dc_var(D_c) ///
 		pi_var(P_i) ///
 		post_var(post) ///
-		controls("`ctrl_set'") ///
-		absorb(cod_rgn_PE) ///
-		cluster(cod_cpb) ///
+		controls("$ctrl_set") ///
+		absorb($fe_estrato) ///
+		cluster($cl_ccpp) ///
 		het_var(prod_ECA_eval) ///
 		het_levels(26 16 19) ///
 		het_labels("Cítrico|Papa|Plátano") ///

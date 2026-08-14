@@ -66,6 +66,8 @@ qui do "${ruta_utils}/prg_table_3panels.do"
 qui do "${ruta_utils}/prg_table_3way_het.do"
 qui do "${ruta_utils}/prg_table_2panels.do"
 
+qui include "${ruta_setup}/spec.do"
+
 //------------------------------------------------------------------------------
 // 1. Cargar la base maestra + outcomes (vO y vF en paralelo)
 //------------------------------------------------------------------------------
@@ -90,9 +92,6 @@ lab var implementa_bpa_ena_vF "Compuesto ENA — Flexible"
 //------------------------------------------------------------------------------
 // 4. Estimar tabla del cuerpo (vO, 3-paneles, F-U/DiD/LATE)
 //------------------------------------------------------------------------------
-local ctrl_set c.edad c.edadsq i.sexo c.educ i.castell c.ilogsact c.icondvid ///
-	c.tot_miem_1564 c.tot_miem_depen c.tot_has_prod i.riego_tec_prod ///
-	c.años_tenen_prod i.mes_enc
 
 local phrase_comp "el cumplimiento agregado del catálogo ENA de BPAs"
 local extra_comp  "La construcción del indicador exige cumplir al menos 2 de los 3 pilares ENA — agronómico, insumos e inocuidad."
@@ -108,9 +107,9 @@ prg_table_3panels, ///
 	dc_var(D_c) ///
 	pi_var(P_i) ///
 	post_var(post) ///
-	controls("`ctrl_set'") ///
-	absorb(cod_rgn_PE) ///
-	cluster(cod_cpb)
+	controls("$ctrl_set") ///
+	absorb($fe_estrato) ///
+	cluster($cl_ccpp)
 
 //------------------------------------------------------------------------------
 // 5. Estimar tabla anexa HetEff por cultivo (vO, modelo saturado)
@@ -126,9 +125,9 @@ prg_table_3way_het, ///
 	dc_var(D_c) ///
 	pi_var(P_i) ///
 	post_var(post) ///
-	controls("`ctrl_set'") ///
-	absorb(cod_rgn_PE) ///
-	cluster(cod_cpb) ///
+	controls("$ctrl_set") ///
+	absorb($fe_estrato) ///
+	cluster($cl_ccpp) ///
 	het_var(prod_ECA_eval) ///
 	het_levels(26 16 19) ///
 	het_labels("Cítrico|Papa|Plátano") ///
@@ -150,8 +149,8 @@ prg_table_2panels, ///
 	dc_var(D_c) ///
 	pi_var(P_i) ///
 	post_var(post) ///
-	controls("`ctrl_set'") ///
-	absorb(cod_rgn_PE) ///
-	cluster(cod_cpb)
+	controls("$ctrl_set") ///
+	absorb($fe_estrato) ///
+	cluster($cl_ccpp)
 
 log close

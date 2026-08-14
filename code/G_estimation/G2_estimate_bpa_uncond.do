@@ -53,6 +53,8 @@ qui do "${ruta_utils}/prg_load_panel.do"
 qui do "${ruta_utils}/prg_table_3panels.do"
 qui do "${ruta_utils}/prg_table_2panels.do"
 
+qui include "${ruta_setup}/spec.do"
+
 //------------------------------------------------------------------------------
 // 1. Cargar la base maestra + outcomes + vars crudas para D_c/P_i
 //------------------------------------------------------------------------------
@@ -92,9 +94,6 @@ lab var bpa_14 "Manejo Integrado de Plagas"
 //------------------------------------------------------------------------------
 // 4. Generar las 14 tablas anexas en 3 bloques
 //------------------------------------------------------------------------------
-local ctrl_set c.edad c.edadsq i.sexo c.educ i.castell c.ilogsact c.icondvid ///
-	c.tot_miem_1564 c.tot_miem_depen c.tot_has_prod i.riego_tec_prod ///
-	c.años_tenen_prod i.mes_enc
 
 local outdir "${ruta_tablas}/2_Prácticas_Agronómicas/Anexo"
 
@@ -108,7 +107,7 @@ forvalues k = 1/4 {
 		table_num("B.2-`k'") ///
 		out("`outdir'/B-2-`k'_Tab_BPA_`var'.docx") ///
 		z_var(asig_ccpp) dc_var(D_c) pi_var(P_i) post_var(post) ///
-		controls("`ctrl_set'") absorb(cod_rgn_PE) cluster(cod_cpb)
+		controls("$ctrl_set") absorb($fe_estrato) cluster($cl_ccpp)
 }
 
 // --- BPA Riego: bpa_5..bpa_9 (submuestra: riego_tec_prod==1) ---
@@ -129,7 +128,7 @@ forvalues k = 5/9 {
 		table_num("B.2-`k'") ///
 		out("`outdir'/B-2-`k'_Tab_BPA_`var'.docx") ///
 		z_var(asig_ccpp) dc_var(D_c) pi_var(P_i) post_var(post) ///
-		controls("`ctrl_set'") absorb(cod_rgn_PE) cluster(cod_cpb)
+		controls("$ctrl_set") absorb($fe_estrato) cluster($cl_ccpp)
 }
 restore
 
@@ -143,7 +142,7 @@ forvalues k = 10/14 {
 		table_num("B.2-`k'") ///
 		out("`outdir'/B-2-`k'_Tab_BPA_`var'.docx") ///
 		z_var(asig_ccpp) dc_var(D_c) pi_var(P_i) post_var(post) ///
-		controls("`ctrl_set'") absorb(cod_rgn_PE) cluster(cod_cpb)
+		controls("$ctrl_set") absorb($fe_estrato) cluster($cl_ccpp)
 }
 
 log close
