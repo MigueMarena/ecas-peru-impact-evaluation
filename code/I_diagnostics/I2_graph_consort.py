@@ -24,6 +24,8 @@
 #                  Imágenes/Gráfico_Consort/D1_Grafico_CONSORT.pdf
 # -----------------------------------------------------------------------------
 
+import os
+import sys
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -33,12 +35,25 @@ from matplotlib.patches import FancyArrowPatch, FancyBboxPatch
 # -----------------------------------------------------------------------------
 # Rutas
 # -----------------------------------------------------------------------------
-RUTA_PROY = Path(r"E:\Consultorías\BID\HRC0052956")
-RUTA_TAB  = RUTA_PROY / "5_Entregables" / "Reporte Final_VPaper" / "Tablas" / "0_Diseño_y_Diagnóstico" / "1_CONSORT"
+# La raíz sale de ${ECAS} si está definida —la única entrada de configuración
+# del pipeline, ver A_setup/config.do— y si no, de la ubicación de este propio
+# archivo, que vive en <raíz>/2_Scripts/I_diagnostics/. Antes estaba hardcodeada
+# a la máquina del autor, de modo que este script no corría en ninguna otra.
+RUTA_PROY = Path(os.environ.get("ECAS") or Path(__file__).resolve().parents[2])
+RUTA_TAB  = RUTA_PROY / "5_Entregables" / "Reporte Final_VPaper" / "Tablas" / "0_Diseño_y_Diagnóstico" / "Cuerpo"
 RUTA_IMG  = RUTA_PROY / "5_Entregables" / "Reporte Final_VPaper" / "Imágenes" / "Gráfico_Consort"
 RUTA_IMG.mkdir(parents=True, exist_ok=True)
 
 XLSX_IN   = RUTA_TAB / "D1_Tabla_CONSORT.xlsx"
+
+# run_all.do envuelve la llamada en `capture`, así que un fallo acá pasaría
+# desapercibido: conviene decir exactamente qué no se encontró.
+if not XLSX_IN.exists():
+    sys.exit(
+        f"I2: no encuentro el insumo del CONSORT.\n"
+        f"    Esperaba: {XLSX_IN}\n"
+        f"    Lo genera I1_summary_consort.do; corré la fase `diagnostics` antes."
+    )
 PNG_OUT   = RUTA_IMG / "D1_Grafico_CONSORT.png"
 PDF_OUT   = RUTA_IMG / "D1_Grafico_CONSORT.pdf"
 

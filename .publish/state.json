@@ -1,5 +1,5 @@
 {
-  "last_hrc_sha": "99b55478bbae3572917c90b7b0cb1f8c6cb0a19b",
+  "last_hrc_sha": "59d66cdc49873ec0bf2a4db9bb6fcf235c01d46b",
   "files": {
     "README.md": "79355334a2629aa11443784a2bb57b099d7183caaaff4f670f5648aa5ed3ceb4",
     "LICENSE": "24484df762f9d415f5622173d7ac0945d763c87227f0700a898df17c46efdf2e",
@@ -43,14 +43,14 @@
     "code/I_diagnostics/I7B_summary_deff_outcomes.do": "f5859856f51ca898ab4583a0e50a1669b8bbe66019b3c19db214c9141b3a1a2d",
     "code/I_diagnostics/I8_balance_attrition.do": "9feace3cd50a355af94f8991cb6fba41c6d14e6ec8cda2a2355299a1507be3c8",
     "code/I_diagnostics/I9_summary_takeup.do": "f2a415c22ed1ceb908e2640f1fd51c48f722c4da24abc876669e7593e56c55f0",
-    "code/I_diagnostics/I2_graph_consort.py": "2e237576e8d5b65aa15597b8c44b5d6df15dcff768f636ac607308fd238776b6",
+    "code/I_diagnostics/I2_graph_consort.py": "30e672b1cee2423388cdaf4e02725ae2af3eadee1c63c9f09d7fa3769e001e16",
     "code/_utils/clean_pesticide_names.do": "259fa6c23a78df62e4de6a6b5b4fd5a6455605c12e325d488b293be1899e67ec",
     "code/_utils/collect_style_bid.do": "ff69d6e80f7752f9fe2067270eefa8d8bf9a989e8137eee774d85b857bb54744",
     "code/_utils/filter_randomized_ccpp.do": "7ff5fddeaaa7a8165086689f6e53c3a0ad16b84c2a8a1ab4434ec746e16805a7",
     "code/_utils/fix_ccpp_names.do": "7e05abc26504af426de7bbbdb43d101deb9f979efd2bb6ad6f6e798fa0a39269",
     "code/_utils/install_ado.do": "d7c4b86737990d9ee6c51fa9d4f32d58684a692d5086f832ac797c59ceb3e7c1",
     "code/_utils/lab_cle.do": "3306551dcd9c364107c985e7b67f89a3fa05701b7410741993622ea936636239",
-    "code/_utils/lab_sino.do": "faa05e51b79473088924cb735827c45316c93c8f38937bff6f8fbb7fa982357f",
+    "code/_utils/lab_sino.do": "d5be3332b3bc64722d381456b79728f0071aa795fef00ddfb48373e60288ed06",
     "code/_utils/make_ccpp_database.do": "469a12a511fd2331ae78f3084e67b0dcb2fc820130f4cf9e3485eaedc521d877",
     "code/_utils/make_eval_product.do": "f6ff1a2c7d4c517b4414af41df801af89120db5a45895513ea0e4309ea95783c",
     "code/_utils/make_producer_product.do": "c44b4b0aa9c1017012629c0f313de4d61a1888d7cf3039e59511e1952e36bc5e",

@@ -26,5 +26,7 @@
 // Output         : (ninguno — define la etiqueta de valores `sino')
 //------------------------------------------------------------------------------
 
+version 19.0
+
 cap lab drop sino
 lab def sino 0 "No" 1 "Sí"
