@@ -19,7 +19,7 @@ seguimiento 2022).
 | Código del pipeline completo, auditable línea por línea | Sí |
 | Corre en cualquier máquina con Stata 19 | Sí |
 | Documentación del flujo, las llaves y qué produce cada script | Sí |
-| Salidas ya generadas (89 tablas, figuras, logs) | Sí |
+| Salidas ya generadas (89 tablas y las figuras del reporte) | Sí |
 | Microdatos | No — ver *Disponibilidad de datos* |
 | Reproducción numérica de los resultados por un tercero | **No, sin los datos** |
 
@@ -73,8 +73,16 @@ Fases disponibles: `ingest`, `treatment`, `merge`, `build`, `estimation`,
 
 | | Total | Tratamiento | Control |
 |---|---|---|---|
-| Centros poblados | 128 | 65 | 63 |
-| Productores (panel balanceado) | 1,445 | 691 | 754 |
+| Centros poblados aleatorizados | 135 | 68 | 67 |
+| Centros poblados con línea base (muestra analítica) | 128 | 65 | 63 |
+| Productores con línea base | 1,445 | 691 | 754 |
+| Centros poblados en el panel balanceado | 118 | — | — |
+| Productores en el panel balanceado | 1,282 | 629 | 653 |
+
+**Las estimaciones corren sobre el panel balanceado**, no sobre la muestra
+analítica: `prg_load_panel` descarta a quien no tenga observación en ambas
+rondas. Por eso las tablas de resultados reportan 118 conglomerados y no 128.
+La muestra analítica es la referencia para describir el diseño y la atrición.
 
 Cumplimiento a nivel de conglomerado: 70.8 % en tratamiento, 88.9 % en control
 (el control se lee como ausencia de implementación). Atrición entre rondas: 11.3 %,
@@ -152,6 +160,7 @@ Comandos de terceros usados por el pipeline:
 | `reclink2` | SSC | `E2`, `merge_ccpp_status` — vinculación aproximada de nombres |
 | `labutil` | SSC | `E1` |
 | `xframeappend` | SSC | `E2` |
+| `carryforward` | SSC | `D_merge_panels` (construcción de los paneles) y `prg_procesa_eca` |
 
 Las estimaciones principales usan comandos nativos (`areg`, `ivregress 2sls`) y la
 construcción de tablas usa `putdocx` y `collect`, también nativos.
@@ -171,7 +180,16 @@ a este pipeline y viene dada en los datos.
 
 ### Memoria y tiempo de ejecución
 
-Pendiente de medición. Se completará cuando se cronometre cada etapa desde cero.
+**Cinco minutos**, de la ingesta al reporte compilado, en una corrida completa
+sin argumento de fase. La etapa más pesada es la estimación (41 % del total):
+cada tabla corre entre cuatro y seis especificaciones por variable de resultado,
+y varios scripts iteran sobre 7 a 37 de ellas. Le sigue la compilación del
+reporte, por pilotear Word, no por el volumen de contenido.
+
+El desglose por fase y la máquina de referencia están en
+[`docs/software.md`](docs/software.md). La memoria no se perfiló: los datos son
+una encuesta de panel de miles de observaciones —no millones—, y no debería ser
+una restricción en ninguna máquina con 8 GB de RAM.
 
 ---
 
@@ -180,7 +198,9 @@ Pendiente de medición. Se completará cuando se cronometre cada etapa desde cer
 ```
 code/
   run_all.do       Punto de entrada. Acepta una fase opcional
-  A_setup/         config.do: resuelve la raíz y define todas las rutas
+  A_setup/         config.do: resuelve la raíz y define las rutas
+                   spec.do:   parámetros sustantivos (deflación, controles,
+                              efectos fijos, nivel de agrupamiento, umbrales)
   B_ingest/        Ingesta y limpieza de los módulos de encuesta
   C_treatment/     Identificación de tratados y asignación de conglomerados
   D_merge/         Construcción de los cuatro paneles LB-LS

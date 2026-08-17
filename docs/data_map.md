@@ -10,8 +10,8 @@ cruce en un panel vienen de asumir la llave equivocada, no de la sintaxis.
 |---|---|---|---|
 | `Codprod22` | **Productor** | Código de la encuesta 2022. Es seudónimo: no contiene DNI ni nombre | Todas las bases de análisis |
 | `post` | **Periodo** | `0` = línea base (2021), `1` = seguimiento (2022) | Todas las bases de panel |
-| `pp_id` | **Predio** | `egen pp_id = group(Codprod22 preg101a)` (`E4:362`, `E5:76`) | `Predio_*`, `Valor_Produccion_Predio_*` |
-| `ppc_id` | **Predio × cultivo** | `egen ppc_id = group(Codprod22 preg101a preg114b1)` (`E4:108`) | `Cultivos_LByLS` |
+| `pp_id` | **Predio** | `egen pp_id = group(Codprod22 preg101a)` (en `E4` y `E5`) | `Predio_*`, `Valor_Produccion_Predio_*` |
+| `ppc_id` | **Predio × cultivo** | `egen ppc_id = group(Codprod22 preg101a preg114b1)` (en `E4`) | `Cultivos_LByLS` |
 | `cod_cpb` | **Centro poblado** | `egen cod_cpb = group(nomb_rgn nomb_prvnc nomb_dstrt nomb_ccpp)` (`E1`) | `Caract_Obs_Trat_ECA` |
 
 `cod_cpb` es la llave de la **unidad de aleatorización**, y por eso es también la

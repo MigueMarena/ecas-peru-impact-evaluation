@@ -96,9 +96,12 @@ región × cultivo, centro poblado, mes de encuesta) que todas las demás consum
 calcula el módulo de cultivos. `E10` va al final porque los indicadores
 compuestos se arman sobre lo que producen `E7`, `E8` y `E9`.
 
-`H1` va **al final de todo**: concatena las secciones `.docx` ya terminadas —con
-sus tablas y figuras embebidas— y no reconstruye ninguna tabla. Si se corre
-antes que `G*` e `I*`, compila el estado anterior sin avisar.
+`H1` concatena las secciones `.docx` ya terminadas —con sus tablas y figuras
+embebidas— y **no reconstruye ninguna tabla**. Lee de `Secciones/`, no de
+`Tablas/`, así que regenerar tablas nunca cambia el consolidado: para que un
+resultado nuevo llegue al reporte hay que insertarlo antes en la sección que
+corresponda. En el orden por defecto `reporting` corre *antes* que
+`diagnostics`, y da lo mismo, justamente por eso.
 
 ## Dependencias entre fases
 

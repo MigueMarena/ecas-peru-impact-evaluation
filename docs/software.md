@@ -45,13 +45,22 @@ dependencia externa del pipeline es deliberadamente corta.
 pip install -r requirements.txt
 ```
 
+El pipeline publica **cuatro** scripts de Python, y entre los cuatro solo
+necesitan tres paquetes externos:
+
 | Paquete | Usado en | Para qué |
 |---|---|---|
-| `matplotlib` | `I2_graph_consort.py`, `plot_knowledge_distributions.py` | Diagrama CONSORT y distribuciones de puntajes |
-| `pandas`, `numpy`, `scipy` | mismos | Manipulación y estadística de apoyo |
-| `pyreadstat` | `plot_knowledge_distributions.py` | Lectura de `.dta` desde Python |
-| `openpyxl` | `_build_diccionario.py`, `_build_catalogo_policymakers.py` | Genera los diccionarios de variables |
-| `lxml` | `check_sections.py` | Valida el XML de los `.docx` antes de compilar |
+| `matplotlib` | `I2_graph_consort.py` | Dibuja el diagrama CONSORT |
+| `pandas` + `openpyxl` | `I2_graph_consort.py` | Lee el `.xlsx` de conteos que produce `I1` |
+| `lxml` | `check_sections.py` | Valida el XML de las secciones antes de compilar |
+
+`build_table_map.py` y `fix_compiled_docx.py` usan solo la biblioteca estándar
+(`csv`, `re`, `zipfile`, `shutil`, `pathlib`).
+
+`numpy` llega como dependencia de `pandas` y `matplotlib`; no se importa
+directamente. `requirements.txt` ya no declara `scipy` ni `pyreadstat`: los usaba
+`plot_knowledge_distributions.py`, retirado del pipeline el 2026-08-12 junto con
+los generadores de diccionarios.
 
 ## Microsoft Word — solo para compilar el reporte
 

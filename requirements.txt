@@ -1,21 +1,21 @@
 # Dependencias Python del paquete de replicación.
 #
 # Solo cubren el código publicado en code/. Las versiones son mínimos probados,
-# no pines exactos: el pipeline no depende de APIs recientes de ninguna.
+# no pines exactos: ninguno de los cuatro scripts depende de APIs recientes.
 #
-#   pip install -r requirements.txt
+#     pip install -r requirements.txt
+#
+# El grueso del pipeline es Stata; Python interviene en tres puntos: el diagrama
+# CONSORT, la validación del .docx del reporte y el mapa de tablas.
 
-# Figuras (I2_graph_consort.py, plot_knowledge_distributions.py)
+# Diagrama CONSORT — code/I_diagnostics/I2_graph_consort.py
 matplotlib>=3.7
-numpy>=1.24
 pandas>=2.0
-scipy>=1.10
+openpyxl>=3.1          # backend que pandas necesita para leer el .xlsx de I1
+numpy>=1.24            # llega como dependencia de pandas/matplotlib
 
-# Lectura de bases Stata en Python (plot_knowledge_distributions.py)
-pyreadstat>=1.2
-
-# Construcción de diccionarios y catálogos de variables (_build_*.py)
-openpyxl>=3.1
-
-# Validación y saneamiento del paquete .docx del reporte (check_sections.py)
+# Validación del paquete .docx — code/_utils/check_sections.py
 lxml>=4.9
+
+# code/_utils/build_table_map.py y fix_compiled_docx.py usan solo la
+# biblioteca estándar (csv, re, zipfile, shutil, pathlib): no requieren nada.
