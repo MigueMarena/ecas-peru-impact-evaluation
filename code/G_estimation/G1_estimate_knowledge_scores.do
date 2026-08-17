@@ -14,10 +14,9 @@
 //                  (G1 no usa prg_load_panel porque los puntajes solo viven
 //                  en LS, lo que rompe el restrict-to-balanced-panel),
 //                  (2) construye D_c y P_i con definiciones operacionales
-//                  explícitas (mismas que G5Aa), (3) declara los labels
-//                  amigables con `lab var` (single source of truth — el
-//                  helper los lee con `: variable label`), y (4) invoca
-//                  prg_table_4panels una sola vez.
+//                  explícitas (mismas que G5Aa), (3) declara los labels con 
+//					`lab var` (single source of truth — el helper los lee con 
+//					`: variable label`), y (4) invoca prg_table_4panels una sola vez.
 //
 // Input          : Out/5_.../Caract_Obs_Trat_ECA.dta
 //                  Out/5_.../Sociodem_Prod_JH_LB.dta
@@ -26,28 +25,27 @@
 //                  Out/5_.../Productor_Predio_LB.dta
 //                  Out/5_.../Ptjs_Test_BPAs_LS.dta
 // Output         : Tablas/1_Conocimiento_Agronómico/Cuerpo/8.1-1_Tabla_Ptjes_Comb.docx
-// Depends        : _utils/prg_table_3panels.do  (define _fmt_* helpers
-//                                                  reutilizados por el 4-paneles)
+// Depends        : _utils/prg_table_3panels.do (define _fmt_* que es reutilizado)
 //                  _utils/prg_table_4panels.do
 //                  _utils/fix_table_borders.ps1 (invocado por el programa)
 //------------------------------------------------------------------------------
 
-version 19.0
-
 cls
+version 19.0
+clear all
 
 // Bootstrap del entorno: define las globals ${ruta_*} a partir de ${ECAS},
-// la única entrada de configuración del pipeline (ver A_master.do).
-// A_master.do se incluye SIEMPRE, sin guardarlo tras un `if' sobre alguna
+// la única entrada de configuración del pipeline (ver config.do).
+// config.do se incluye SIEMPRE, sin guardarlo tras un `if' sobre alguna
 // global: define locales (`outc1', `rawc1', …) y `do' abre un scope nuevo,
-// así que los locales del llamador NO llegan hasta acá. Saltarse el include
+// así que los locales del llamador NO llegan hasta aquí. Saltarse el include
 // porque las globals ya existan deja al script sin rutas y falla con r(601).
 // `include' es idempotente: solo redefine rutas y crea carpetas con `cap'.
-capture qui include "${ECAS}/2_Scripts/A_setup/A_master.do"
-if _rc capture qui include "2_Scripts/A_setup/A_master.do"
+capture qui include "${ECAS}/2_Scripts/A_setup/config.do"
+if _rc capture qui include "2_Scripts/A_setup/config.do"
 if "${ruta_data}" == "" {
-	di as error "No encuentro A_master.do. Definí la global ECAS con la ruta"
-	di as error "a la raíz del repositorio, o corré Stata desde esa raíz."
+	di as error "No encuentro config.do. Define la global ECAS con la ruta"
+	di as error "a la raíz del repositorio, o ejecuta Stata desde esa raíz."
 	exit 601
 }
 
@@ -62,9 +60,7 @@ log using "${ruta_logs}\G1_estimate_knowledge_scores.log", replace text
 // (también los redefine como fallback).
 qui do "${ruta_utils}/prg_table_3panels.do"
 qui do "${ruta_utils}/prg_table_4panels.do"
-
 qui include "${ruta_setup}/spec.do"
-
 
 //------------------------------------------------------------------------------
 // 1. Carga manual de módulos LB + puntajes LS

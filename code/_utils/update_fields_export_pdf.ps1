@@ -28,7 +28,7 @@
 #                  QUÉ ES "POR COM". COM es el mecanismo de Windows que permite
 #                  que un programa pilote a otro. Este script arranca Word sin
 #                  ventana visible y le va dando las mismas órdenes que daría
-#                  una persona: abrí, actualizá, guardá, exportá, cerrá. No es
+#                  una persona: abre, actualiza, guarda, exporta, cierra. No es
 #                  una conversión ni una reimplementación: es Word haciendo el
 #                  trabajo, teledirigido. Por eso el PDF sale idéntico al que
 #                  se obtendría "Guardar como PDF" a mano, y no como el de un

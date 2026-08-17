@@ -11,11 +11,11 @@ Las especificaciones LATE usan `ivregress 2sls` con la opción `absorb()`, que
 | 18 | `option absorb() not allowed` — `r(198)` |
 | **19** | corre |
 
-Los 39 scripts declaran `version 19.0`. Bajarlo no degrada resultados: rompe el
+Los 63 scripts declaran `version 19.0`. Bajarlo no degrada resultados: rompe el
 pipeline con un error que aparece cientos de líneas después del punto donde se
 declaró la versión y que no menciona versiones.
 
-> **Trampa asociada.** `code/A_setup/A_master.do` se carga con `include`, no con
+> **Trampa asociada.** `code/A_setup/config.do` se carga con `include`, no con
 > `do`, así que su `version` **se propaga a la sesión** del script que lo llama y queda en efecto cuando ese script
 > define los programas de `_utils/`. Un valor equivocado ahí no rompe el archivo
 > que lo contiene: rompe las estimaciones.

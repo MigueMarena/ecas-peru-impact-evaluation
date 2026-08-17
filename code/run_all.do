@@ -14,12 +14,12 @@
 //                  Fases: ingest treatment merge build estimation reporting
 //                         diagnostics
 //
-//                  Este archivo, y no A_master.do, es el que sabe el orden de
-//                  ejecución. A_master.do define el entorno y es seguro de
+//                  Este archivo, y no config.do, es el que sabe el orden de
+//                  ejecución. config.do define el entorno y es seguro de
 //                  `include`; si el orden viviera ahí, los 35 scripts que le
 //                  hacen `include` dispararían recursión infinita.
 //
-// Depends        : A_master.do (entorno)
+// Depends        : config.do (entorno)
 // Input          : ver cada script de fase
 // Output         : ver cada script de fase
 //------------------------------------------------------------------------------
@@ -30,18 +30,18 @@ clear all
 //==============================================================================
 // Step 1: Entorno
 //==============================================================================
-// A_master.do resuelve ${ECAS} (la raíz del repositorio) y define las rutas.
-capture qui include "${ECAS}/2_Scripts/A_setup/A_master.do"
-if _rc capture qui include "2_Scripts/A_setup/A_master.do"
+// config.do resuelve ${ECAS} (la raíz del repositorio) y define las rutas.
+capture qui include "${ECAS}/2_Scripts/A_setup/config.do"
+if _rc capture qui include "2_Scripts/A_setup/config.do"
 if "${ruta_data}" == "" {
-	di as error "No encuentro A_master.do. Definí la global ECAS con la ruta a"
-	di as error "la raíz del repositorio, o corré Stata desde esa raíz."
+	di as error "No encuentro config.do. Define la global ECAS con la ruta a"
+	di as error "la raíz del repositorio, o ejecuta Stata desde esa raíz."
 	exit 601
 }
 
 // El log del orquestador va en un CANAL con nombre. Cada script del pipeline
 // abre el suyo con `log using` sin nombre y lo cierra con `cap log close`, así
-// que un log anónimo acá quedaría secuestrado por el primer script y el
+// que un log anónimo aquí quedaría secuestrado por el primer script y el
 // orquestador perdería el rastro de qué fase falló — que es justo lo que hay
 // que ver cuando algo se rompe.
 cap log close _all
@@ -109,7 +109,7 @@ foreach fase of local fases_pedidas {
 	di as text "{hline 78}"
 
 	// Cada fase vive en su propia subcarpeta. Las globals ${ruta_<fase>} las
-	// define A_master.do (Step 2) con el mismo nombre que la fase, así que
+	// define config.do (Step 2) con el mismo nombre que la fase, así que
 	// resuelven directo.
 	local carpeta "${ruta_`fase'}"
 
@@ -120,7 +120,7 @@ foreach fase of local fases_pedidas {
 		capture noisily do "`carpeta'/`s'.do"
 		if _rc {
 			di as error _n "El pipeline se detuvo en `s'.do (r(" _rc "))."
-			di as error "Revisá ${ruta_logs}/`s'.log."
+			di as error "Revisa ${ruta_logs}/`s'.log."
 			cap log close runall
 			exit _rc
 		}

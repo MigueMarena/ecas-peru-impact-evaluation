@@ -18,13 +18,14 @@
 //                  Bajo el acuerdo metodológico actual, NO se reporta Panel A
 //                  (Cobertura del baseline) porque no se dispuso de un padrón
 //                  pre-baseline censal.
+// Depends        : (ninguno)
 // Input          : Out/5_BDs por grupos de vars/Caract_Obs_Trat_ECA.dta
 //                  Out/5_BDs por grupos de vars/Sociodem_Prod_JH_LB.dta
 //                  Out/5_BDs por grupos de vars/Viv_Act_SEA_LB.dta
 //                  Out/5_BDs por grupos de vars/Demog_Ing_Hog_LB.dta
 //                  Out/5_BDs por grupos de vars/Productor_Predio_LB.dta
-// Output         : Tablas/0_Diseño_y_Diagnóstico/Cuerpo/D9_Tabla_Atricion_Productor.docx (+ xlsx)
-//                  Tablas/0_Diseño_y_Diagnóstico/Cuerpo/D10_Tabla_Balance_Atritos_Productor.docx (+ xlsx)
+// Output         : Tablas/0_Diseño_y_Diagnóstico/Cuerpo/6.2-1_Tabla_Atricion_Productor.docx (+ xlsx)
+//                  Tablas/0_Diseño_y_Diagnóstico/Cuerpo/6.2-2_Tabla_Balance_Atritos_Productor.docx (+ xlsx)
 //------------------------------------------------------------------------------
 
 cls
@@ -35,19 +36,24 @@ clear all
 // Step 1: Load environment
 //==============================================================================
 // Bootstrap del entorno: define las globals ${ruta_*} a partir de ${ECAS},
-// la única entrada de configuración del pipeline (ver A_master.do).
-// A_master.do se incluye SIEMPRE, sin guardarlo tras un `if' sobre alguna
+// la única entrada de configuración del pipeline (ver config.do).
+// config.do se incluye SIEMPRE, sin guardarlo tras un `if' sobre alguna
 // global: define locales (`outc1', `rawc1', …) y `do' abre un scope nuevo,
-// así que los locales del llamador NO llegan hasta acá. Saltarse el include
+// así que los locales del llamador NO llegan hasta aquí. Saltarse el include
 // porque las globals ya existan deja al script sin rutas y falla con r(601).
 // `include' es idempotente: solo redefine rutas y crea carpetas con `cap'.
-capture qui include "${ECAS}/2_Scripts/A_setup/A_master.do"
-if _rc capture qui include "2_Scripts/A_setup/A_master.do"
+capture qui include "${ECAS}/2_Scripts/A_setup/config.do"
+if _rc capture qui include "2_Scripts/A_setup/config.do"
 if "${ruta_data}" == "" {
-	di as error "No encuentro A_master.do. Definí la global ECAS con la ruta"
-	di as error "a la raíz del repositorio, o corré Stata desde esa raíz."
+	di as error "No encuentro config.do. Define la global ECAS con la ruta"
+	di as error "a la raíz del repositorio, o ejecuta Stata desde esa raíz."
 	exit 601
 }
+
+// Parámetros del diseño: $fe_estrato (estrato de aleatorización) y
+// $cl_ccpp (nivel de agrupamiento de los errores estándar). Vienen de
+// spec.do para que diagnóstico y estimación no puedan divergir.
+qui include "${ruta_setup}/spec.do"
 
 // Redirige el log de stata-batch a 3_Logs/ (limpia el log auto en 2_Scripts).
 cap log close
@@ -111,7 +117,7 @@ local atT   = 100 - `pct_elT'
 local atTot = 100 - `pct_elTot'
 
 // Diferencial (en pp)
-qui reg has_el asig_ccpp i.cod_rgn_PE, cluster(cod_cpb)
+qui reg has_el asig_ccpp i.$fe_estrato, cluster($cl_ccpp)
 local diff_el = _b[asig_ccpp] * 100
 local p_el    = 2 * ttail(e(df_r), abs(_b[asig_ccpp] / _se[asig_ccpp]))
 
@@ -126,26 +132,26 @@ preserve
 	gen double dif     = .
 	gen double pval    = .
 
-	replace indicador = "Productores con baseline (n)" in 1
+	replace indicador = "Productores con línea base (n)" in 1
 	replace control = `n_blC'   in 1
 	replace trat    = `n_blT'   in 1
 	replace total   = `n_blTot' in 1
 
-	replace indicador = "Endline completado (%)" in 2
+	replace indicador = "Línea de seguimiento completada (%)" in 2
 	replace control = `pct_elC'   in 2
 	replace trat    = `pct_elT'   in 2
 	replace total   = `pct_elTot' in 2
 	replace dif     = `diff_el'   in 2
 	replace pval    = `p_el'      in 2
 
-	replace indicador = "Atrición baseline → endline (%)" in 3
+	replace indicador = "Atrición línea base → línea de seguimiento (%)" in 3
 	replace control = `atC'    in 3
 	replace trat    = `atT'    in 3
 	replace total   = `atTot'  in 3
 	replace dif     = `=-1*`diff_el'' in 3
 	replace pval    = `p_el'   in 3
 
-	export excel using "`outdir'\\D9_Tabla_Atricion_Productor.xlsx", ///
+	export excel using "`outdir'\\6.2-1_Tabla_Atricion_Productor.xlsx", ///
 		firstrow(variables) sheet("Atricion") sheetreplace
 restore
 
@@ -177,9 +183,9 @@ qui collect get pv   =`p_el',     tags(cmdset[3] arm[bal]) name(`tag8')
 collect set `tag8'
 
 collect label levels cmdset ///
-	1 "Productores con baseline (n)"                          ///
-	2 "Endline completado (%)"                                ///
-	3 "Atrición a nivel productor — baseline → endline (%)",  modify
+	1 "Productores con línea base (n)"                          ///
+	2 "Línea de seguimiento completada (%)"                                ///
+	3 "Atrición a nivel productor — línea base → línea de seguimiento (%)",  modify
 
 collect label levels arm ///
 	C   "Control"      ///
@@ -194,21 +200,19 @@ collect label levels result ///
 
 collect stars pv 0.01 "***" 0.05 "**" 0.10 "*", attach(pv)
 
-collect style cell, border(right, pattern(nil)) margin(all, width(0pt))
-collect style cell cmdset, font(Roboto, size(`size_m')) halign(left)  valign(center)
+// Estilo de casa BID (Roboto, encabezado azul, bordes y tamaños).
+// Lo que se declare DESPUÉS de esta línea se superpone.
+do "${ruta_utils}\collect_style_bid.do" `_pt_dat'
+
 collect style cell arm,    font(Roboto, size(`size_m')) halign(center)
-collect style cell result, font(Roboto, size(`size_m')) halign(center)
 collect style cell result[value]#cmdset[1], nformat(%9.0f)
 collect style cell result[value]#cmdset[2 3], nformat(%9.1f)
 collect style cell result[diff], nformat(%9.1f)
 collect style cell result[pv],   nformat(%9.3f)
 
 // Datos (items): regular
-collect style cell cell_type[item], font(Roboto, size(`size_m') nobold)
 
 // Headers: negrita blanca sobre azul BID
-collect style cell cell_type[corner column-header], ///
-	shading(background(0 78 112)) font(Roboto, size(`size_m') color(white) bold)
 
 // Ocultar la etiqueta "Valor" del sub-header solo para el nivel result[value]
 // — vía level(hide). Los sub-headers de result[diff] y result[pv] conservan
@@ -216,14 +220,10 @@ collect style cell cell_type[corner column-header], ///
 // específico, no a la dimensión completa.
 collect style header result[value], level(hide)
 
-collect style column, dups(center)
-collect style header cmdset, level(label)
 collect style header arm,    level(label)
-collect style header result, level(label)
-collect style row stack, nobinder
 
-local titulo "Tabla D9 — Atrición a nivel productor (línea base → línea de seguimiento)"
-local nota1 "Notas: La tabla reporta la atrición a nivel productor observada entre línea base y línea de seguimiento — productores con encuesta de línea base que no fueron alcanzados por la encuesta de línea de seguimiento. Esta atrición es conceptualmente distinta de la atrición a nivel clúster reportada en la Tabla D1 (centros poblados aleatorizados sin línea base, excluidos antes del análisis)."
+local titulo "Tabla 6.2-1 — Atrición a nivel productor (línea base a línea de seguimiento)"
+local nota1 "Notas: La tabla reporta la atrición a nivel productor observada entre línea base y línea de seguimiento — productores con encuesta de línea base que no fueron alcanzados por la encuesta de línea de seguimiento. Esta atrición es conceptualmente distinta de la atrición a nivel clúster reportada en la Figura 4.2-1 (centros poblados aleatorizados sin línea base, excluidos antes del análisis)."
 local nota2 "El denominador corresponde a los productores con encuesta de línea base completa (muestra analítica). El diferencial entre brazos se estima por regresión del indicador de línea de seguimiento completado sobre el indicador de tratamiento, con efectos fijos del estrato de aleatorización y errores estándar agrupados a nivel de centro poblado."
 local nota3 "No se reporta Panel A (Cobertura de la línea base) porque no se dispuso de un padrón censal previo a la línea base."
 local nota4 "Significancia: *** p<0.01, ** p<0.05, * p<0.10."
@@ -232,14 +232,12 @@ collect title "`titulo'"
 collect notes "`nota1' `nota2' `nota3' `nota4'"
 // Estilo APA-AEA: título en bold (sin italic), tamaño = cuerpo;
 // notas en italic, tamaño = (cuerpo − 1) pt.
-collect style title, font(Roboto, size(`size_m') bold)
-collect style notes, font(Roboto, size(`size_n') italic)
 
 collect layout (cmdset) (arm[C T Tot]#result[value] arm[bal]#result[diff pv])
 
 mat widths = (40, 12, 12, 12, 12, 12)
 collect style putdocx, name(`tag8') width(widths)
-collect export "`outdir'\\D9_Tabla_Atricion_Productor.docx", as(docx) name(`tag8') replace
+collect export "`outdir'\\6.2-1_Tabla_Atricion_Productor.docx", as(docx) name(`tag8') replace
 
 //==============================================================================
 // Step 4: Tabla D10 — Balance a nivel productor: atritos vs no-atritos
@@ -432,20 +430,18 @@ collect label levels result ///
 
 collect stars pv 0.01 "***" 0.05 "**" 0.10 "*", attach(pv)
 
-collect style cell, border(right, pattern(nil)) margin(all, width(0pt))
-collect style cell cmdset, font(Roboto, size(`size_m') nobold noitalic) halign(left) valign(center)
+// Estilo de casa BID (Roboto, encabezado azul, bordes y tamaños).
+// Lo que se declare DESPUÉS de esta línea se superpone.
+do "${ruta_utils}\collect_style_bid.do" `_pt_dat'
+
 collect style cell arm,    font(Roboto, size(`size_m') nobold noitalic) halign(center)
-collect style cell result, font(Roboto, size(`size_m') nobold noitalic) halign(center)
 collect style cell result[m diff], nformat(%9.2f)
 collect style cell result[sd], nformat(%9.2f) sformat("(%s)")
 collect style cell result[pv], nformat(%9.3f)
 
 // Datos (items): regular sin negrita ni cursiva.
-collect style cell cell_type[item], font(Roboto, size(`size_m') nobold noitalic)
 
 // Headers de columna AL FINAL: azul BID + blanco bold.
-collect style cell cell_type[corner column-header], ///
-	shading(background(0 78 112)) font(Roboto, size(`size_m') color(white) bold noitalic)
 
 // Headers de panel: shading gris BID + label en italic bold.
 // El shading via cmdset captura la fila ENTERA porque todas las celdas de
@@ -459,15 +455,11 @@ collect style cell cmdset[`idx_hdrA' `idx_hdrB' `idx_hdrC'], ///
 collect style cell cmdset[`idx_hdrA' `idx_hdrB' `idx_hdrC']#cell_type[item], ///
 	font(Roboto, size(`size_m') color(211 210 209))
 
-collect style column, dups(center)
-collect style header cmdset, level(label)
 collect style header arm,    level(label)
-collect style header result, level(label)
-collect style row stack, nobinder
 
-local titulo "Tabla D10 — Balance a nivel productor — atritos vs no-atritos en covariables de línea base"
+local titulo "Tabla 6.2-2 — Balance a nivel productor — atritos y no-atritos en covariables de línea base"
 local nota1 "Notas: La unidad de análisis es el productor. Un productor se considera atrito si tiene encuesta de línea base (pertenece a la muestra analítica definida en la Figura 4.2-1) pero no fue alcanzado por la encuesta de línea de seguimiento. La tabla compara la media y desviación estándar de cada covariable basal entre productores no-atritos y atritos."
-local nota2 "Esta atrición a nivel productor es conceptualmente distinta de la atrición a nivel clúster reportada en la Tabla D1 (centros poblados aleatorizados sin línea base, excluidos del análisis)."
+local nota2 "Esta atrición a nivel productor es conceptualmente distinta de la atrición a nivel clúster reportada en la Figura 4.2-1 (centros poblados aleatorizados sin línea base, excluidos del análisis)."
 local nota3 "La diferencia y el p-valor provienen de una regresión simple sin agrupamiento del error estándar, dado que el interés es descriptivo a nivel individual."
 local nota4 "Significancia: *** p<0.01, ** p<0.05, * p<0.10."
 
@@ -475,8 +467,6 @@ collect title "`titulo'"
 collect notes "`nota1' `nota2' `nota3' `nota4'"
 // Estilo APA-AEA: título en bold (sin italic), tamaño = cuerpo;
 // notas en italic, tamaño = (cuerpo − 1) pt.
-collect style title, font(Roboto, size(`size_m') bold)
-collect style notes, font(Roboto, size(`size_n') italic)
 
 // Sangría en los nombres de variable (row-headers de cmdset). Va AL FINAL,
 // después de todos los estilos generales y específicos, para asegurar que
@@ -492,7 +482,7 @@ collect layout (cmdset) (arm[NoAtr Atr]#result[m sd] arm[bal]#result[diff pv])
 // Suma 100.
 mat widths = (38, 14, 6, 14, 6, 10, 12)
 collect style putdocx, name(`tag9') width(widths)
-collect export "`outdir'\\D10_Tabla_Balance_Atritos_Productor.docx", as(docx) name(`tag9') replace
+collect export "`outdir'\\6.2-2_Tabla_Balance_Atritos_Productor.docx", as(docx) name(`tag9') replace
 
 di as text "Listo: D9 (atrición a nivel productor) y D10 (balance atritos a nivel productor) exportadas en `outdir'."
 

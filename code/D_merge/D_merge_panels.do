@@ -38,9 +38,9 @@ version 19.0
 // y la base using eran casi iguales. Seguido, corregí caso por caso comparando los
 // DNIs de ambos y determinando cuál era el verídico. La fuente que me permitió
 // determinar cuál DNI era el válido fue la CONSULTA EN LINEA DEL SIS. A partir de
-// ello, si el DNI correcto era el de la base using (PRODUCTORES_2021_CCPPs_ALEATOR
-// IZADOS), procedí a cambiar el DNI de la otra base. Esto se documentó en el script
-// 05-1_do_corregir_DNIs_y_Nombres. En cambio, cuando el DNI correcto era el de la
+// ello, si el DNI correcto era el de la base using (PRODUCTORES_2021_CCPPs_ALEA),
+// procedí a cambiar el DNI de la otra base. Esto se documentó en el script
+// _utils/fix_dni_names.do. En cambio, cuando el DNI correcto era el de la
 // base master (pcl_Inicio_LB) procedí a hacer los cambios manuales en los archivos
 // excel originales de Consolidado BID y de ECAS 2019-2023. Lamentablemente estos
 // cambios manuales en los archivos brutos no se han documentado.
@@ -50,17 +50,17 @@ clear all
 
 //  Llamar do-file con rutas 
 // Bootstrap del entorno: define las globals ${ruta_*} a partir de ${ECAS},
-// la única entrada de configuración del pipeline (ver A_master.do).
-// A_master.do se incluye SIEMPRE, sin guardarlo tras un `if' sobre alguna
+// la única entrada de configuración del pipeline (ver config.do).
+// config.do se incluye SIEMPRE, sin guardarlo tras un `if' sobre alguna
 // global: define locales (`outc1', `rawc1', …) y `do' abre un scope nuevo,
-// así que los locales del llamador NO llegan hasta acá. Saltarse el include
+// así que los locales del llamador NO llegan hasta aquí. Saltarse el include
 // porque las globals ya existan deja al script sin rutas y falla con r(601).
 // `include' es idempotente: solo redefine rutas y crea carpetas con `cap'.
-capture qui include "${ECAS}/2_Scripts/A_setup/A_master.do"
-if _rc capture qui include "2_Scripts/A_setup/A_master.do"
+capture qui include "${ECAS}/2_Scripts/A_setup/config.do"
+if _rc capture qui include "2_Scripts/A_setup/config.do"
 if "${ruta_data}" == "" {
-	di as error "No encuentro A_master.do. Definí la global ECAS con la ruta"
-	di as error "a la raíz del repositorio, o corré Stata desde esa raíz."
+	di as error "No encuentro config.do. Define la global ECAS con la ruta"
+	di as error "a la raíz del repositorio, o ejecuta Stata desde esa raíz."
 	exit 601
 }
 
@@ -68,7 +68,6 @@ if "${ruta_data}" == "" {
 cap log close
 cap erase "${ruta_scripts}\D_merge_panels.log"
 log using "${ruta_logs}\D_merge_panels.log", replace text
-
 
 //=====================================================================
 // Step 1: Prepare baseline and follow-up: Inicio module
@@ -268,20 +267,6 @@ foreach base in `basesPersonas'{
 // Step 4: Merge panels: Personas
 //=====================================================================
 { //	JUNTAR: Personas_LB - NuevosIntegrantes_LS		//
-	// Bootstrap del entorno: define las globals ${ruta_*} a partir de ${ECAS},
-	// la única entrada de configuración del pipeline (ver A_master.do).
-	// A_master.do se incluye SIEMPRE, sin guardarlo tras un `if' sobre alguna
-	// global: define locales (`outc1', `rawc1', …) y `do' abre un scope nuevo,
-	// así que los locales del llamador NO llegan hasta acá. Saltarse el include
-	// porque las globals ya existan deja al script sin rutas y falla con r(601).
-	// `include' es idempotente: solo redefine rutas y crea carpetas con `cap'.
-	capture qui include "${ECAS}/2_Scripts/A_setup/A_master.do"
-	if _rc capture qui include "2_Scripts/A_setup/A_master.do"
-	if "${ruta_data}" == "" {
-		di as error "No encuentro A_master.do. Definí la global ECAS con la ruta"
-		di as error "a la raíz del repositorio, o corré Stata desde esa raíz."
-		exit 601
-	}
 	use "`outc1'\\Personas_LB", clear
 	append using "`outc2'\\Personas_LS"
 	order HORD01b, a(HORD01)

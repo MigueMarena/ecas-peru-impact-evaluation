@@ -2,6 +2,7 @@
 // File           : _utils/prg_table_3panels.do
 // Author         : Carlos Marena
 // Email          : carlosmarena1995@gmail.com
+// Last Mod. Date : 14/08/2026
 // Description    : Programa reusable que genera una tabla docx de 3 paneles
 //                  (Sección Cruzada / Diferencias en Diferencias / Descriptivos)
 //                  con la especificación de 4 estimadores × 2 (sin/con
@@ -78,7 +79,7 @@
 //                  distinta a la usada en el cuerpo principal.
 //
 // Dependencias:
-//   - Global ${ruta_utils} (definido por A_master.do) para el post-process.
+//   - Global ${ruta_utils} (definido por config.do) para el post-process.
 //   - Helper PowerShell ${ruta_utils}/fix_table_borders.ps1
 //   - Data ya cargada en memoria por el caller (ver prg_load_panel.do).
 //
@@ -105,6 +106,7 @@
 // todos los helpers para que solo los dígitos sean centrados en la celda.
 cap program drop _fmt_b
 program define _fmt_b, rclass
+	version 19.0
 	args b p
 	local s : di %9.3f `b'
 	local s = trim("`s'")
@@ -117,6 +119,7 @@ end
 
 cap program drop _fmt_se
 program define _fmt_se, rclass
+	version 19.0
 	args se
 	local s : di %5.3f `se'
 	local s = trim("`s'")
@@ -125,6 +128,7 @@ end
 
 cap program drop _fmt_N
 program define _fmt_N, rclass
+	version 19.0
 	args n
 	local s : di %9.0fc `n'
 	local s = trim("`s'")
@@ -133,6 +137,7 @@ end
 
 cap program drop _fmt_F
 program define _fmt_F, rclass
+	version 19.0
 	args f
 	local s : di %9.2f `f'
 	local s = trim("`s'")
@@ -144,6 +149,7 @@ end
 //==============================================================================
 cap program drop prg_table_3panels
 program define prg_table_3panels
+	version 19.0
 	syntax , ///
 		outcome(varname) ///
 		outcome_phrase(string) ///
@@ -176,8 +182,8 @@ program define prg_table_3panels
 	// El check de ${ruta_utils} se mantiene porque el post-process del XML
 	// (Step 6) sí necesita el path del helper PowerShell.
 	if "${ruta_utils}" == "" {
-		di as error "Global \${ruta_utils} no está definido. El caller debe"
-		di as error "hecho el bootstrap del entorno (ver A_master.do)."
+		di as error "Global \${ruta_utils} no está definido. El caller debe haber"
+		di as error "hecho el bootstrap del entorno (ver config.do)."
 		exit 198
 	}
 

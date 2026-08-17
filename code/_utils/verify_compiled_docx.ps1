@@ -85,7 +85,7 @@ foreach ($f in $Files) {
             Write-Output ("  [verify] OK    {0} :: tablas={1} párrafos={2} campos={3} índices=[{4}]" -f `
                           $nombre, $d.Tables.Count, $d.Paragraphs.Count, $d.Fields.Count, ($indices -join ', '))
             if ($indices -contains 0 -or $indices -contains 1) {
-                Write-Output "  [verify]        AVISO: algún índice quedó vacío (revisá el switch \t y el separador de lista)"
+                Write-Output "  [verify]        AVISO: algún índice quedó vacío (revisa el switch \t y el separador de lista)"
             }
         }
         $d.Close([ref]0)

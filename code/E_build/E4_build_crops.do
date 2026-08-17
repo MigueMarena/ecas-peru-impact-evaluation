@@ -29,6 +29,26 @@
 version 19.0
 clear all
 
+// Bootstrap del entorno: define las globals ${ruta_*} a partir de ${ECAS},
+// la única entrada de configuración del pipeline (ver config.do).
+// config.do se incluye SIEMPRE, sin guardarlo tras un `if' sobre alguna
+// global: define locales (`outc1', `rawc1', …) y `do' abre un scope nuevo,
+// así que los locales del llamador NO llegan hasta aquí. Saltarse el include
+// porque las globals ya existan deja al script sin rutas y falla con r(601).
+// `include' es idempotente: solo redefine rutas y crea carpetas con `cap'.
+capture qui include "${ECAS}/2_Scripts/A_setup/config.do"
+if _rc capture qui include "2_Scripts/A_setup/config.do"
+if "${ruta_data}" == "" {
+	di as error "No encuentro config.do. Define la global ECAS con la ruta"
+	di as error "a la raíz del repositorio, o ejecuta Stata desde esa raíz."
+	exit 601
+}
+
+// Parámetros sustantivos del análisis. De aquí salen los escalares ipc_lb,
+// ipc_ls y factor_def, con los que se deflacta la línea de seguimiento a
+// precios de línea base.
+qui include "${ruta_setup}/spec.do"
+
 //==============================================================================
 // Local Macros (Control Flow)
 //==============================================================================
@@ -50,17 +70,6 @@ clear all
 }
 
 //==============================================================================
-// Parámetros de Deflación (IPC Peru, Fuente: INEI)
-//==============================================================================
-// LB: campaña 2020-2021, encuestado aprox. 2021 → IPC promedio Jul-Dic 2021
-// LS: campaña 2021-2022, encuestado aprox. 2022 → IPC promedio Jul-Dic 2022
-// Para expresar LS en precios de LB: dividir por factor_def (≈ 1.0847)
-// Fuentes y valores idénticos a do_calculo_indicadores_PCR.do
-scalar ipc_lb     = 98.5399356   // IPC promedio Jul-Dic 2021 (base)
-scalar ipc_ls     = 106.8904127  // IPC promedio Jul-Dic 2022
-scalar factor_def = ipc_ls / ipc_lb  // Factor inflación LS → precios LB (≈ 1.0847)
-
-//==============================================================================
 // Frames Setup
 //==============================================================================
 if `ResetDoFrames'{
@@ -71,33 +80,17 @@ if `ResetDoFrames'{
 // Step 1: Load Data & Identify Crops
 //==============================================================================
 if `LoadData'{
-	// Bootstrap del entorno: define las globals ${ruta_*} a partir de ${ECAS},
-	// la única entrada de configuración del pipeline (ver A_master.do).
-	// A_master.do se incluye SIEMPRE, sin guardarlo tras un `if' sobre alguna
-	// global: define locales (`outc1', `rawc1', …) y `do' abre un scope nuevo,
-	// así que los locales del llamador NO llegan hasta acá. Saltarse el include
-	// porque las globals ya existan deja al script sin rutas y falla con r(601).
-	// `include' es idempotente: solo redefine rutas y crea carpetas con `cap'.
-	capture qui include "${ECAS}/2_Scripts/A_setup/A_master.do"
-	if _rc capture qui include "2_Scripts/A_setup/A_master.do"
-	if "${ruta_data}" == "" {
-		di as error "No encuentro A_master.do. Definí la global ECAS con la ruta"
-		di as error "a la raíz del repositorio, o corré Stata desde esa raíz."
-		exit 601
-	}
-
-// Redirige el log de stata-batch a 3_Logs/ (limpia el log auto en 2_Scripts).
-cap log close
-cap erase "${ruta_scripts}\E4_build_crops.log"
-log using "${ruta_logs}\E4_build_crops.log", replace text
-
+	// Redirige el log de stata-batch a 3_Logs/ (limpia el log auto en 2_Scripts).
+	cap log close
+	cap erase "${ruta_scripts}\E4_build_crops.log"
+	log using "${ruta_logs}\E4_build_crops.log", replace text
 
 	frame change all_crops
 	use `varltoimport1' using "`outc4'\\Panel_Cultivos.dta", clear
 	compress
 
 	// Merge de producto a evaluar
-	// El helper GENERA Productor-Producto.dta. Antes no se invocaba desde acá:
+	// El helper GENERA Productor-Producto.dta. Antes no se invocaba desde aquí:
 	// el archivo existía en disco de una corrida vieja, así que el merge
 	// funcionaba en la máquina del autor y fallaba en un clon limpio. Se invoca
 	// igual que outliers_pesticide_prices.do más abajo (ver Step de plaguicidas).
@@ -629,7 +622,6 @@ if `GenVarsInsm'{
 			lab var `var'_def "`lbl' (S/. constantes 2021)"
 			order `var'_def, a(`var')
 		}
-
 		compress
 
 		// Volver al frame principal y unir

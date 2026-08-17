@@ -44,6 +44,21 @@
 version 19.0
 clear all
 
+// Bootstrap del entorno: define las globals ${ruta_*} a partir de ${ECAS},
+// la única entrada de configuración del pipeline (ver config.do).
+// config.do se incluye SIEMPRE, sin guardarlo tras un `if' sobre alguna
+// global: define locales (`outc1', `rawc1', …) y `do' abre un scope nuevo,
+// así que los locales del llamador NO llegan hasta aquí. Saltarse el include
+// porque las globals ya existan deja al script sin rutas y falla con r(601).
+// `include' es idempotente: solo redefine rutas y crea carpetas con `cap'.
+capture qui include "${ECAS}/2_Scripts/A_setup/config.do"
+if _rc capture qui include "2_Scripts/A_setup/config.do"
+if "${ruta_data}" == "" {
+	di as error "No encuentro config.do. Define la global ECAS con la ruta"
+	di as error "a la raíz del repositorio, o ejecuta Stata desde esa raíz."
+	exit 601
+}
+
 //==============================================================================
 // Local Macros (Control Flow)
 //==============================================================================
@@ -70,26 +85,10 @@ if `ResetDoFrames'{
 // Step 1: Load Data
 //==============================================================================
 if `LoadData'{
-	// Bootstrap del entorno: define las globals ${ruta_*} a partir de ${ECAS},
-	// la única entrada de configuración del pipeline (ver A_master.do).
-	// A_master.do se incluye SIEMPRE, sin guardarlo tras un `if' sobre alguna
-	// global: define locales (`outc1', `rawc1', …) y `do' abre un scope nuevo,
-	// así que los locales del llamador NO llegan hasta acá. Saltarse el include
-	// porque las globals ya existan deja al script sin rutas y falla con r(601).
-	// `include' es idempotente: solo redefine rutas y crea carpetas con `cap'.
-	capture qui include "${ECAS}/2_Scripts/A_setup/A_master.do"
-	if _rc capture qui include "2_Scripts/A_setup/A_master.do"
-	if "${ruta_data}" == "" {
-		di as error "No encuentro A_master.do. Definí la global ECAS con la ruta"
-		di as error "a la raíz del repositorio, o corré Stata desde esa raíz."
-		exit 601
-	}
-
-// Redirige el log de stata-batch a 3_Logs/ (limpia el log auto en 2_Scripts).
-cap log close
-cap erase "${ruta_scripts}\E10_build_composite_bpas.log"
-log using "${ruta_logs}\E10_build_composite_bpas.log", replace text
-
+	// Redirige el log de stata-batch a 3_Logs/ (limpia el log auto en 2_Scripts).
+	cap log close
+	cap erase "${ruta_scripts}\E10_build_composite_bpas.log"
+	log using "${ruta_logs}\E10_build_composite_bpas.log", replace text
 
 	frame change composite
 
@@ -117,8 +116,7 @@ log using "${ruta_logs}\E10_build_composite_bpas.log", replace text
 		keepus(riego_tec_prod) keep(1 3) nogen
 
 	// Etiqueta general
-	cap lab drop sino
-	lab def sino 1 "Sí" 0 "No"
+	qui do "${ruta_utils}\lab_sino.do"
 }
 
 //******************************************************************************

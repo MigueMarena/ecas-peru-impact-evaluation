@@ -6,11 +6,27 @@
 // Description    : Genera variables sobre tenencia de registros agricolas
 //                  (aplicacion de insumos, produccion, costos, ventas) y
 //                  condiciones minimas de almacenamiento de agroquimicos.
+// Depends        : (ninguno)
 // Input          : Out/4_.../Panel_Inicio.dta
 // Output         : Out/5_.../Registros_Almacen_LByLS.dta
 //------------------------------------------------------------------------------
 version 19.0
 clear all
+
+// Bootstrap del entorno: define las globals ${ruta_*} a partir de ${ECAS},
+// la única entrada de configuración del pipeline (ver config.do).
+// config.do se incluye SIEMPRE, sin guardarlo tras un `if' sobre alguna
+// global: define locales (`outc1', `rawc1', …) y `do' abre un scope nuevo,
+// así que los locales del llamador NO llegan hasta aquí. Saltarse el include
+// porque las globals ya existan deja al script sin rutas y falla con r(601).
+// `include' es idempotente: solo redefine rutas y crea carpetas con `cap'.
+capture qui include "${ECAS}/2_Scripts/A_setup/config.do"
+if _rc capture qui include "2_Scripts/A_setup/config.do"
+if "${ruta_data}" == "" {
+	di as error "No encuentro config.do. Define la global ECAS con la ruta"
+	di as error "a la raíz del repositorio, o ejecuta Stata desde esa raíz."
+	exit 601
+}
 
 //==============================================================================
 // Local Macros (Control Flow)
@@ -39,33 +55,16 @@ if `ResetDoFrames'{
 // Step 1: Load Data
 //==============================================================================
 if `LoadData'{
-	// Bootstrap del entorno: define las globals ${ruta_*} a partir de ${ECAS},
-	// la única entrada de configuración del pipeline (ver A_master.do).
-	// A_master.do se incluye SIEMPRE, sin guardarlo tras un `if' sobre alguna
-	// global: define locales (`outc1', `rawc1', …) y `do' abre un scope nuevo,
-	// así que los locales del llamador NO llegan hasta acá. Saltarse el include
-	// porque las globals ya existan deja al script sin rutas y falla con r(601).
-	// `include' es idempotente: solo redefine rutas y crea carpetas con `cap'.
-	capture qui include "${ECAS}/2_Scripts/A_setup/A_master.do"
-	if _rc capture qui include "2_Scripts/A_setup/A_master.do"
-	if "${ruta_data}" == "" {
-		di as error "No encuentro A_master.do. Definí la global ECAS con la ruta"
-		di as error "a la raíz del repositorio, o corré Stata desde esa raíz."
-		exit 601
-	}
-
-// Redirige el log de stata-batch a 3_Logs/ (limpia el log auto en 2_Scripts).
-cap log close
-cap erase "${ruta_scripts}\E8_build_records_storage.log"
-log using "${ruta_logs}\E8_build_records_storage.log", replace text
-
+	// Redirige el log de stata-batch a 3_Logs/ (limpia el log auto en 2_Scripts).
+	cap log close
+	cap erase "${ruta_scripts}\E8_build_records_storage.log"
+	log using "${ruta_logs}\E8_build_records_storage.log", replace text
 	
 	frame change registros
 	use Codprod22 post `vars_regis' using "`outc4'\\Panel_Inicio.dta", clear
 	
 	// Etiqueta general
-	cap lab drop sino
-	lab def sino 1 "Sí" 0 "No"
+	qui do "${ruta_utils}\lab_sino.do"
 }
 
 //==============================================================================

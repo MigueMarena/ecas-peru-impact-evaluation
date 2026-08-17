@@ -48,7 +48,7 @@ do code/run_all.do "build estimation" // varias
 ```
 
 Alternativa sin configurar nada: abrir Stata con el directorio de trabajo en la
-raíz del repositorio y correr `do code/run_all.do`. `code/A_setup/A_master.do`
+raíz del repositorio y correr `do code/run_all.do`. `code/A_setup/config.do`
 detecta la raíz por sí solo. Si no la encuentra, aborta con un mensaje que dice qué hacer,
 en lugar de fallar más adelante con un error de archivo no encontrado.
 
@@ -180,7 +180,7 @@ Pendiente de medición. Se completará cuando se cronometre cada etapa desde cer
 ```
 code/
   run_all.do       Punto de entrada. Acepta una fase opcional
-  A_setup/         A_master.do: resuelve la raíz y define todas las rutas
+  A_setup/         config.do: resuelve la raíz y define todas las rutas
   B_ingest/        Ingesta y limpieza de los módulos de encuesta
   C_treatment/     Identificación de tratados y asignación de conglomerados
   D_merge/         Construcción de los cuatro paneles LB-LS

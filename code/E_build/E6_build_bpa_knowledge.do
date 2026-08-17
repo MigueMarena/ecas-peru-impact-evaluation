@@ -7,11 +7,27 @@
 //                  Papa, Platano) a partir del test aplicado en linea de seguimiento.
 //                  Pondera por dificultad, reescala a 0-17, estandariza por DE del
 //                  grupo de control y genera variables pooled.
+// Depends        : (ninguno)
 // Input          : Out/4_.../Panel_Inicio.dta
 // Output         : Out/5_.../Ptjs_Test_BPAs_LS.dta
 //------------------------------------------------------------------------------
 version 19.0
 clear all
+
+// Bootstrap del entorno: define las globals ${ruta_*} a partir de ${ECAS},
+// la única entrada de configuración del pipeline (ver config.do).
+// config.do se incluye SIEMPRE, sin guardarlo tras un `if' sobre alguna
+// global: define locales (`outc1', `rawc1', …) y `do' abre un scope nuevo,
+// así que los locales del llamador NO llegan hasta aquí. Saltarse el include
+// porque las globals ya existan deja al script sin rutas y falla con r(601).
+// `include' es idempotente: solo redefine rutas y crea carpetas con `cap'.
+capture qui include "${ECAS}/2_Scripts/A_setup/config.do"
+if _rc capture qui include "2_Scripts/A_setup/config.do"
+if "${ruta_data}" == "" {
+	di as error "No encuentro config.do. Define la global ECAS con la ruta"
+	di as error "a la raíz del repositorio, o ejecuta Stata desde esa raíz."
+	exit 601
+}
 
 //==============================================================================
 // Local Macros (Control Flow)
@@ -45,32 +61,16 @@ frame create test_bpa
 // Step 1: Load Data
 //==============================================================================
 if `LoadData'{
-// Bootstrap del entorno: define las globals ${ruta_*} a partir de ${ECAS},
-// la única entrada de configuración del pipeline (ver A_master.do).
-// A_master.do se incluye SIEMPRE, sin guardarlo tras un `if' sobre alguna
-// global: define locales (`outc1', `rawc1', …) y `do' abre un scope nuevo,
-// así que los locales del llamador NO llegan hasta acá. Saltarse el include
-// porque las globals ya existan deja al script sin rutas y falla con r(601).
-// `include' es idempotente: solo redefine rutas y crea carpetas con `cap'.
-capture qui include "${ECAS}/2_Scripts/A_setup/A_master.do"
-if _rc capture qui include "2_Scripts/A_setup/A_master.do"
-if "${ruta_data}" == "" {
-	di as error "No encuentro A_master.do. Definí la global ECAS con la ruta"
-	di as error "a la raíz del repositorio, o corré Stata desde esa raíz."
-	exit 601
-}
+	// Redirige el log de stata-batch a 3_Logs/ (limpia el log auto en 2_Scripts).
+	cap log close
+	cap erase "${ruta_scripts}\E6_build_bpa_knowledge.log"
+	log using "${ruta_logs}\E6_build_bpa_knowledge.log", replace text
 
-// Redirige el log de stata-batch a 3_Logs/ (limpia el log auto en 2_Scripts).
-cap log close
-cap erase "${ruta_scripts}\E6_build_bpa_knowledge.log"
-log using "${ruta_logs}\E6_build_bpa_knowledge.log", replace text
-
-
-frame change test_bpa
-use `vars_id' `vars_citricos' `vars_papa' `vars_platano' using "`outc4'\\Panel_Inicio.dta", clear
-keep if post==1 // solo info en LS
-drop post
-compress
+	frame change test_bpa
+	use `vars_id' `vars_citricos' `vars_papa' `vars_platano' using "`outc4'\\Panel_Inicio.dta", clear
+	keep if post==1 // solo info en LS
+	drop post
+	compress
 }
 
 //==============================================================================
@@ -518,17 +518,17 @@ if `ProcessPlatano'{
 // El coeficiente de tratamiento en la regresión se interpreta como el efecto
 // en unidades de desviación estándar (DE).
 if `StandardizeScores'{
-foreach vraw in ptj_CQre ptj_BPA_CQ ptj_PAQre ptj_BPA_PAQ ptj_PLQre ptj_BPA_PLQ {
-	qui summ `vraw' if asig_ccpp == 0
-	gen `vraw'_std = `vraw' / r(sd)
-}
+	foreach vraw in ptj_CQre ptj_BPA_CQ ptj_PAQre ptj_BPA_PAQ ptj_PLQre ptj_BPA_PLQ {
+		qui summ `vraw' if asig_ccpp == 0
+		gen `vraw'_std = `vraw' / r(sd)
+	}
 
-lab var ptj_CQre_std    "Puntaje test cítricos (estandarizado: ÷ DE control LS)"
-lab var ptj_BPA_CQ_std  "Puntaje BPA test cítricos (estandarizado: ÷ DE control LS)"
-lab var ptj_PAQre_std   "Puntaje test papa (estandarizado: ÷ DE control LS)"
-lab var ptj_BPA_PAQ_std "Puntaje BPA test papa (estandarizado: ÷ DE control LS)"
-lab var ptj_PLQre_std   "Puntaje test plátano (estandarizado: ÷ DE control LS)"
-lab var ptj_BPA_PLQ_std "Puntaje BPA test plátano (estandarizado: ÷ DE control LS)"
+	lab var ptj_CQre_std    "Puntaje test cítricos (estandarizado: ÷ DE control LS)"
+	lab var ptj_BPA_CQ_std  "Puntaje BPA test cítricos (estandarizado: ÷ DE control LS)"
+	lab var ptj_PAQre_std   "Puntaje test papa (estandarizado: ÷ DE control LS)"
+	lab var ptj_BPA_PAQ_std "Puntaje BPA test papa (estandarizado: ÷ DE control LS)"
+	lab var ptj_PLQre_std   "Puntaje test plátano (estandarizado: ÷ DE control LS)"
+	lab var ptj_BPA_PLQ_std "Puntaje BPA test plátano (estandarizado: ÷ DE control LS)"
 }
 
 //==============================================================================

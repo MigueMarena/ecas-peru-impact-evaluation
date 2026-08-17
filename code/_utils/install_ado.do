@@ -30,8 +30,12 @@ version 19.0
 //               Vinculación aproximada de nombres de productor y de CCPP.
 // labutil    -> E1_build_obs_chars.do
 // xframeappend -> E2_build_producer_sociodem.do
+// carryforward -> D_merge_panels.do (×3) y _utils/prg_procesa_eca.do (invocado
+//               por C2_make_ccpp_assignment). En D arrastra Codprod22 dentro de
+//               cada productor; en prg_procesa_eca, los agregados por ECA a las
+//               filas que el `if graduado==1' del egen dejó en missing.
 
-local paquetes reclink2 labutil xframeappend
+local paquetes reclink2 labutil xframeappend carryforward
 
 foreach p of local paquetes {
 	capture which `p'
@@ -57,6 +61,6 @@ if "`faltan'" == "" {
 }
 else {
 	di as error "Faltan: `faltan'"
-	di as error "Instalalos a mano antes de correr el pipeline."
+	di as error "Instálalos a mano antes de correr el pipeline."
 }
 di as text "{hline 60}"

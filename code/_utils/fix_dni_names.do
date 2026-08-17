@@ -14,7 +14,7 @@
 // Este archivo NO es ejecutable en su forma redactada.
 //------------------------------------------------------------------------------
 
-//----------------------------------------------------------------------
+//------------------------------------------------------------------------------
 // File           : fix_dni_names.do
 // Author         : Carlos Marena
 // Email          : carlosmarena1995@gmail.com
@@ -22,7 +22,9 @@
 // Description    : Correcciones manuales a numeros de DNI y nombres de
 //                  productores en las bases donde el DNI es identificador
 //                  para cruce.
-//----------------------------------------------------------------------
+//------------------------------------------------------------------------------
+
+version 19.0
 // CORRECCION DE DNIs
 replace dni_prod = "<DNI_REDACTADO>" if nomb_prod=="<NOMBRE_REDACTADO>" 	& apell_prod=="<NOMBRE_REDACTADO>"
 replace dni_prod = "<DNI_REDACTADO>" if nomb_prod=="<NOMBRE_REDACTADO>" 		& apell_prod=="<NOMBRE_REDACTADO>"

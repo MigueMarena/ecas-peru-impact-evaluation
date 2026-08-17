@@ -24,33 +24,37 @@
 //                  P_i; (3) invoca prg_table_3panels (vO cuerpo), luego
 //                  prg_table_3way_het (vO het) y prg_table_2panels (vF anexo).
 //
-// Output         : Tablas/4_Indicadores_Compuestos_BPAs/Cuerpo/8.2-8_Tab_Comp_ENA_vO.docx
-//                  Tablas/4_Indicadores_Compuestos_BPAs/Anexo/B-1-7_Tab_Comp_ENA_vO_het.docx
-//                  Tablas/4_Indicadores_Compuestos_BPAs/Anexo/B-4-1_Tab_Comp_ENA_vF.docx
 // Depends        : _utils/prg_load_panel.do
 //                  _utils/prg_table_3panels.do
 //                  _utils/prg_table_3way_het.do
 //                  _utils/prg_table_2panels.do
 //                  _utils/fix_table_borders.ps1 (invocado por los programas)
+// Input          : Out/5_BDs por grupos de vars/BPAs_Compuestos_LByLS.dta (outcome_file)
+//                  Out/5_BDs por grupos de vars/Caract_Obs_Trat_ECA.dta,
+//                  Sociodem_Prod_JH_LB.dta, Viv_Act_SEA_LB.dta,
+//                  Demog_Ing_Hog_LB.dta, Productor_Predio_LB.dta (vía prg_load_panel)
+// Output         : Tablas/4_Indicadores_Compuestos_BPAs/Cuerpo/8.2-8_Tab_Comp_ENA_vO.docx
+//                  Tablas/4_Indicadores_Compuestos_BPAs/Anexo/B-1-7_Tab_Comp_ENA_vO_het.docx
+//                  Tablas/4_Indicadores_Compuestos_BPAs/Anexo/B-4-1_Tab_Comp_ENA_vF.docx
 //------------------------------------------------------------------------------
 
-version 19.0
-
 cls
+version 19.0
+clear all
 
 // Bootstrap del entorno
 // Bootstrap del entorno: define las globals ${ruta_*} a partir de ${ECAS},
-// la única entrada de configuración del pipeline (ver A_master.do).
-// A_master.do se incluye SIEMPRE, sin guardarlo tras un `if' sobre alguna
+// la única entrada de configuración del pipeline (ver config.do).
+// config.do se incluye SIEMPRE, sin guardarlo tras un `if' sobre alguna
 // global: define locales (`outc1', `rawc1', …) y `do' abre un scope nuevo,
-// así que los locales del llamador NO llegan hasta acá. Saltarse el include
+// así que los locales del llamador NO llegan hasta aquí. Saltarse el include
 // porque las globals ya existan deja al script sin rutas y falla con r(601).
 // `include' es idempotente: solo redefine rutas y crea carpetas con `cap'.
-capture qui include "${ECAS}/2_Scripts/A_setup/A_master.do"
-if _rc capture qui include "2_Scripts/A_setup/A_master.do"
+capture qui include "${ECAS}/2_Scripts/A_setup/config.do"
+if _rc capture qui include "2_Scripts/A_setup/config.do"
 if "${ruta_data}" == "" {
-	di as error "No encuentro A_master.do. Definí la global ECAS con la ruta"
-	di as error "a la raíz del repositorio, o corré Stata desde esa raíz."
+	di as error "No encuentro config.do. Define la global ECAS con la ruta"
+	di as error "a la raíz del repositorio, o ejecuta Stata desde esa raíz."
 	exit 601
 }
 
@@ -59,13 +63,11 @@ cap log close
 cap erase "${ruta_scripts}\G5Ac_estimate_compuesto_ena_vF_vO.log"
 log using "${ruta_logs}\G5Ac_estimate_compuesto_ena_vF_vO.log", replace text
 
-
 // Cargar programas
 qui do "${ruta_utils}/prg_load_panel.do"
 qui do "${ruta_utils}/prg_table_3panels.do"
 qui do "${ruta_utils}/prg_table_3way_het.do"
 qui do "${ruta_utils}/prg_table_2panels.do"
-
 qui include "${ruta_setup}/spec.do"
 
 //------------------------------------------------------------------------------
@@ -83,14 +85,7 @@ gen byte D_c = (i1aECA_PE_ccpp == 1) if !mi(asig_ccpp)
 gen byte P_i = (ptcp_ECA_prod  == 1) if !mi(asig_ccpp)
 
 //------------------------------------------------------------------------------
-// 3. Labels amigables — sirven como encabezados de columna. El título y la
-//    nota se redactan vía outcome_phrase/outcome_qualifier.
-//------------------------------------------------------------------------------
-lab var implementa_bpa_ena_vO "Compuesto ENA — Original"
-lab var implementa_bpa_ena_vF "Compuesto ENA — Flexible"
-
-//------------------------------------------------------------------------------
-// 4. Estimar tabla del cuerpo (vO, 3-paneles, F-U/DiD/LATE)
+// 3. Estimar tabla del cuerpo (vO, 3-paneles, F-U/DiD/LATE)
 //------------------------------------------------------------------------------
 
 local phrase_comp "el cumplimiento agregado del catálogo ENA de BPAs"
@@ -112,7 +107,7 @@ prg_table_3panels, ///
 	cluster($cl_ccpp)
 
 //------------------------------------------------------------------------------
-// 5. Estimar tabla anexa HetEff por cultivo (vO, modelo saturado)
+// 4. Estimar tabla anexa HetEff por cultivo (vO, modelo saturado)
 //------------------------------------------------------------------------------
 prg_table_3way_het, ///
 	outcome(implementa_bpa_ena_vO) ///
@@ -135,7 +130,7 @@ prg_table_3way_het, ///
 	het_short("cultivo")
 
 //------------------------------------------------------------------------------
-// 6. Estimar tabla anexa (vF, 2-paneles, con `robustez`)
+// 5. Estimar tabla anexa (vF, 2-paneles, con `robustez`)
 //------------------------------------------------------------------------------
 prg_table_2panels, ///
 	outcome(implementa_bpa_ena_vF) ///

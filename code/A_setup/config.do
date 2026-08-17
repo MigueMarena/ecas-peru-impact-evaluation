@@ -1,14 +1,19 @@
 //------------------------------------------------------------------------------
-// File             : A_master.do
-// Author           : Carlos Marena
-// Email            : carlosmarena1995@gmail.com
-// Last Mod. Date   : 15/04/2026
-// Description      : Script maestro que inicializa el entorno del
-// proyecto. Define rutas de directorios globales y locales, crea la
-// estructura de carpetas para datos crudos (Raw/) y procesados
-// (Out/), y establece macros locales para referenciar bases de datos
-// clave en las distintas etapas del procesamiento. Debe ejecutarse
-// antes que cualquier otro script.
+// File           : config.do
+// Author         : Carlos Marena
+// Email          : carlosmarena1995@gmail.com
+// Last Mod. Date : 14/08/2026
+// Description    : Configuración del entorno del proyecto. Resuelve ${ECAS}
+//                  (la raíz del repositorio), define las rutas globales por
+//                  fase, crea la estructura de carpetas para datos crudos
+//                  (Raw/) y procesados (Out/), y establece macros locales
+//                  para referenciar bases de datos clave.
+//                  Solo entorno — no procesa datos, por eso es seguro de
+//                  `include` desde cualquier script sin disparar nada.
+//                  El orden de ejecución del pipeline vive en run_all.do.
+// Depends        : (ninguno)
+// Input          : (ninguno — no lee datos)
+// Output         : (ninguno — crea la estructura de carpetas; no escribe datos)
 //------------------------------------------------------------------------------
 
 version 19.0
@@ -25,13 +30,14 @@ version 19.0
 //      máquina, FUERA del repositorio (por ejemplo en el profile.do personal
 //      de Stata, junto a las demás globals de proyecto).
 //   2. El directorio de trabajo, si contiene el centinela
-//      2_Scripts/A_setup/A_master.do
+//      2_Scripts/A_setup/config.do
 //      — el caso de quien hace `cd` a la raíz antes de correr.
-//   3. config_local.do en el directorio de trabajo: escotilla para máquinas con
-//      un layout distinto. No se versiona.
+//   3. config_local.do en el directorio de trabajo: un archivo que solo define
+//      ${ECAS}, escrito a mano para una máquina donde el repositorio no está
+//      donde las dos opciones anteriores lo buscan. No se versiona.
 
 if "${ECAS}" == "" {
-	capture confirm file "2_Scripts/A_setup/A_master.do"
+	capture confirm file "2_Scripts/A_setup/config.do"
 	if !_rc global ECAS "`c(pwd)'"
 }
 if "${ECAS}" == "" {
@@ -40,16 +46,16 @@ if "${ECAS}" == "" {
 }
 if "${ECAS}" == "" {
 	di as error "No pude ubicar la raíz del proyecto."
-	di as error "Definí la global ECAS con la ruta al repositorio, por ejemplo:"
+	di as error "Define la global ECAS con la ruta al repositorio, por ejemplo:"
 	di as error `"    global ECAS "D:/ruta/al/repositorio""'
-	di as error "o ejecutá Stata desde esa raíz."
+	di as error "o ejecuta Stata desde esa raíz."
 	exit 601
 }
-capture confirm file "${ECAS}/2_Scripts/A_setup/A_master.do"
+capture confirm file "${ECAS}/2_Scripts/A_setup/config.do"
 if _rc {
 	di as error "La global ECAS no apunta a la raíz del proyecto:"
 	di as error "    ${ECAS}"
-	di as error "Se esperaba encontrar ahí 2_Scripts/A_setup/A_master.do."
+	di as error "Se esperaba encontrar ahí 2_Scripts/A_setup/config.do."
 	exit 601
 }
 
@@ -62,7 +68,7 @@ if _rc {
 // (update_fields_export_pdf.ps1, verify_compiled_docx.ps1) rechaza una ruta con
 // separadores mezclados —"D:/ruta/al/repo\5_Entregables\..."— con un
 // "no encontramos el archivo" que no dice nada del separador. Como ${ECAS} la
-// escribe el usuario, puede venir de cualquier forma; acá se unifica una vez.
+// escribe el usuario, puede venir de cualquier forma; aquí se unifica una vez.
 local ecas_norm = subinstr("${ECAS}", "/", "\", .)
 global ruta_abs "`ecas_norm'"
 
@@ -81,26 +87,19 @@ global ruta_report  "${ruta_deliv}\\Reporte Final_VPaper\\Versiones"
 
 global ruta_docum   "${ruta_share}\\01-CSD-RND\\CSD-RND_ECAs_documentacion"
 
-// Subcarpetas por fase. La estructura de 2_Scripts/ espeja la de code/ en el
-// repositorio público, así que el manifiesto de publicación es 1:1 y no
-// traduce nombres: lo que se ve acá es lo que se publica.
-global ruta_setup  "${ruta_scripts}\\A_setup"
-global ruta_ingest "${ruta_scripts}\\B_ingest"
-global ruta_treatment  "${ruta_scripts}\\C_treatment"
-global ruta_merge  "${ruta_scripts}\\D_merge"
-global ruta_build  "${ruta_scripts}\\E_build"
+// Subcarpetas por fase. Cada global lleva el mismo nombre que su carpeta, para
+// que run_all.do resuelva la ruta con ${ruta_`fase'} sin tabla de traducción.
+global ruta_setup  		"${ruta_scripts}\\A_setup"
+global ruta_ingest 		"${ruta_scripts}\\B_ingest"
+global ruta_treatment  	"${ruta_scripts}\\C_treatment"
+global ruta_merge  		"${ruta_scripts}\\D_merge"
+global ruta_build  		"${ruta_scripts}\\E_build"
 global ruta_estimation  "${ruta_scripts}\\G_estimation"
-global ruta_reporting  "${ruta_scripts}\\H_reporting"
-global ruta_diagnostics   "${ruta_scripts}\\I_diagnostics"
+global ruta_reporting  	"${ruta_scripts}\\H_reporting"
+global ruta_diagnostics "${ruta_scripts}\\I_diagnostics"
 
 // Programas y utilidades reusables (invocados desde los scripts de fase)
 global ruta_utils  "${ruta_scripts}\\_utils"
-
-// A_master.do NO abre ni cierra ningún log, a propósito. Se incluye desde
-// decenas de scripts y helpers, y un `cap log close' acá le cerraría el log al
-// que lo llamó a mitad de ejecución — que es lo que rompía D_merge_panels.do
-// cuando uno de sus helpers hacía el bootstrap. El log lo maneja cada script.
-
 
 //==============================================================================
 // Step 3: Create directory structure and define path references
@@ -145,10 +144,19 @@ local outc3ccpp "`outc3'\\CCPP"
 cap mkdir "`outc3'\\Productor"
 cap mkdir "`outc3'\\CCPP"
 
-// Carpetas de Tablas (Reporte Final).
-// El TEMA manda y dentro se separa cuerpo de anexo: una tabla del cuerpo y su
-// robustez en el anexo viven juntas, que es como se las consulta. La carpeta
-// Anexos/ de primer nivel se eliminó el 2026-08-12.
+// Carpetas del Reporte Final. `mkdir' no crea padres intermedios, así que hay
+// que ir nivel por nivel: sin esto, en un árbol limpio los `cap mkdir' de las
+// categorías fallan en silencio y la fase de estimación aborta con r(198)
+// ("Exception creating output stream") al intentar guardar la primera tabla.
+cap mkdir "${ruta_deliv}"
+cap mkdir "${ruta_deliv}\\Reporte Final_VPaper"
+cap mkdir "${ruta_tablas}"
+cap mkdir "${ruta_images}"
+cap mkdir "${ruta_seccio}"
+cap mkdir "${ruta_report}"
+
+// Tablas: el tema manda y dentro se separa Cuerpo de Anexo, de modo que una
+// tabla del cuerpo y su robustez viven juntas.
 local tab_cats `" "0_Diseño_y_Diagnóstico" "1_Conocimiento_Agronómico" "2_Prácticas_Agronómicas" "3_Registros_e_Inocuidad_Alimentaria" "4_Indicadores_Compuestos_BPAs" "5_Resultados_Productivos_y_Económicos" "'
 
 foreach cat of local tab_cats {
@@ -166,14 +174,3 @@ local basesInicio	""`outc1'\pcl_Inicio_LB"   	"`outc2'\pcl_Inicio_LS""
 local basesPersonas ""`outc1'\pcl_Personas_LB" 	"`outc2'\pcl_NuevosIntegrantes_LS""
 local basesParcela  ""`outc1'\pcl_Parcela_LB" 	"`outc2'\pcl_Parcela_LS""
 local basesCultivo  ""`outc1'\pcl_Cultivo_LB" 	"`outc2'\pcl_Cultivo_LS""
-
-//==============================================================================
-// Step 4: Cierre
-//==============================================================================
-// El ORDEN DE EJECUCIÓN del pipeline ya no vive acá: está en run_all.do, que es
-// el orquestador. Este archivo define el entorno y nada más, y por eso es
-// seguro hacerle `include` desde cualquier script sin disparar nada.
-//
-// (Tenerlos juntos era la trampa: los 35 scripts hacen `include` de este
-// archivo, así que activar aquí las llamadas del pipeline habría producido
-// recursión infinita.)

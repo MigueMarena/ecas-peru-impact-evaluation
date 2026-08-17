@@ -1,4 +1,4 @@
-//----------------------------------------------------------------------
+//------------------------------------------------------------------------------
 // File           : make_ccpp_database.do
 // Author         : Carlos Marena
 // Email          : carlosmarena1995@gmail.com
@@ -7,7 +7,9 @@
 //                  (CCPPs_ALEATORIZADOS_Y_REEMPLAZOS.dta) con 136 observaciones
 //                  ingresadas manualmente.
 // Output         : Raw/3_.../CCPPs_ALEATORIZADOS_Y_REEMPLAZOS.dta
-//----------------------------------------------------------------------
+//------------------------------------------------------------------------------
+
+version 19.0
 cls
 clear all
 

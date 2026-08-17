@@ -11,11 +11,12 @@
 //                      de campo, % encuestado antes de la fecha mediana global,
 //                      fecha mediana de encuesta).
 //                  Especificación principal:
-//                    reg X treat i.cod_rgn_PE i.mes_enc, cluster(cod_cpb)
+//                    reg X treat i.$fe_estrato i.mes_enc, cluster($cl_ccpp)
 //                  Reporta media y DE por brazo, diferencia, SMD pooled y
 //                  p-valor. Las binarias se reportan en escala 0-100 (%).
 //                  Adicionalmente exporta hojas xlsx con las versiones cruda
 //                  y robustez (sem_enc).
+// Depends        : (ninguno)
 // Input          : Out/5_BDs por grupos de vars/Caract_Obs_Trat_ECA.dta
 //                  Out/5_BDs por grupos de vars/Sociodem_Prod_JH_LB.dta
 //                  Out/5_BDs por grupos de vars/Viv_Act_SEA_LB.dta
@@ -36,19 +37,24 @@ clear all
 // Step 1: Load environment
 //==============================================================================
 // Bootstrap del entorno: define las globals ${ruta_*} a partir de ${ECAS},
-// la única entrada de configuración del pipeline (ver A_master.do).
-// A_master.do se incluye SIEMPRE, sin guardarlo tras un `if' sobre alguna
+// la única entrada de configuración del pipeline (ver config.do).
+// config.do se incluye SIEMPRE, sin guardarlo tras un `if' sobre alguna
 // global: define locales (`outc1', `rawc1', …) y `do' abre un scope nuevo,
-// así que los locales del llamador NO llegan hasta acá. Saltarse el include
+// así que los locales del llamador NO llegan hasta aquí. Saltarse el include
 // porque las globals ya existan deja al script sin rutas y falla con r(601).
 // `include' es idempotente: solo redefine rutas y crea carpetas con `cap'.
-capture qui include "${ECAS}/2_Scripts/A_setup/A_master.do"
-if _rc capture qui include "2_Scripts/A_setup/A_master.do"
+capture qui include "${ECAS}/2_Scripts/A_setup/config.do"
+if _rc capture qui include "2_Scripts/A_setup/config.do"
 if "${ruta_data}" == "" {
-	di as error "No encuentro A_master.do. Definí la global ECAS con la ruta"
-	di as error "a la raíz del repositorio, o corré Stata desde esa raíz."
+	di as error "No encuentro config.do. Define la global ECAS con la ruta"
+	di as error "a la raíz del repositorio, o ejecuta Stata desde esa raíz."
 	exit 601
 }
+
+// Parámetros del diseño: $fe_estrato (estrato de aleatorización) y
+// $cl_ccpp (nivel de agrupamiento de los errores estándar). Vienen de
+// spec.do para que diagnóstico y estimación no puedan divergir.
+qui include "${ruta_setup}/spec.do"
 
 // Redirige el log de stata-batch a 3_Logs/ (limpia el log auto en 2_Scripts).
 cap log close
@@ -94,7 +100,6 @@ duplicates drop Codprod22, force
 // La traemos directamente desde Panel_Inicio.dta.
 merge 1:1 Codprod22 post using "`outc4'\\Panel_Inicio.dta", ///
 	keepus(fch_enc) keep(1 3) nogen
-
 merge 1:1 Codprod22 using "`outc5'\\Sociodem_Prod_JH_LB.dta", ///
 	keepus(`sociodem') keep(1 3) nogen
 merge 1:1 Codprod22 using "`outc5'\\Viv_Act_SEA_LB.dta", ///
@@ -187,10 +192,10 @@ program define _bal_var
 
 	local sd_pool = sqrt((`sd_C'^2 + `sd_T'^2) / 2)
 	if `adj' == 1 {
-		qui reg `v' asig_ccpp i.cod_rgn_PE i.`fe_time', cluster(cod_cpb)
+		qui reg `v' asig_ccpp i.$fe_estrato i.`fe_time', cluster($cl_ccpp)
 	}
 	else {
-		qui reg `v' asig_ccpp i.cod_rgn_PE, cluster(cod_cpb)
+		qui reg `v' asig_ccpp i.$fe_estrato, cluster($cl_ccpp)
 	}
 	local diff = _b[asig_ccpp]
 	local pv   = 2 * ttail(e(df_r), abs(_b[asig_ccpp] / _se[asig_ccpp]))
@@ -246,10 +251,11 @@ program define _format_export
 	local size_n  "`=`_pt_dat' - 1'pt"
 
 	// Estilos BID
-	collect style cell, border(right, pattern(nil)) margin(all, width(0pt))
-	collect style cell cmdset, font(Roboto, size(`size_m') nobold noitalic) halign(left) valign(center)
+	// Estilo de casa BID (Roboto, encabezado azul, bordes y tamaños).
+	// Lo que se declare DESPUÉS de esta línea se superpone.
+	do "${ruta_utils}\collect_style_bid.do" `_pt_dat'
+
 	collect style cell arm,    font(Roboto, size(`size_m') nobold noitalic) halign(center)
-	collect style cell result, font(Roboto, size(`size_m') nobold noitalic) halign(center)
 
 	collect style cell result[m sd diff], nformat(%9.2f)
 	collect style cell result[smd],       nformat(%9.3f)
@@ -257,11 +263,8 @@ program define _format_export
 	collect style cell result[sd],        sformat("(%s)")
 
 	// Datos (items): regular sin negrita ni cursiva.
-	collect style cell cell_type[item], font(Roboto, size(`size_m') nobold noitalic)
 
 	// Headers de columna AL FINAL: azul BID + blanco bold.
-	collect style cell cell_type[corner column-header], ///
-		shading(background(0 78 112)) font(Roboto, size(`size_m') color(white) bold noitalic)
 
 	// Headers de panel: shading gris BID + label en italic bold.
 	// El shading via cmdset captura la fila ENTERA porque todas las celdas de
@@ -278,17 +281,11 @@ program define _format_export
 			font(Roboto, size(`size_m') color(211 210 209))
 	}
 
-	collect style column, dups(center)
-	collect style header cmdset, level(label)
 	collect style header arm,    level(label)
-	collect style header result, level(label)
-	collect style row stack, nobinder
 
 	collect title "`titulo'"
 	// Estilo APA-AEA: título en bold (sin italic), tamaño = cuerpo;
 	// notas en italic, tamaño = (cuerpo − 1) pt.
-	collect style title, font(Roboto, size(`size_m') bold)
-	collect style notes, font(Roboto, size(`size_n') italic)
 
 	// Sangría en los nombres de variable (row-headers de cmdset). Va AL FINAL,
 	// después de todos los estilos generales y específicos, para asegurar que
@@ -385,7 +382,7 @@ local nota3 "Significancia: *** p<0.01, ** p<0.05, * p<0.10."
 
 // F-test conjunto
 use `master_bal', clear
-qui reg asig_ccpp `sociodem' `hogar' `predio' i.cod_rgn_PE i.mes_enc, cluster(cod_cpb)
+qui reg asig_ccpp `sociodem' `hogar' `predio' i.$fe_estrato i.mes_enc, cluster($cl_ccpp)
 testparm `sociodem' `hogar' `predio'
 local F   = r(F)
 local pF  = r(p)
@@ -435,7 +432,7 @@ foreach v of varlist `sociodem' `hogar' `predio' {
 	local m_T0 = r(mean)
 
 	// Cruda
-	qui reg `v' asig_ccpp i.cod_rgn_PE, cluster(cod_cpb)
+	qui reg `v' asig_ccpp i.$fe_estrato, cluster($cl_ccpp)
 	local d0 = _b[asig_ccpp]
 	local p0 = 2 * ttail(e(df_r), abs(_b[asig_ccpp] / _se[asig_ccpp]))
 	local s0 = cond(`sd_pool' > 0, `d0' / `sd_pool', .)
@@ -454,7 +451,7 @@ foreach v of varlist `sociodem' `hogar' `predio' {
 
 	// Robustez sem_enc
 	use `master_bal', clear
-	qui reg `v' asig_ccpp i.cod_rgn_PE i.sem_enc, cluster(cod_cpb)
+	qui reg `v' asig_ccpp i.$fe_estrato i.sem_enc, cluster($cl_ccpp)
 	local d1 = _b[asig_ccpp]
 	local p1 = 2 * ttail(e(df_r), abs(_b[asig_ccpp] / _se[asig_ccpp]))
 	local s1 = cond(`sd_pool' > 0, `d1' / `sd_pool', .)
@@ -534,7 +531,7 @@ preserve
 	keep if riego_tec_prod == 1 & !mi(bpa_ena_riego_vO)
 
 	local n209 = _N
-	qui reg bpa_ena_riego_vO asig_ccpp i.cod_rgn_PE i.mes_enc, cluster(cod_cpb)
+	qui reg bpa_ena_riego_vO asig_ccpp i.$fe_estrato i.mes_enc, cluster($cl_ccpp)
 	local diff209 = _b[asig_ccpp]
 	local p209 = 2*ttail(e(df_r), abs(_b[asig_ccpp]/_se[asig_ccpp]))
 	qui summ bpa_ena_riego_vO if asig_ccpp==0

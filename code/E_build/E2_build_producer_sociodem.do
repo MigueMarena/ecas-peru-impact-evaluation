@@ -7,12 +7,28 @@
 //                  (edad, sexo, educacion, lengua materna, autoidentificacion etnica)
 //                  a partir de Panel_Inicio y Panel_Personas. Usa reclink2 para
 //                  vincular productores con miembros del hogar.
+// Depends        : (ninguno)
 // Input          : Out/4_.../Panel_Inicio.dta
 //                  Out/4_.../Panel_Personas.dta
 // Output         : Out/5_.../Sociodem_Prod_JH_LB.dta
 //------------------------------------------------------------------------------
 version 19.0
 clear all
+
+// Bootstrap del entorno: define las globals ${ruta_*} a partir de ${ECAS},
+// la única entrada de configuración del pipeline (ver config.do).
+// config.do se incluye SIEMPRE, sin guardarlo tras un `if' sobre alguna
+// global: define locales (`outc1', `rawc1', …) y `do' abre un scope nuevo,
+// así que los locales del llamador NO llegan hasta aquí. Saltarse el include
+// porque las globals ya existan deja al script sin rutas y falla con r(601).
+// `include' es idempotente: solo redefine rutas y crea carpetas con `cap'.
+capture qui include "${ECAS}/2_Scripts/A_setup/config.do"
+if _rc capture qui include "2_Scripts/A_setup/config.do"
+if "${ruta_data}" == "" {
+	di as error "No encuentro config.do. Define la global ECAS con la ruta"
+	di as error "a la raíz del repositorio, o ejecuta Stata desde esa raíz."
+	exit 601
+}
 
 //==============================================================================
 // Local Macros (Control Flow)
@@ -27,9 +43,6 @@ clear all
 	local varltoimport2 Codprod22 post preg001c preg002-opreg008 preg803_1
 }
 
-// Los comandos externos (acá: xframeappend, reclink2) se instalan una vez por
-// máquina con 2_Scripts/_utils/install_ado.do, no en medio de una corrida.
-
 //==============================================================================
 // Frames
 //==============================================================================
@@ -43,25 +56,10 @@ if `ResetDoFrames'{
 // Load Data: Keep sociodem data from HH or Farm Producer and save in a frame
 //==============================================================================
 if `LoadData'{
-	// Bootstrap del entorno: define las globals ${ruta_*} a partir de ${ECAS},
-	// la única entrada de configuración del pipeline (ver A_master.do).
-	// A_master.do se incluye SIEMPRE, sin guardarlo tras un `if' sobre alguna
-	// global: define locales (`outc1', `rawc1', …) y `do' abre un scope nuevo,
-	// así que los locales del llamador NO llegan hasta acá. Saltarse el include
-	// porque las globals ya existan deja al script sin rutas y falla con r(601).
-	// `include' es idempotente: solo redefine rutas y crea carpetas con `cap'.
-	capture qui include "${ECAS}/2_Scripts/A_setup/A_master.do"
-	if _rc capture qui include "2_Scripts/A_setup/A_master.do"
-	if "${ruta_data}" == "" {
-		di as error "No encuentro A_master.do. Definí la global ECAS con la ruta"
-		di as error "a la raíz del repositorio, o corré Stata desde esa raíz."
-		exit 601
-	}
-
-// Redirige el log de stata-batch a 3_Logs/ (limpia el log auto en 2_Scripts).
-cap log close
-cap erase "${ruta_scripts}\E2_build_producer_sociodem.log"
-log using "${ruta_logs}\E2_build_producer_sociodem.log", replace text
+	// Redirige el log de stata-batch a 3_Logs/ (limpia el log auto en 2_Scripts).
+	cap log close
+	cap erase "${ruta_scripts}\E2_build_producer_sociodem.log"
+	log using "${ruta_logs}\E2_build_producer_sociodem.log", replace text
 
 	use `varltoimport1' if post==0 using "`outc4'\\Panel_Inicio.dta", clear
 	drop post
@@ -133,7 +131,7 @@ if `GenVars'{
 	// Sexo
 	{
 		recode preg002 (2=0 "Femenino") (1=1 "Masculino"), gen(sexo) lab(labsex)
-		lab var sexo 		"Sexo (del productor o JH)"
+		lab var sexo 	"Sexo (del productor o JH)"
 	}
 	
 	// Max nivel de educacion completado
@@ -179,7 +177,7 @@ if `GenVars'{
 		gen castell = (preg007==10) if !mi(preg007)
 		lab def castell 0 "Otra" 1 "Castellano"
 		lab val castell castell
-		lab var castell 	"Lengua materna: Castellano (del productor o JH)"
+		lab var castell "Lengua materna: Castellano (del productor o JH)"
 	}
 	
 	// Autoidenticación Étnica (del productor o JH)

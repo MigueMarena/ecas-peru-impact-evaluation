@@ -1,10 +1,12 @@
-//----------------------------------------------------------------------
+//------------------------------------------------------------------------------
 // File           : filter_randomized_ccpp.do
 // Author         : Carlos Marena
 // Email          : carlosmarena1995@gmail.com
 // Last Mod. Date : 11/04/2026
 // Description    : Filtra la data quedando solo con centros poblados aleatorizados.
-//----------------------------------------------------------------------
+//------------------------------------------------------------------------------
+
+version 19.0
 # delimit ;
 keep if	(nomb_dstrt=="ARAMANGO" 	& nomb_ccpp=="ARAMANGO") 		| // 1 
 		(nomb_dstrt=="ARAMANGO" 	& nomb_ccpp=="VALENCIA")		| // 2

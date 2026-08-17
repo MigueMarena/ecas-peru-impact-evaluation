@@ -10,35 +10,39 @@
 //                  ITT-OLS / ITT-DiD / LATE-cluster / LATE-individual con
 //                  controles, más medias por grupo × periodo.
 //                  Flujo: (1) carga vía prg_load_panel; (2) construye D_c y
-//                  P_i; (3) declara labels amigables; (4) tres loops que
-//                  invocan prg_table_2panels con `nosubtitle' (no son
+//                  P_i; (3) declara labels ; (4) tres loops que invocan 
+//					prg_table_2panels con `nosubtitle' (no son
 //                  tablas vF — el sufijo "(criterio flexible)" no aplica).
 //                  El loop de riego corre sobre la submuestra
 //                  riego_tec_prod==1 vía preserve/keep/restore.
 //
-// Output         : Tablas/2_Prácticas_Agronómicas/Anexo/B-2-<k>_Tab_BPA_<var>.docx (×14)
 // Depends        : _utils/prg_load_panel.do
 //                  _utils/prg_table_3panels.do  (define _fmt_*)
 //                  _utils/prg_table_2panels.do
 //                  _utils/fix_table_borders.ps1 (invocado por el programa)
+// Input          : Out/5_BDs por grupos de vars/BPAs_CondyNoCond_LByLS.dta (outcome_file)
+//                  Out/5_BDs por grupos de vars/Caract_Obs_Trat_ECA.dta,
+//                  Sociodem_Prod_JH_LB.dta, Viv_Act_SEA_LB.dta,
+//                  Demog_Ing_Hog_LB.dta, Productor_Predio_LB.dta (vía prg_load_panel)
+// Output         : Tablas/2_Prácticas_Agronómicas/Anexo/B-2-<k>_Tab_BPA_<var>.docx (×14)
 //------------------------------------------------------------------------------
 
-version 19.0
-
 cls
+version 19.0
+clear all
 
 // Bootstrap del entorno: define las globals ${ruta_*} a partir de ${ECAS},
-// la única entrada de configuración del pipeline (ver A_master.do).
-// A_master.do se incluye SIEMPRE, sin guardarlo tras un `if' sobre alguna
+// la única entrada de configuración del pipeline (ver config.do).
+// config.do se incluye SIEMPRE, sin guardarlo tras un `if' sobre alguna
 // global: define locales (`outc1', `rawc1', …) y `do' abre un scope nuevo,
-// así que los locales del llamador NO llegan hasta acá. Saltarse el include
+// así que los locales del llamador NO llegan hasta aquí. Saltarse el include
 // porque las globals ya existan deja al script sin rutas y falla con r(601).
 // `include' es idempotente: solo redefine rutas y crea carpetas con `cap'.
-capture qui include "${ECAS}/2_Scripts/A_setup/A_master.do"
-if _rc capture qui include "2_Scripts/A_setup/A_master.do"
+capture qui include "${ECAS}/2_Scripts/A_setup/config.do"
+if _rc capture qui include "2_Scripts/A_setup/config.do"
 if "${ruta_data}" == "" {
-	di as error "No encuentro A_master.do. Definí la global ECAS con la ruta"
-	di as error "a la raíz del repositorio, o corré Stata desde esa raíz."
+	di as error "No encuentro config.do. Define la global ECAS con la ruta"
+	di as error "a la raíz del repositorio, o ejecuta Stata desde esa raíz."
 	exit 601
 }
 
@@ -47,12 +51,10 @@ cap log close
 cap erase "${ruta_scripts}\G2_estimate_bpa_uncond.log"
 log using "${ruta_logs}\G2_estimate_bpa_uncond.log", replace text
 
-
 // Cargar programas (prg_table_3panels primero porque define _fmt_*)
 qui do "${ruta_utils}/prg_load_panel.do"
 qui do "${ruta_utils}/prg_table_3panels.do"
 qui do "${ruta_utils}/prg_table_2panels.do"
-
 qui include "${ruta_setup}/spec.do"
 
 //------------------------------------------------------------------------------
@@ -73,35 +75,37 @@ gen byte D_c = (i1aECA_PE_ccpp == 1) if !mi(asig_ccpp)
 gen byte P_i = (ptcp_ECA_prod  == 1) if !mi(asig_ccpp)
 
 //------------------------------------------------------------------------------
-// 3. Labels amigables — single source of truth. El helper los lee con
-//    `: variable label` para componer el título de la tabla.
+// 3. Generar las 14 tablas anexas en 3 bloques
 //------------------------------------------------------------------------------
-lab var bpa_1  "Análisis de suelo"
-lab var bpa_2  "Suelo + materia orgánica"
-lab var bpa_3  "Asociaron cultivos"
-lab var bpa_4  "Surcos en contorno"
-lab var bpa_5  "Demanda hídrica del cultivo"
-lab var bpa_6  "Frecuencia de riego"
-lab var bpa_7  "Volumen de agua aplicada"
-lab var bpa_8  "Mantenim. sistema de riego"
-lab var bpa_9  "Análisis de agua"
-lab var bpa_10 "Uso de abonos"
-lab var bpa_11 "Uso de fertilizantes"
-lab var bpa_12 "Uso de plaguicidas"
-lab var bpa_13 "Control biológico"
-lab var bpa_14 "Manejo Integrado de Plagas"
-
-//------------------------------------------------------------------------------
-// 4. Generar las 14 tablas anexas en 3 bloques
-//------------------------------------------------------------------------------
-
 local outdir "${ruta_tablas}/2_Prácticas_Agronómicas/Anexo"
 
+// La frase del título se declara por variable, no en una lista paralela
+// recorrida con `gettoken'. Emparejadas solo por POSICIÓN, insertar o reordenar
+// un outcome desplazaba todos los títulos siguientes y las tablas salían con el
+// título de la variable vecina sin que nada avisara.
+local ph_bpa_1  "la realización de análisis de suelo"
+local ph_bpa_2  "la incorporación de materia orgánica al suelo"
+local ph_bpa_3  "la asociación de cultivos"
+local ph_bpa_4  "la siembra en surcos a contorno"
+local ph_bpa_5  "la estimación de la demanda hídrica del cultivo"
+local ph_bpa_6  "la programación de la frecuencia de riego"
+local ph_bpa_7  "el ajuste del volumen de agua aplicada"
+local ph_bpa_8  "el mantenimiento del sistema de riego"
+local ph_bpa_9  "la realización de análisis del agua de riego"
+local ph_bpa_10 "el uso de abonos"
+local ph_bpa_11 "el uso de fertilizantes"
+local ph_bpa_12 "el uso de plaguicidas"
+local ph_bpa_13 "la aplicación de control biológico"
+local ph_bpa_14 "la implementación de Manejo Integrado de Plagas"
+
 // --- BPA Suelo: bpa_1..bpa_4 (toda la muestra) ---
-local phrases_suelo `" "la realización de análisis de suelo" "la incorporación de materia orgánica al suelo" "la asociación de cultivos" "la siembra en surcos a contorno" "'
 forvalues k = 1/4 {
-	gettoken phrase phrases_suelo : phrases_suelo
 	local var bpa_`k'
+	local phrase "`ph_`var''"
+	if "`phrase'" == "" {
+		di as error `"Falta la frase del título de `var' (local ph_`var')."'
+		exit 198
+	}
 	prg_table_2panels, ///
 		outcome(`var') outcome_phrase("`phrase'") ///
 		table_num("B.2-`k'") ///
@@ -113,14 +117,17 @@ forvalues k = 1/4 {
 // --- BPA Riego: bpa_5..bpa_9 (submuestra: riego_tec_prod==1) ---
 // Pasa outcome_qualifier corto + note_extra con el detalle de la submuestra,
 // para mantener el título bajo 20 palabras y la definición operativa en la nota.
-local phrases_riego `" "la estimación de la demanda hídrica del cultivo" "la programación de la frecuencia de riego" "el ajuste del volumen de agua aplicada" "el mantenimiento del sistema de riego" "la realización de análisis del agua de riego" "'
 local q_riego     "submuestra: riego tecnificado"
 local extra_riego "La submuestra incluye productores con al menos un predio bajo riego tecnificado."
 preserve
 keep if riego_tec_prod == 1
 forvalues k = 5/9 {
-	gettoken phrase phrases_riego : phrases_riego
 	local var bpa_`k'
+	local phrase "`ph_`var''"
+	if "`phrase'" == "" {
+		di as error `"Falta la frase del título de `var' (local ph_`var')."'
+		exit 198
+	}
 	prg_table_2panels, ///
 		outcome(`var') outcome_phrase("`phrase'") ///
 		outcome_qualifier("`q_riego'") ///
@@ -133,10 +140,13 @@ forvalues k = 5/9 {
 restore
 
 // --- BPA Insumos: bpa_10..bpa_14 (toda la muestra) ---
-local phrases_insumos `" "el uso de abonos" "el uso de fertilizantes" "el uso de plaguicidas" "la aplicación de control biológico" "la implementación de Manejo Integrado de Plagas" "'
 forvalues k = 10/14 {
-	gettoken phrase phrases_insumos : phrases_insumos
 	local var bpa_`k'
+	local phrase "`ph_`var''"
+	if "`phrase'" == "" {
+		di as error `"Falta la frase del título de `var' (local ph_`var')."'
+		exit 198
+	}
 	prg_table_2panels, ///
 		outcome(`var') outcome_phrase("`phrase'") ///
 		table_num("B.2-`k'") ///

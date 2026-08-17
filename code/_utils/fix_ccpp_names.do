@@ -1,4 +1,4 @@
-//----------------------------------------------------------------------
+//------------------------------------------------------------------------------
 // File           : fix_ccpp_names.do
 // Author         : Carlos Marena
 // Email          : carlosmarena1995@gmail.com
@@ -7,7 +7,9 @@
 // 					Se hicieron cambios a lineas 28 y 33 en función a definición
 // 					explícita de cumplimiento. Las ECAs no son implementadas en 
 //					esos centros exactamente.
-//----------------------------------------------------------------------
+//------------------------------------------------------------------------------
+
+version 19.0
 replace nomb_ccpp="AHIJADERO"		if 	nomb_ccpp=="AIJADERO" | regexm(nomb_ccpp,"AHIJADERO") & nomb_dstrt=="SAN JUAN"
 replace nomb_ccpp="ALTO SHIMA" 		if	nomb_ccpp=="CANAAN" & nomb_dstrt=="RIO TAMBO" /*1*/
 replace nomb_ccpp="ALTO TOTERANI" 	if nomb_ccpp=="MARANKIARI BAJO (MARANQUIARI)" /*2*/

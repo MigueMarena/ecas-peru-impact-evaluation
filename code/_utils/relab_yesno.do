@@ -1,10 +1,12 @@
-//----------------------------------------------------------------------
+//------------------------------------------------------------------------------
 // File           : relab_yesno.do
 // Author         : Carlos Marena
 // Email          : carlosmarena1995@gmail.com
 // Last Mod. Date : 11/04/2026
 // Description    : Reetiqueta variables con respuestas si/no a formato estandar.
-//----------------------------------------------------------------------
+//------------------------------------------------------------------------------
+
+version 19.0
 
 ds , has(vallab)
 foreach var in `r(varlist)'{

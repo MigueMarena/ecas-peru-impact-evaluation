@@ -9,6 +9,7 @@
 //                  vida, servicios de extension agraria (SEA), composicion
 //                  demografica, e ingresos laborales (dependiente, independiente,
 //                  otros) a nivel de hogar y per capita.
+// Depends        : (ninguno)
 // Input          : Out/4_.../Panel_Inicio.dta
 //                  Out/4_.../Panel_Personas.dta
 // Output         : Out/5_.../Viv_Act_SEA_LB.dta
@@ -16,6 +17,21 @@
 //------------------------------------------------------------------------------
 version 19.0
 clear all
+
+// Bootstrap del entorno: define las globals ${ruta_*} a partir de ${ECAS},
+// la única entrada de configuración del pipeline (ver config.do).
+// config.do se incluye SIEMPRE, sin guardarlo tras un `if' sobre alguna
+// global: define locales (`outc1', `rawc1', …) y `do' abre un scope nuevo,
+// así que los locales del llamador NO llegan hasta aquí. Saltarse el include
+// porque las globals ya existan deja al script sin rutas y falla con r(601).
+// `include' es idempotente: solo redefine rutas y crea carpetas con `cap'.
+capture qui include "${ECAS}/2_Scripts/A_setup/config.do"
+if _rc capture qui include "2_Scripts/A_setup/config.do"
+if "${ruta_data}" == "" {
+	di as error "No encuentro config.do. Define la global ECAS con la ruta"
+	di as error "a la raíz del repositorio, o ejecuta Stata desde esa raíz."
+	exit 601
+}
 
 //==============================================================================
 // Local Macros (Control Flow)
@@ -47,25 +63,10 @@ if `ResetDoFrames'{
 if `LoadDataViv'{
 	frame change vivienda
 	
-	// Bootstrap del entorno: define las globals ${ruta_*} a partir de ${ECAS},
-	// la única entrada de configuración del pipeline (ver A_master.do).
-	// A_master.do se incluye SIEMPRE, sin guardarlo tras un `if' sobre alguna
-	// global: define locales (`outc1', `rawc1', …) y `do' abre un scope nuevo,
-	// así que los locales del llamador NO llegan hasta acá. Saltarse el include
-	// porque las globals ya existan deja al script sin rutas y falla con r(601).
-	// `include' es idempotente: solo redefine rutas y crea carpetas con `cap'.
-	capture qui include "${ECAS}/2_Scripts/A_setup/A_master.do"
-	if _rc capture qui include "2_Scripts/A_setup/A_master.do"
-	if "${ruta_data}" == "" {
-		di as error "No encuentro A_master.do. Definí la global ECAS con la ruta"
-		di as error "a la raíz del repositorio, o corré Stata desde esa raíz."
-		exit 601
-	}
-
-// Redirige el log de stata-batch a 3_Logs/ (limpia el log auto en 2_Scripts).
-cap log close
-cap erase "${ruta_scripts}\E3_build_household.log"
-log using "${ruta_logs}\E3_build_household.log", replace text
+	// Redirige el log de stata-batch a 3_Logs/ (limpia el log auto en 2_Scripts).
+	cap log close
+	cap erase "${ruta_scripts}\E3_build_household.log"
+	log using "${ruta_logs}\E3_build_household.log", replace text
 
 	use "`outc4'\\Panel_Inicio.dta", clear
 	
@@ -74,8 +75,7 @@ log using "${ruta_logs}\E3_build_household.log", replace text
 	drop post
 	
 	// Etiquetas
-	cap lab drop sino
-	lab def sino 0 "No" 1 "Sí"
+	qui do "${ruta_utils}\lab_sino.do"
 }
 
 if `GenVarsViv'{
@@ -93,7 +93,7 @@ if `GenVarsViv'{
 		
 		gen  float ilogsact = 1*ln(1+tot_act_agr_n1) + 2*ln(1+tot_act_agr_n2) + ///
 				      3*ln(1+tot_act_agr_n3) + 4*ln(1+tot_act_agr_n4) + ///
-				      5*ln(1+tot_act_agr_n5) // verificar esto mañana
+				      5*ln(1+tot_act_agr_n5)
 		format ilogsact %6.2f
 		lab var ilogsact "Índice log. de sofisticación de activos agrícolas del hogar"
 		drop tot_act_*
@@ -262,20 +262,6 @@ if `GenVarsSEA'{
 if `LoadDataPers'{
 	frame change personas_hog
 	
-	// Bootstrap del entorno: define las globals ${ruta_*} a partir de ${ECAS},
-	// la única entrada de configuración del pipeline (ver A_master.do).
-	// A_master.do se incluye SIEMPRE, sin guardarlo tras un `if' sobre alguna
-	// global: define locales (`outc1', `rawc1', …) y `do' abre un scope nuevo,
-	// así que los locales del llamador NO llegan hasta acá. Saltarse el include
-	// porque las globals ya existan deja al script sin rutas y falla con r(601).
-	// `include' es idempotente: solo redefine rutas y crea carpetas con `cap'.
-	capture qui include "${ECAS}/2_Scripts/A_setup/A_master.do"
-	if _rc capture qui include "2_Scripts/A_setup/A_master.do"
-	if "${ruta_data}" == "" {
-		di as error "No encuentro A_master.do. Definí la global ECAS con la ruta"
-		di as error "a la raíz del repositorio, o corré Stata desde esa raíz."
-		exit 601
-	}
 	use "`outc4'\\Panel_Personas", clear
 	
 	keep if post==0

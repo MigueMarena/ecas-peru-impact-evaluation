@@ -11,8 +11,9 @@
 //                    - Take-up efectivo (asistió ≥75% sesiones).
 //                    - Sin asistencia.
 //                    - Contaminación en control (recibió alguna sesión).
+// Depends        : (ninguno)
 // Input          : Out/4_BDs Fusionadas/Panel_Inicio.dta
-// Output         : Tablas/0_Diseño_y_Diagnóstico/Cuerpo/D11_Tabla_TakeUp.docx (+ xlsx)
+// Output         : Tablas/0_Diseño_y_Diagnóstico/Cuerpo/6.3-1_Tabla_TakeUp.docx (+ xlsx)
 //------------------------------------------------------------------------------
 
 cls
@@ -23,17 +24,17 @@ clear all
 // Step 1: Load environment
 //==============================================================================
 // Bootstrap del entorno: define las globals ${ruta_*} a partir de ${ECAS},
-// la única entrada de configuración del pipeline (ver A_master.do).
-// A_master.do se incluye SIEMPRE, sin guardarlo tras un `if' sobre alguna
+// la única entrada de configuración del pipeline (ver config.do).
+// config.do se incluye SIEMPRE, sin guardarlo tras un `if' sobre alguna
 // global: define locales (`outc1', `rawc1', …) y `do' abre un scope nuevo,
-// así que los locales del llamador NO llegan hasta acá. Saltarse el include
+// así que los locales del llamador NO llegan hasta aquí. Saltarse el include
 // porque las globals ya existan deja al script sin rutas y falla con r(601).
 // `include' es idempotente: solo redefine rutas y crea carpetas con `cap'.
-capture qui include "${ECAS}/2_Scripts/A_setup/A_master.do"
-if _rc capture qui include "2_Scripts/A_setup/A_master.do"
+capture qui include "${ECAS}/2_Scripts/A_setup/config.do"
+if _rc capture qui include "2_Scripts/A_setup/config.do"
 if "${ruta_data}" == "" {
-	di as error "No encuentro A_master.do. Definí la global ECAS con la ruta"
-	di as error "a la raíz del repositorio, o corré Stata desde esa raíz."
+	di as error "No encuentro config.do. Define la global ECAS con la ruta"
+	di as error "a la raíz del repositorio, o ejecuta Stata desde esa raíz."
 	exit 601
 }
 
@@ -113,8 +114,8 @@ preserve
 	replace n         = `n_contam'                                         in 5
 	replace pct       = `p_cont'                                           in 5
 
-	export excel using "`outdir'\\D11_Tabla_TakeUp.xlsx", ///
-		firstrow(variables) sheet("Take-up") sheetreplace
+	export excel using "`outdir'\\6.3-1_Tabla_TakeUp.xlsx", ///
+		firstrow(variables) sheet("Cobertura") sheetreplace
 restore
 
 //==============================================================================
@@ -153,25 +154,19 @@ collect label levels result ///
 	n "n"                            ///
 	p "% del brazo asignado",        modify
 
-collect style cell, border(right, pattern(nil)) margin(all, width(0pt))
-collect style cell cmdset, font(Roboto, size(`size_m')) halign(left)  valign(center)
-collect style cell result, font(Roboto, size(`size_m')) halign(center)
+// Estilo de casa BID (Roboto, encabezado azul, bordes y tamaños).
+// Lo que se declare DESPUÉS de esta línea se superpone.
+do "${ruta_utils}\collect_style_bid.do" `_pt_dat'
+
 collect style cell result[n], nformat(%9.0f)
 collect style cell result[p], nformat(%9.1f)
 
 // Datos (items): regular
-collect style cell cell_type[item], font(Roboto, size(`size_m') nobold)
 
 // Headers: negrita blanca sobre azul BID
-collect style cell cell_type[corner column-header], ///
-	shading(background(0 78 112)) font(Roboto, size(`size_m') color(white) bold)
 
-collect style column, dups(center)
-collect style header cmdset, level(label)
-collect style header result, level(label)
-collect style row stack, nobinder
 
-local titulo "Tabla D11 — Cobertura del programa"
+local titulo "Tabla 6.3-1 — Cobertura del programa"
 local nota1 "Notas: La tabla reporta la cobertura del programa de Escuelas de Campo Agrícolas. El porcentaje en cada fila se calcula sobre el brazo asignado correspondiente (tratamiento para las filas de cobertura; control para la fila de contaminación)."
 local nota2 "La cobertura bruta corresponde a los productores asignados al tratamiento que asistieron al menos a una sesión, mientras que la cobertura efectiva corresponde a quienes asistieron al menos al 75% de las sesiones."
 local nota3 "La contaminación se define como la fracción de productores en centros poblados de control que recibieron al menos una sesión del programa."
@@ -180,14 +175,12 @@ collect title "`titulo'"
 collect notes "`nota1' `nota2' `nota3'"
 // Estilo APA-AEA: título en bold (sin italic), tamaño = cuerpo;
 // notas en italic, tamaño = (cuerpo − 1) pt.
-collect style title, font(Roboto, size(`size_m') bold)
-collect style notes, font(Roboto, size(`size_n') italic)
 
 collect layout (cmdset) (result[n p])
 
 collect style putdocx, name(`tag') width(widths)
-collect export "`outdir'\\D11_Tabla_TakeUp.docx", as(docx) name(`tag') replace
+collect export "`outdir'\\6.3-1_Tabla_TakeUp.docx", as(docx) name(`tag') replace
 
-di as text "Listo: D11_Tabla_TakeUp exportada en `outdir'."
+di as text "Listo: 6.3-1_Tabla_TakeUp exportada en `outdir'."
 
 log close

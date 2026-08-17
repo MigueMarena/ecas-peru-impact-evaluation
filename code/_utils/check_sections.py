@@ -248,7 +248,7 @@ def main():
         print('  --- BLOQUEANTES (%d) ---' % len(bloqueantes))
         for a, m in bloqueantes:
             print('      %-52s %s' % (a[:52], m))
-        print('  [check_sections] compilación DETENIDA: corregí los bloqueantes y volvé a correr.')
+        print('  [check_sections] compilación DETENIDA: corrige los bloqueantes y vuelve a correr.')
         return 1
 
     print('  [check_sections] sin bloqueantes: se puede compilar.')

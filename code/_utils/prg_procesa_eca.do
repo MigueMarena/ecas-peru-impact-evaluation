@@ -1,4 +1,4 @@
-//----------------------------------------------------------------------
+//------------------------------------------------------------------------------
 // File           : prg_procesa_eca.do
 // Author         : Carlos Marena
 // Email          : carlosmarena1995@gmail.com
@@ -6,7 +6,7 @@
 // Description    : Define el programa procesaECA que procesa informacion a nivel
 //                  de centros poblados-ECAs y genera indicadores agregados por
 //                  ECA para un anio dado.
-//----------------------------------------------------------------------
+//------------------------------------------------------------------------------
 capture program drop procesaECA
 // ============================================================
 // Programa: procesaECA
@@ -19,6 +19,7 @@ capture program drop procesaECA
 // ============================================================
 
 program define procesaECA
+    version 19.0
     args year filein outdir
     local keysECA nomb_rgn nomb_prvnc nomb_dstrt nomb_ccpp nomb_ECA
 		

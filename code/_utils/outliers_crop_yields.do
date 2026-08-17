@@ -1,11 +1,13 @@
-//----------------------------------------------------------------------
+//------------------------------------------------------------------------------
 // File           : outliers_crop_yields.do
 // Author         : Carlos Marena
 // Email          : carlosmarena1995@gmail.com
 // Last Mod. Date : 11/04/2026
 // Description    : Detecta y reemplaza outliers en rendimientos de cultivos
 //                  (kgxha, kgx1p, kgxkg_sem) usando MAD con umbral 3.
-//----------------------------------------------------------------------
+//------------------------------------------------------------------------------
+
+version 19.0
 sort preg114b1
 foreach v in kgxha_semb_ppc kgx1p_eprod_ppc kgxkg_sem_ppc{
 	// 1. Generar variable que cuente el número de obs por cultivo (solo con rend. > 0)

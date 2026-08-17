@@ -1,23 +1,21 @@
 //------------------------------------------------------------------------------
-// File             : B1_ingest_copy_files.do
-// Author           : Carlos Marena
-// Email            : carlosmarena1995@gmail.com
-// Last Mod. Date   : 10/04/2026
-// Description      : Copia archivos fuente (encuestas LB y LS,
-// bases de CCPPs e insumos de la consultoria M.A.) desde las
-// carpetas de documentacion del proyecto hacia la estructura
-// Raw/ del directorio de datos.
-//
-// Depends          : (ninguno)
-// Input            : Archivos .dta y .xlsx descubiertos
-//                    dinamicamente en:
-//                    ${ruta_docum}\Base SENASA\Bases Linea de base\,
-//                    ${ruta_docum}\Base SENASA\Bases seguimiento\,
-//                    ${ruta_docum}\Identificacion_tratados\Archivos_ccpp\,
-//                    Entregable_2_Inocuidad_SENASA.zip
-// Output           : Copias en Raw\1_Encu Linea Base\,
-//                    Raw\2_Encu Linea Segui\,
-//                    Raw\3_Centros Poblados y su Estatus de Tratamiento\
+// File           : B1_ingest_copy_files.do
+// Author         : Carlos Marena
+// Email          : carlosmarena1995@gmail.com
+// Last Mod. Date : 10/04/2026
+// Description    : Copia archivos fuente (encuestas LB y LS, bases de CCPPs
+//                  e insumos de la consultoria M.A.) desde las carpetas de
+//                  documentacion del proyecto hacia la estructura Raw/ del
+//                  directorio de datos.
+// Depends        : (ninguno)
+// Input          : Archivos .dta y .xlsx descubiertos dinamicamente en:
+//                  ${ruta_docum}\Base SENASA\Bases Linea de base\,
+//                  ${ruta_docum}\Base SENASA\Bases seguimiento\,
+//                  ${ruta_docum}\Identificacion_tratados\Archivos_ccpp\,
+//                  Entregable_2_Inocuidad_SENASA.zip (o, si no existe, la
+//                  carpeta ya descomprimida del mismo nombre)
+// Output         : Copias en Raw\1_Encu Linea Base\, Raw\2_Encu Linea Segui\,
+//                  Raw\3_Centros Poblados y su Estatus de Tratamiento\
 //------------------------------------------------------------------------------
 
 version 19.0

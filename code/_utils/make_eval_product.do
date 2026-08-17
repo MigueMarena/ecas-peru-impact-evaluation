@@ -1,11 +1,13 @@
-//----------------------------------------------------------------------
+//------------------------------------------------------------------------------
 // File           : make_eval_product.do
 // Author         : Carlos Marena
 // Email          : carlosmarena1995@gmail.com
 // Last Mod. Date : 11/04/2026
 // Description    : Genera la variable prod_ECA_eval (producto sujeto a evaluacion)
 //                  para cada centro poblado aleatorizado.
-//----------------------------------------------------------------------
+//------------------------------------------------------------------------------
+
+version 19.0
 
 gen prod_ECA_eval:prodECAe = . , a(tipo_ECA)
 # delimit ;

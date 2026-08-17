@@ -2,6 +2,7 @@
 // File           : _utils/prg_load_panel.do
 // Author         : Carlos Marena
 // Email          : carlosmarena1995@gmail.com
+// Last Mod. Date : 14/08/2026
 // Description    : Carga la base maestra del proyecto para las tablas de
 //                  estimación (G1-G6B): identificadores + efectos fijos +
 //                  treatment vars + controles de línea base + el outcome_file
@@ -41,7 +42,7 @@
 //   - outcome_vars (del outcome_file)
 //
 // Dependencias:
-//   - Global ${ruta_data} (definido por A_master.do).
+//   - Global ${ruta_data} (definido por config.do).
 //   - Archivos en `outc5': Caract_Obs_Trat_ECA.dta, Sociodem_Prod_JH_LB.dta,
 //     Viv_Act_SEA_LB.dta, Demog_Ing_Hog_LB.dta, Productor_Predio_LB.dta,
 //     y el `outcome_file' que se pase.
@@ -49,17 +50,18 @@
 
 cap program drop prg_load_panel
 program define prg_load_panel
+	version 19.0
 	syntax , ///
 		outcome_file(string) ///
 		outcome_vars(string) ///
 		extra_vars(string)
 
-	// Construir `outc5' desde ${ruta_data} (global que A_master.do define con
+	// Construir `outc5' desde ${ruta_data} (global que config.do define con
 	// `global`). No usamos `include` aquí porque Stata no lo permite dentro de
 	// un program (r(9611)).
 	if "${ruta_data}" == "" {
-		di as error "Global \${ruta_data} no está definido. El caller debe"
-		di as error "hecho el bootstrap del entorno (ver A_master.do)."
+		di as error "Global \${ruta_data} no está definido. El caller debe haber"
+		di as error "hecho el bootstrap del entorno (ver config.do)."
 		exit 198
 	}
 	local outc5 "${ruta_data}/Out/5_BDs por grupos de vars"

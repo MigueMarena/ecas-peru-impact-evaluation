@@ -30,15 +30,15 @@
 //                  está en Reporte Final_VPaper/Planes_Ejecucion/
 //                  52_E_Apoyo_Compilacion_explicada.md
 //
+// Depends        : ${ruta_utils}\check_sections.py           (Step 2)
+//                  ${ruta_utils}\fix_compiled_docx.py        (Step 5)
+//                  ${ruta_utils}\update_fields_export_pdf.ps1 (Step 6)
+//                  ${ruta_utils}\verify_compiled_docx.ps1    (Step 7)
 // Input          : ${ruta_seccio}\_Indices_Cuerpo.docx
 //                  ${ruta_seccio}\_Indices_Anexos.docx
 //                  ${ruta_seccio}\0_Carátula.docx
 //                  ${ruta_seccio}\1_Introducción.docx  … 12_Referencias.docx
 //                  ${ruta_seccio}\Anexos.docx
-// Helpers        : ${ruta_utils}\check_sections.py           (Step 2)
-//                  ${ruta_utils}\fix_compiled_docx.py        (Step 5)
-//                  ${ruta_utils}\update_fields_export_pdf.ps1 (Step 6)
-//                  ${ruta_utils}\verify_compiled_docx.ps1    (Step 7)
 // Output         : ${ruta_report}\{fecha}_Reporte_EI_Final.docx  (+ .pdf)
 //                  ${ruta_report}\{fecha}_Anexos_EI.docx         (+ .pdf)
 //------------------------------------------------------------------------------
@@ -51,17 +51,17 @@ cls
 // Step 1: Entorno y log
 //==============================================================================
 // Bootstrap del entorno: define las globals ${ruta_*} a partir de ${ECAS},
-// la única entrada de configuración del pipeline (ver A_master.do).
-// A_master.do se incluye SIEMPRE, sin guardarlo tras un `if' sobre alguna
+// la única entrada de configuración del pipeline (ver config.do).
+// config.do se incluye SIEMPRE, sin guardarlo tras un `if' sobre alguna
 // global: define locales (`outc1', `rawc1', …) y `do' abre un scope nuevo,
-// así que los locales del llamador NO llegan hasta acá. Saltarse el include
+// así que los locales del llamador NO llegan hasta aquí. Saltarse el include
 // porque las globals ya existan deja al script sin rutas y falla con r(601).
 // `include' es idempotente: solo redefine rutas y crea carpetas con `cap'.
-capture qui include "${ECAS}/2_Scripts/A_setup/A_master.do"
-if _rc capture qui include "2_Scripts/A_setup/A_master.do"
+capture qui include "${ECAS}/2_Scripts/A_setup/config.do"
+if _rc capture qui include "2_Scripts/A_setup/config.do"
 if "${ruta_data}" == "" {
-	di as error "No encuentro A_master.do. Definí la global ECAS con la ruta"
-	di as error "a la raíz del repositorio, o corré Stata desde esa raíz."
+	di as error "No encuentro config.do. Define la global ECAS con la ruta"
+	di as error "a la raíz del repositorio, o ejecuta Stata desde esa raíz."
 	exit 601
 }
 
@@ -97,7 +97,7 @@ cap confirm file "`ok_check'"
 if _rc {
 	di as error _n "{hline 70}"
 	di as error "COMPILACIÓN DETENIDA: las secciones no pasaron la validación."
-	di as error "Revisá los BLOQUEANTES listados arriba y volvé a correr H1."
+	di as error "Revisa los BLOQUEANTES listados arriba y vuelve a correr H1."
 	di as error "El detalle de cada chequeo está en Planes_Ejecucion/52_E_Apoyo_Compilacion_explicada.md"
 	di as error "{hline 70}"
 	log close
@@ -267,7 +267,7 @@ cap confirm file "`ok_verify'"
 if _rc {
 	di as error _n "{hline 70}"
 	di as error "EL CONSOLIDADO NO PASÓ LA VERIFICACIÓN. No lo entregues así."
-	di as error "Revisá el detalle de arriba y Planes_Ejecucion/52_E_Apoyo_Compilacion_explicada.md"
+	di as error "Revisa el detalle de arriba y Planes_Ejecucion/52_E_Apoyo_Compilacion_explicada.md"
 	di as error "{hline 70}"
 	log close
 	exit 459

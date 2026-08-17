@@ -14,6 +14,7 @@
 //                  Para tiempo-invariantes solo se grafica un punto (la SMD
 //                  no se ve afectada por el ajuste de timing). Líneas de
 //                  umbral en ±0.10. Exporta PNG (300 dpi) y PDF.
+// Depends        : (ninguno)
 // Input          : Out/5_BDs por grupos de vars/Caract_Obs_Trat_ECA.dta
 //                  Out/5_BDs por grupos de vars/Sociodem_Prod_JH_LB.dta
 //                  Out/5_BDs por grupos de vars/Viv_Act_SEA_LB.dta
@@ -23,6 +24,7 @@
 // Output         : Imágenes/Gráfico_Loveplot/F2_Loveplot_SMD.png
 //                  Imágenes/Gráfico_Loveplot/F2_Loveplot_SMD.pdf
 //                  Imágenes/Gráfico_Loveplot/F2_Loveplot_SMD_data.dta
+//                  Imágenes/Gráfico_Loveplot/F2_Loveplot_SMD_data.xlsx
 //------------------------------------------------------------------------------
 
 cls
@@ -33,19 +35,24 @@ clear all
 // Step 1: Load environment
 //==============================================================================
 // Bootstrap del entorno: define las globals ${ruta_*} a partir de ${ECAS},
-// la única entrada de configuración del pipeline (ver A_master.do).
-// A_master.do se incluye SIEMPRE, sin guardarlo tras un `if' sobre alguna
+// la única entrada de configuración del pipeline (ver config.do).
+// config.do se incluye SIEMPRE, sin guardarlo tras un `if' sobre alguna
 // global: define locales (`outc1', `rawc1', …) y `do' abre un scope nuevo,
-// así que los locales del llamador NO llegan hasta acá. Saltarse el include
+// así que los locales del llamador NO llegan hasta aquí. Saltarse el include
 // porque las globals ya existan deja al script sin rutas y falla con r(601).
 // `include' es idempotente: solo redefine rutas y crea carpetas con `cap'.
-capture qui include "${ECAS}/2_Scripts/A_setup/A_master.do"
-if _rc capture qui include "2_Scripts/A_setup/A_master.do"
+capture qui include "${ECAS}/2_Scripts/A_setup/config.do"
+if _rc capture qui include "2_Scripts/A_setup/config.do"
 if "${ruta_data}" == "" {
-	di as error "No encuentro A_master.do. Definí la global ECAS con la ruta"
-	di as error "a la raíz del repositorio, o corré Stata desde esa raíz."
+	di as error "No encuentro config.do. Define la global ECAS con la ruta"
+	di as error "a la raíz del repositorio, o ejecuta Stata desde esa raíz."
 	exit 601
 }
+
+// Parámetros del diseño: $fe_estrato (estrato de aleatorización) y
+// $cl_ccpp (nivel de agrupamiento de los errores estándar). Vienen de
+// spec.do para que diagnóstico y estimación no puedan divergir.
+qui include "${ruta_setup}/spec.do"
 
 // Redirige el log de stata-batch a 3_Logs/ (limpia el log auto en 2_Scripts).
 cap log close
@@ -171,10 +178,10 @@ program define _smd_one, rclass
 	}
 	tempvar _z
 	qui gen `_z' = `var' / `sd_pool'
-	qui reg `_z' asig_ccpp i.cod_rgn_PE, cluster(cod_cpb)
+	qui reg `_z' asig_ccpp i.$fe_estrato, cluster($cl_ccpp)
 	local smd_c = _b[asig_ccpp]
 	local p_c   = 2 * ttail(e(df_r), abs(_b[asig_ccpp] / _se[asig_ccpp]))
-	qui reg `_z' asig_ccpp i.cod_rgn_PE i.mes_enc, cluster(cod_cpb)
+	qui reg `_z' asig_ccpp i.$fe_estrato i.mes_enc, cluster($cl_ccpp)
 	local smd_a = _b[asig_ccpp]
 	local p_a   = 2 * ttail(e(df_r), abs(_b[asig_ccpp] / _se[asig_ccpp]))
 	return scalar smd_c = `smd_c'
@@ -219,11 +226,11 @@ preserve
 	tempvar _z
 	qui gen `_z' = n_prods_clu / `sd_pool'
 	// Cruda: solo estrato FE
-	qui reg `_z' asig_ccpp i.cod_rgn_PE, robust
+	qui reg `_z' asig_ccpp i.$fe_estrato, robust
 	local smd_c_v = _b[asig_ccpp]
 	local p_c_v   = 2 * ttail(e(df_r), abs(_b[asig_ccpp] / _se[asig_ccpp]))
 	// Ajustada: estrato + mes-encuesta FE
-	cap qui reg `_z' asig_ccpp i.cod_rgn_PE i.mes_enc, robust
+	cap qui reg `_z' asig_ccpp i.$fe_estrato i.mes_enc, robust
 	if _rc == 0 {
 		local smd_a_v = _b[asig_ccpp]
 		local p_a_v   = 2 * ttail(e(df_r), abs(_b[asig_ccpp] / _se[asig_ccpp]))

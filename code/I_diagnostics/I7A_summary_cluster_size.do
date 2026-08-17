@@ -11,6 +11,7 @@
 //                      (al pie, en las notas).
 //                  El cálculo del Design Effect (DEFF) por outcome principal
 //                  se reporta en una tabla aparte: I7B_summary_deff_outcomes.do.
+// Depends        : (ninguno)
 // Input          : Out/5_BDs por grupos de vars/Caract_Obs_Trat_ECA.dta
 // Output         : Tablas/0_Diseño_y_Diagnóstico/Anexo/B-5-4_Tabla_Cluster_Size.docx
 //------------------------------------------------------------------------------
@@ -23,19 +24,24 @@ clear all
 // Step 1: Load environment
 //==============================================================================
 // Bootstrap del entorno: define las globals ${ruta_*} a partir de ${ECAS},
-// la única entrada de configuración del pipeline (ver A_master.do).
-// A_master.do se incluye SIEMPRE, sin guardarlo tras un `if' sobre alguna
+// la única entrada de configuración del pipeline (ver config.do).
+// config.do se incluye SIEMPRE, sin guardarlo tras un `if' sobre alguna
 // global: define locales (`outc1', `rawc1', …) y `do' abre un scope nuevo,
-// así que los locales del llamador NO llegan hasta acá. Saltarse el include
+// así que los locales del llamador NO llegan hasta aquí. Saltarse el include
 // porque las globals ya existan deja al script sin rutas y falla con r(601).
 // `include' es idempotente: solo redefine rutas y crea carpetas con `cap'.
-capture qui include "${ECAS}/2_Scripts/A_setup/A_master.do"
-if _rc capture qui include "2_Scripts/A_setup/A_master.do"
+capture qui include "${ECAS}/2_Scripts/A_setup/config.do"
+if _rc capture qui include "2_Scripts/A_setup/config.do"
 if "${ruta_data}" == "" {
-	di as error "No encuentro A_master.do. Definí la global ECAS con la ruta"
-	di as error "a la raíz del repositorio, o corré Stata desde esa raíz."
+	di as error "No encuentro config.do. Define la global ECAS con la ruta"
+	di as error "a la raíz del repositorio, o ejecuta Stata desde esa raíz."
 	exit 601
 }
+
+// Parámetros del diseño: $fe_estrato (estrato de aleatorización) y
+// $cl_ccpp (nivel de agrupamiento de los errores estándar). Vienen de
+// spec.do para que diagnóstico y estimación no puedan divergir.
+qui include "${ruta_setup}/spec.do"
 
 // Redirige el log de stata-batch a 3_Logs/ (limpia el log auto en 2_Scripts).
 cap log close
@@ -196,19 +202,20 @@ collect label levels result ///
 //==============================================================================
 // Step 7: Estilos BID
 //==============================================================================
-collect style cell, border(right, pattern(nil)) margin(all, width(0pt))
-collect style cell cmdset, font(Roboto, size(`size_m') nobold noitalic) halign(left) valign(center)
-collect style cell result, font(Roboto, size(`size_m') nobold noitalic) halign(center)
 
 // Datos (items): regular y nformat por tipo de fila.
 //   Rangos (cmdset 2-6) y total (cmdset 8): enteros.
 //   Media, DE, mediana, P25, P75 (cmdset 9-13): 1 decimal.
-collect style cell cell_type[item], font(Roboto, size(`size_m') nobold noitalic) nformat(%9.1f)
+// Estilo de casa BID (Roboto, encabezado azul, bordes y tamaños).
+// Lo que se declare DESPUÉS de esta línea se superpone.
+do "${ruta_utils}\collect_style_bid.do" `_pt_dat'
+
+// Un decimal en los estadísticos de resumen del panel inferior.
+collect style cell cell_type[item], nformat(%9.1f)
+
 collect style cell cmdset[2 3 4 5 6 8], nformat(%9.0f)
 
 // Headers de columna AL FINAL: azul BID + blanco bold.
-collect style cell cell_type[corner column-header], ///
-	shading(background(0 78 112)) font(Roboto, size(`size_m') color(white) bold noitalic)
 
 // Headers de panel: shading gris BID + label en italic bold.
 // El shading via cmdset captura la fila ENTERA porque todas las celdas de
@@ -222,10 +229,6 @@ collect style cell cmdset[`idx_hdrA' `idx_hdrB'], ///
 collect style cell cmdset[`idx_hdrA' `idx_hdrB']#cell_type[item], ///
 	font(Roboto, size(`size_m') color(211 210 209))
 
-collect style column, dups(center)
-collect style header cmdset, level(label)
-collect style header result, level(label)
-collect style row stack, nobinder
 
 //==============================================================================
 // Step 8: Title and notes
@@ -241,8 +244,6 @@ collect title "`titulo'"
 collect notes "`nota1' `nota2'"
 // Estilo APA-AEA: título en bold (sin italic), tamaño = cuerpo;
 // notas en italic, tamaño = (cuerpo − 1) pt.
-collect style title, font(Roboto, size(`size_m') bold)
-collect style notes, font(Roboto, size(`size_n') italic)
 
 // Sangría en los nombres de variable (row-headers de cmdset). Va AL FINAL,
 // después de todos los estilos generales y específicos, para asegurar que

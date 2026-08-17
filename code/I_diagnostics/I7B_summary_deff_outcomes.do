@@ -16,6 +16,7 @@
 //                  ICC y DEFF para múltiples outcomes principales permite
 //                  cuantificar la heterogeneidad del clustering y facilita
 //                  cálculos de poder a futuros investigadores.
+// Depends        : (ninguno)
 // Input          : Out/5_BDs por grupos de vars/Caract_Obs_Trat_ECA.dta
 //                  Out/5_BDs por grupos de vars/BPAs_Compuestos_LByLS.dta
 // Output         : Tablas/0_Diseño_y_Diagnóstico/Anexo/B-5-5_Tabla_DEFF_Outcomes.docx
@@ -29,19 +30,24 @@ clear all
 // Step 1: Load environment
 //==============================================================================
 // Bootstrap del entorno: define las globals ${ruta_*} a partir de ${ECAS},
-// la única entrada de configuración del pipeline (ver A_master.do).
-// A_master.do se incluye SIEMPRE, sin guardarlo tras un `if' sobre alguna
+// la única entrada de configuración del pipeline (ver config.do).
+// config.do se incluye SIEMPRE, sin guardarlo tras un `if' sobre alguna
 // global: define locales (`outc1', `rawc1', …) y `do' abre un scope nuevo,
-// así que los locales del llamador NO llegan hasta acá. Saltarse el include
+// así que los locales del llamador NO llegan hasta aquí. Saltarse el include
 // porque las globals ya existan deja al script sin rutas y falla con r(601).
 // `include' es idempotente: solo redefine rutas y crea carpetas con `cap'.
-capture qui include "${ECAS}/2_Scripts/A_setup/A_master.do"
-if _rc capture qui include "2_Scripts/A_setup/A_master.do"
+capture qui include "${ECAS}/2_Scripts/A_setup/config.do"
+if _rc capture qui include "2_Scripts/A_setup/config.do"
 if "${ruta_data}" == "" {
-	di as error "No encuentro A_master.do. Definí la global ECAS con la ruta"
-	di as error "a la raíz del repositorio, o corré Stata desde esa raíz."
+	di as error "No encuentro config.do. Define la global ECAS con la ruta"
+	di as error "a la raíz del repositorio, o ejecuta Stata desde esa raíz."
 	exit 601
 }
+
+// Parámetros del diseño: $fe_estrato (estrato de aleatorización) y
+// $cl_ccpp (nivel de agrupamiento de los errores estándar). Vienen de
+// spec.do para que diagnóstico y estimación no puedan divergir.
+qui include "${ruta_setup}/spec.do"
 
 // Redirige el log de stata-batch a 3_Logs/ (limpia el log auto en 2_Scripts).
 cap log close
@@ -121,12 +127,12 @@ foreach v of local outcomes {
 	}
 	local ++i
 }
-matlist `Mres', title("ICC y DEFF por outcome principal vO")
+matlist `Mres', title("ICC y DEFF por variable resultado principal vO")
 
 //==============================================================================
 // Step 5: Construir tabla con collect
 //==============================================================================
-local tag Tabla_DEFF_Outcomes_D8
+local tag Tabla_DEFF_Outcomes_B5_5
 
 collect clear
 collect create `tag', replace
@@ -149,21 +155,15 @@ collect label levels result ///
 //==============================================================================
 // Step 6: Estilos BID
 //==============================================================================
-collect style cell, border(right, pattern(nil)) margin(all, width(0pt))
-collect style cell cmdset, font(Roboto, size(`size_m') nobold noitalic) halign(left) valign(center)
-collect style cell result, font(Roboto, size(`size_m') nobold noitalic) halign(center)
 
-collect style cell cell_type[item], font(Roboto, size(`size_m') nobold noitalic)
+// Estilo de casa BID (Roboto, encabezado azul, bordes y tamaños).
+// Lo que se declare DESPUÉS de esta línea se superpone.
+do "${ruta_utils}\collect_style_bid.do" `_pt_dat'
+
 collect style cell result[icc],  nformat(%5.3f)
 collect style cell result[deff], nformat(%5.2f)
 
-collect style cell cell_type[corner column-header], ///
-	shading(background(0 78 112)) font(Roboto, size(`size_m') color(white) bold noitalic)
 
-collect style column, dups(center)
-collect style header cmdset, level(label)
-collect style header result, level(label)
-collect style row stack, nobinder
 
 //==============================================================================
 // Step 7: Title and notes
@@ -179,8 +179,6 @@ local nota4  "Un DEFF mayor a 1 indica que el agrupamiento reduce el tamaño efe
 
 collect title "`titulo'"
 collect notes "`nota1' `nota2' `nota3' `nota4'"
-collect style title, font(Roboto, size(`size_m') bold)
-collect style notes, font(Roboto, size(`size_n') italic)
 
 //==============================================================================
 // Step 8: Layout y export

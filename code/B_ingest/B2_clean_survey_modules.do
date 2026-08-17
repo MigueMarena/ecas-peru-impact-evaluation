@@ -1,37 +1,36 @@
 //------------------------------------------------------------------------------
-// File             : B2_clean_survey_modules.do
-// Author           : Carlos Marena
-// Email            : carlosmarena1995@gmail.com
-// Last Mod. Date   : 15/05/2025
-// Description      : Estandariza y preprocesa los modulos de
-// encuesta de Linea Base (Inicio, Personas, Parcela, Credito,
-// Cultivo) y Linea de Seguimiento (Inicio, Nuevos Integrantes,
-// Parcela, Cultivo). Para cada modulo: limpia strings, convierte
-// categorias negativas a missing, verifica identificadores y
-// guarda la base pre-limpia (prefijo pcl_) para tratamiento
-// posterior.
-//
-// Depends          : _utils/to_miss_neg_cat.do,
-//                    _utils/lab_cle.do,
-//                    _utils/std_strings.do
-// Input            : BaseInicio.dta (Raw/1_Encu Linea Base/),
-//                    Personas.dta (Raw/1_Encu Linea Base/),
-//                    Parcela.dta (Raw/1_Encu Linea Base/),
-//                    Credito.dta (Raw/1_Encu Linea Base/),
-//                    Cultivo.dta (Raw/1_Encu Linea Base/),
-//                    Inicio.dta (Raw/2_Encu Linea Segui/),
-//                    NuevosIntegrantesHogar.dta (Raw/2_Encu Linea Segui/),
-//                    Parcela.dta (Raw/2_Encu Linea Segui/),
-//                    Cultivo.dta (Raw/2_Encu Linea Segui/)
-// Output           : pcl_Inicio_LB.dta (Out/1_Encu Linea Base/),
-//                    pcl_Personas_LB.dta (Out/1_Encu Linea Base/),
-//                    pcl_Parcela_LB.dta (Out/1_Encu Linea Base/),
-//                    pcl_Credito_LB.dta (Out/1_Encu Linea Base/),
-//                    pcl_Cultivo_LB.dta (Out/1_Encu Linea Base/),
-//                    pcl_Inicio_LS.dta (Out/2_Encu Linea Segui/),
-//                    pcl_NuevosIntegrantes_LS.dta (Out/2_Encu Linea Segui/),
-//                    pcl_Parcela_LS.dta (Out/2_Encu Linea Segui/),
-//                    pcl_Cultivo_LS.dta (Out/2_Encu Linea Segui/)
+// File           : B2_clean_survey_modules.do
+// Author         : Carlos Marena
+// Email          : carlosmarena1995@gmail.com
+// Last Mod. Date : 14/08/2026
+// Description    : Estandariza y preprocesa los módulos de encuesta de Línea
+//                  de Base (Inicio, Personas, Parcela, Crédito, Cultivo) y
+//                  Línea de Seguimiento (Inicio, Nuevos Integrantes, Parcela,
+//                  Cultivo). Para cada módulo: limpia strings, convierte
+//                  categorías negativas a missing, verifica identificadores y
+//                  guarda la base pre-limpia (prefijo pcl_) para tratamiento
+//                  posterior.
+// Depends        : _utils/to_miss_neg_cat.do,
+//                  _utils/lab_cle.do,
+//                  _utils/std_strings.do
+// Input          : BaseInicio.dta (Raw/1_Encu Linea Base/),
+//                  Personas.dta (Raw/1_Encu Linea Base/),
+//                  Parcela.dta (Raw/1_Encu Linea Base/),
+//                  Credito.dta (Raw/1_Encu Linea Base/),
+//                  Cultivo.dta (Raw/1_Encu Linea Base/),
+//                  Inicio.dta (Raw/2_Encu Linea Segui/),
+//                  NuevosIntegrantesHogar.dta (Raw/2_Encu Linea Segui/),
+//                  Parcela.dta (Raw/2_Encu Linea Segui/),
+//                  Cultivo.dta (Raw/2_Encu Linea Segui/)
+// Output         : pcl_Inicio_LB.dta (Out/1_Encu Linea Base/),
+//                  pcl_Personas_LB.dta (Out/1_Encu Linea Base/),
+//                  pcl_Parcela_LB.dta (Out/1_Encu Linea Base/),
+//                  pcl_Credito_LB.dta (Out/1_Encu Linea Base/),
+//                  pcl_Cultivo_LB.dta (Out/1_Encu Linea Base/),
+//                  pcl_Inicio_LS.dta (Out/2_Encu Linea Segui/),
+//                  pcl_NuevosIntegrantes_LS.dta (Out/2_Encu Linea Segui/),
+//                  pcl_Parcela_LS.dta (Out/2_Encu Linea Segui/),
+//                  pcl_Cultivo_LS.dta (Out/2_Encu Linea Segui/)
 //------------------------------------------------------------------------------
 
 //==============================================================================
@@ -51,17 +50,17 @@ qui do "${ruta_utils}\lab_cle.do"
 
 // --- Llamar do-file con rutas ---
 // Bootstrap del entorno: define las globals ${ruta_*} a partir de ${ECAS},
-// la única entrada de configuración del pipeline (ver A_master.do).
-// A_master.do se incluye SIEMPRE, sin guardarlo tras un `if' sobre alguna
+// la única entrada de configuración del pipeline (ver config.do).
+// config.do se incluye SIEMPRE, sin guardarlo tras un `if' sobre alguna
 // global: define locales (`outc1', `rawc1', …) y `do' abre un scope nuevo,
-// así que los locales del llamador NO llegan hasta acá. Saltarse el include
+// así que los locales del llamador NO llegan hasta aquí. Saltarse el include
 // porque las globals ya existan deja al script sin rutas y falla con r(601).
 // `include' es idempotente: solo redefine rutas y crea carpetas con `cap'.
-capture qui include "${ECAS}/2_Scripts/A_setup/A_master.do"
-if _rc capture qui include "2_Scripts/A_setup/A_master.do"
+capture qui include "${ECAS}/2_Scripts/A_setup/config.do"
+if _rc capture qui include "2_Scripts/A_setup/config.do"
 if "${ruta_data}" == "" {
-	di as error "No encuentro A_master.do. Definí la global ECAS con la ruta"
-	di as error "a la raíz del repositorio, o corré Stata desde esa raíz."
+	di as error "No encuentro config.do. Define la global ECAS con la ruta"
+	di as error "a la raíz del repositorio, o ejecuta Stata desde esa raíz."
 	exit 601
 }
 
@@ -69,8 +68,6 @@ if "${ruta_data}" == "" {
 cap log close
 cap erase "${ruta_scripts}\B2_clean_survey_modules.log"
 log using "${ruta_logs}\B2_clean_survey_modules.log", replace text
-
-
 
 //==============================================================================
 // Step 2: Clean LB Inicio module
@@ -119,7 +116,7 @@ log using "${ruta_logs}\B2_clean_survey_modules.log", replace text
 	drop start end INIC_ENC FIN_ENC today
 
 // GENERAR LA VARIABLE CULTIVO OBJETIVO (O DE INTERÉS SI PREG4A==1 O PREG4B==1)
-	lab def sino 0 "No" 1 "Si"
+	qui do "${ruta_utils}\lab_sino.do"
 	gen cult_obj:sino = (preg4a==1|preg4b==1), a(preg4b)
 	lab var cult_obj "1 Si el cultivo de interés estuvo en el predio en la campaña 20/21"
 
@@ -133,7 +130,6 @@ log using "${ruta_logs}\B2_clean_survey_modules.log", replace text
 	qui compress 
 	save "`outc1'\\pcl_Inicio_LB.dta", replace	
 }
-
 
 //==============================================================================
 // Step 3: Clean LB Personas module
@@ -167,7 +163,6 @@ log using "${ruta_logs}\B2_clean_survey_modules.log", replace text
 	qui compress 
 	save "`outc1'\\pcl_Personas_LB.dta", replace 
 }
-
 
 //==============================================================================
 // Step 4: Clean LB Parcela module
@@ -204,7 +199,6 @@ log using "${ruta_logs}\B2_clean_survey_modules.log", replace text
 	save "`outc1'\\pcl_Parcela_LB.dta", replace 
 }
 
-
 //==============================================================================
 // Step 5: Clean LB Credito module
 //==============================================================================
@@ -240,7 +234,6 @@ log using "${ruta_logs}\B2_clean_survey_modules.log", replace text
 	save "`outc1'\\pcl_Credito_LB.dta", replace	
 }
 
-
 //==============================================================================
 // Step 6: Clean LB Cultivo module
 //==============================================================================
@@ -275,7 +268,6 @@ log using "${ruta_logs}\B2_clean_survey_modules.log", replace text
 	qui compress 
 	save "`outc1'\\pcl_Cultivo_LB.dta", replace
 }
-
 
 //==============================================================================
 // Step 7: Clean LS Inicio module
@@ -322,7 +314,7 @@ log using "${ruta_logs}\B2_clean_survey_modules.log", replace text
 	count if continua==1 & (preg4a==2 & preg4b==2) // continuan pero no responden nada luego
 
 // GENERAR LA VARIABLE CULTIVO OBJETIVO (O DE INTERÉS SI PREG4A==1 O PREG4B==1)
-	lab def sino 0 "No" 1 "Si"
+	qui do "${ruta_utils}\lab_sino.do"
 	gen cult_obj:sino = (preg4a==1|preg4b==1), a(preg4b)
 	lab var cult_obj "1 Si el cultivo de interés estuvo en el predio en la campaña 21/22"
 	
@@ -333,7 +325,6 @@ log using "${ruta_logs}\B2_clean_survey_modules.log", replace text
 	qui compress 
 	save "`outc2'\\pcl_Inicio_LS.dta", replace
 }
-
 
 //==============================================================================
 // Step 8: Clean LS Nuevos Integrantes module
@@ -373,7 +364,6 @@ log using "${ruta_logs}\B2_clean_survey_modules.log", replace text
 	save "`outc2'\\pcl_NuevosIntegrantes_LS.dta", replace 
 }
 
-
 //==============================================================================
 // Step 9: Clean LS Parcela module
 //==============================================================================
@@ -410,7 +400,6 @@ log using "${ruta_logs}\B2_clean_survey_modules.log", replace text
 	qui compress 
 	save "`outc2'\\pcl_Parcela_LS.dta", replace 
 }
-
 
 //==============================================================================
 // Step 10: Clean LS Cultivo module

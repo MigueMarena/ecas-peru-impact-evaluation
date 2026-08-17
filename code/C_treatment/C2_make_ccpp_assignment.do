@@ -34,17 +34,17 @@ do "${ruta_utils}\\prg_procesa_eca"
 
 // Llamar do-file con rutas
 // Bootstrap del entorno: define las globals ${ruta_*} a partir de ${ECAS},
-// la única entrada de configuración del pipeline (ver A_master.do).
-// A_master.do se incluye SIEMPRE, sin guardarlo tras un `if' sobre alguna
+// la única entrada de configuración del pipeline (ver config.do).
+// config.do se incluye SIEMPRE, sin guardarlo tras un `if' sobre alguna
 // global: define locales (`outc1', `rawc1', …) y `do' abre un scope nuevo,
-// así que los locales del llamador NO llegan hasta acá. Saltarse el include
+// así que los locales del llamador NO llegan hasta aquí. Saltarse el include
 // porque las globals ya existan deja al script sin rutas y falla con r(601).
 // `include' es idempotente: solo redefine rutas y crea carpetas con `cap'.
-capture qui include "${ECAS}/2_Scripts/A_setup/A_master.do"
-if _rc capture qui include "2_Scripts/A_setup/A_master.do"
+capture qui include "${ECAS}/2_Scripts/A_setup/config.do"
+if _rc capture qui include "2_Scripts/A_setup/config.do"
 if "${ruta_data}" == "" {
-	di as error "No encuentro A_master.do. Definí la global ECAS con la ruta"
-	di as error "a la raíz del repositorio, o corré Stata desde esa raíz."
+	di as error "No encuentro config.do. Define la global ECAS con la ruta"
+	di as error "a la raíz del repositorio, o ejecuta Stata desde esa raíz."
 	exit 601
 }
 
@@ -52,7 +52,6 @@ if "${ruta_data}" == "" {
 cap log close
 cap erase "${ruta_scripts}\C2_make_ccpp_assignment.log"
 log using "${ruta_logs}\C2_make_ccpp_assignment.log", replace text
-
 
 //==============================================================================
 // Step 2: Process ECA bases by year
@@ -104,7 +103,7 @@ sort nomb_rgn nomb_prvnc nomb_dstrt nomb_ccpp año_ini_1aECA
 lab val prod_ECA_eval prodECA
 
 // Implementaron 1ra ECA en Producto a Evaluar (solo en centros donde implementan ECA)
-lab def sino 0 "No" 1 "Sí"
+qui do "${ruta_utils}\lab_sino.do"
 gen i1aECA_PE_ccpp:sino = (prod_ECA_eval==prod_1aECA) | ///
 					  (prod_ECA_eval==26 & inlist(prod_1aECA,11,12,15)) if prod_1aECA!=.
 lab var i1aECA_PE_ccpp  "Impl. 1era ECA en Producto a Evaluar en el Centro Poblado (. si no implementa ECA)"
@@ -206,7 +205,6 @@ order idu
 keep if es_ccpp_ale
 drop es_ccpp_ale
 compress
-
 save "`outc3ccpp'\\CCPPALEAy1AECA_ESTAT_CUMPL", replace
 
 log close

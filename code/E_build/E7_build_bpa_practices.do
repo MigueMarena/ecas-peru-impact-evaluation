@@ -7,11 +7,27 @@
 //                  generales (no condicionadas: suelo, riego, plagas) y
 //                  condicionadas por tipo de insumo (abonos, fertilizantes,
 //                  plaguicidas, control biologico, MIP).
+// Depends        : (ninguno)
 // Input          : Out/4_.../Panel_Inicio.dta
 // Output         : Out/5_.../BPAs_CondyNoCond_LByLS.dta
 //------------------------------------------------------------------------------
 version 19.0
 clear all
+
+// Bootstrap del entorno: define las globals ${ruta_*} a partir de ${ECAS},
+// la única entrada de configuración del pipeline (ver config.do).
+// config.do se incluye SIEMPRE, sin guardarlo tras un `if' sobre alguna
+// global: define locales (`outc1', `rawc1', …) y `do' abre un scope nuevo,
+// así que los locales del llamador NO llegan hasta aquí. Saltarse el include
+// porque las globals ya existan deja al script sin rutas y falla con r(601).
+// `include' es idempotente: solo redefine rutas y crea carpetas con `cap'.
+capture qui include "${ECAS}/2_Scripts/A_setup/config.do"
+if _rc capture qui include "2_Scripts/A_setup/config.do"
+if "${ruta_data}" == "" {
+	di as error "No encuentro config.do. Define la global ECAS con la ruta"
+	di as error "a la raíz del repositorio, o ejecuta Stata desde esa raíz."
+	exit 601
+}
 
 //==============================================================================
 // Local Macros (Control Flow)
@@ -43,33 +59,16 @@ if `ResetDoFrames'{
 // Step 1: Load Data
 //==============================================================================
 if `LoadData'{
-	// Bootstrap del entorno: define las globals ${ruta_*} a partir de ${ECAS},
-	// la única entrada de configuración del pipeline (ver A_master.do).
-	// A_master.do se incluye SIEMPRE, sin guardarlo tras un `if' sobre alguna
-	// global: define locales (`outc1', `rawc1', …) y `do' abre un scope nuevo,
-	// así que los locales del llamador NO llegan hasta acá. Saltarse el include
-	// porque las globals ya existan deja al script sin rutas y falla con r(601).
-	// `include' es idempotente: solo redefine rutas y crea carpetas con `cap'.
-	capture qui include "${ECAS}/2_Scripts/A_setup/A_master.do"
-	if _rc capture qui include "2_Scripts/A_setup/A_master.do"
-	if "${ruta_data}" == "" {
-		di as error "No encuentro A_master.do. Definí la global ECAS con la ruta"
-		di as error "a la raíz del repositorio, o corré Stata desde esa raíz."
-		exit 601
-	}
-
-// Redirige el log de stata-batch a 3_Logs/ (limpia el log auto en 2_Scripts).
-cap log close
-cap erase "${ruta_scripts}\E7_build_bpa_practices.log"
-log using "${ruta_logs}\E7_build_bpa_practices.log", replace text
-
+	// Redirige el log de stata-batch a 3_Logs/ (limpia el log auto en 2_Scripts).
+	cap log close
+	cap erase "${ruta_scripts}\E7_build_bpa_practices.log"
+	log using "${ruta_logs}\E7_build_bpa_practices.log", replace text
 	
 	frame change bpas
 	use Codprod22 post `vars_bpa' using "`outc4'\\Panel_Inicio.dta", clear
 	
 	// Etiqueta general
-	cap lab drop sino
-	lab def sino 1 "Sí" 0 "No"
+	qui do "${ruta_utils}\lab_sino.do"
 }
 
 //==============================================================================
@@ -99,6 +98,7 @@ if `GenBPA_General'{
 // Step 3.1: Generate Conditioned BPAs: Abonos y Fertilizantes
 //==============================================================================
 if `GenBPA_Abonos'{
+	//--------------------------------------------------------------------------
 	// 2.1 Abonos (Condicionado a bpa_10)
 	//--------------------------------------------------------------------------
 	gen bpa_10_1:sino = preg402==1 if bpa_10==1 
@@ -118,6 +118,7 @@ if `GenBPA_Abonos'{
 }
 
 if `GenBPA_Fertil'{
+	//--------------------------------------------------------------------------
 	// 2.2 Fertilizantes (Condicionado a bpa_11)
 	//--------------------------------------------------------------------------
 	gen bpa_11_1:sino = preg407==1 if bpa_11==1

@@ -1,4 +1,4 @@
-//----------------------------------------------------------------------
+//------------------------------------------------------------------------------
 // File           : lab_cle.do
 // Author         : Carlos Marena
 // Email          : carlosmarena1995@gmail.com
@@ -6,9 +6,10 @@
 // Description    : Programa que analiza etiquetas de valor de una variable
 //                  y reporta etiquetas vacias, niveles sin uso y niveles
 //                  faltantes.
-//----------------------------------------------------------------------
+//------------------------------------------------------------------------------
 program define lab_cle
-    syntax varname 
+    version 19.0
+    syntax varname
     
     // 1. Obtener el nombre del label de la variable
     local label_name : value label `varlist'

@@ -100,7 +100,7 @@
 // y la saturación no respetaría su naturaleza factor.
 //
 // Dependencias:
-//   - Global ${ruta_utils} (definido por A_master.do)
+//   - Global ${ruta_utils} (definido por config.do)
 //   - Helper PowerShell ${ruta_utils}/fix_table_borders.ps1
 //   - `het_var' en memoria
 //   - _fmt_b, _fmt_se, _fmt_N, _fmt_F: definidos por prg_table_3panels.do
@@ -109,6 +109,7 @@
 
 cap program drop prg_table_3way_het
 program define prg_table_3way_het
+	version 19.0
 	syntax , ///
 		outcome(varname) ///
 		outcome_phrase(string) ///
@@ -134,8 +135,8 @@ program define prg_table_3way_het
 	local size_n    8
 
 	if "${ruta_utils}" == "" {
-		di as error "Global \${ruta_utils} no está definido. El caller debe"
-		di as error "hecho el bootstrap del entorno (ver A_master.do)."
+		di as error "Global \${ruta_utils} no está definido. El caller debe haber"
+		di as error "hecho el bootstrap del entorno (ver config.do)."
 		exit 198
 	}
 	if `"`controls'"' == "" {

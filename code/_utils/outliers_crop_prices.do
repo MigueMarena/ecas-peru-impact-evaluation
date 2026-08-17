@@ -1,4 +1,4 @@
-//----------------------------------------------------------------------
+//------------------------------------------------------------------------------
 // File           : outliers_crop_prices.do
 // Author         : Carlos Marena
 // Email          : carlosmarena1995@gmail.com
@@ -6,7 +6,9 @@
 // Description    : Detecta y reemplaza outliers en precios de cultivos
 //                  (ixkg_ppc) usando el metodo de Median Absolute Deviation
 //                  (MAD) con umbral 3.
-//----------------------------------------------------------------------
+//------------------------------------------------------------------------------
+
+version 19.0
 
 // Preliminares:
 // 0. Arreglar la data en función a los valores del código del cultivo y pre-post

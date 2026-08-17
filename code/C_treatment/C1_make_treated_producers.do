@@ -11,6 +11,9 @@
 //                  fuentes para el año 2021, valida la consistencia geografica,
 //                  completa valores faltantes, imputa sesiones asistidas y genera
 //                  variables de participacion. Finalmente, limpia archivos intermedios.
+//                  La imputacion de sesiones solo alcanza a quien tenga registrado
+//                  el total de sesiones de su ECA; el resto queda sin dato, y la
+//                  bandera ssns_imputado distingue los tres estados.
 // Depends        : _utils/std_strings.do
 //                  _utils/fix_ccpp_names.do
 //                  _utils/fix_dni_names.do
@@ -27,17 +30,17 @@ clear all
 
 // Llamar do-file con rutas
 // Bootstrap del entorno: define las globals ${ruta_*} a partir de ${ECAS},
-// la única entrada de configuración del pipeline (ver A_master.do).
-// A_master.do se incluye SIEMPRE, sin guardarlo tras un `if' sobre alguna
+// la única entrada de configuración del pipeline (ver config.do).
+// config.do se incluye SIEMPRE, sin guardarlo tras un `if' sobre alguna
 // global: define locales (`outc1', `rawc1', …) y `do' abre un scope nuevo,
-// así que los locales del llamador NO llegan hasta acá. Saltarse el include
+// así que los locales del llamador NO llegan hasta aquí. Saltarse el include
 // porque las globals ya existan deja al script sin rutas y falla con r(601).
 // `include' es idempotente: solo redefine rutas y crea carpetas con `cap'.
-capture qui include "${ECAS}/2_Scripts/A_setup/A_master.do"
-if _rc capture qui include "2_Scripts/A_setup/A_master.do"
+capture qui include "${ECAS}/2_Scripts/A_setup/config.do"
+if _rc capture qui include "2_Scripts/A_setup/config.do"
 if "${ruta_data}" == "" {
-	di as error "No encuentro A_master.do. Definí la global ECAS con la ruta"
-	di as error "a la raíz del repositorio, o corré Stata desde esa raíz."
+	di as error "No encuentro config.do. Define la global ECAS con la ruta"
+	di as error "a la raíz del repositorio, o ejecuta Stata desde esa raíz."
 	exit 601
 }
 
@@ -45,7 +48,6 @@ if "${ruta_data}" == "" {
 cap log close
 cap erase "${ruta_scripts}\C1_make_treated_producers.log"
 log using "${ruta_logs}\C1_make_treated_producers.log", replace text
-
 
 //==============================================================================
 // Step 1: Process SENASA roster (ECAS 2019-2023)
@@ -122,7 +124,7 @@ log using "${ruta_logs}\C1_make_treated_producers.log", replace text
 	}
 	
 //  Graduado: Promedio mayor o igual a 11 se graduaron (supuesto)
-	lab def sino 1 "Sí" 0 "No"	
+	qui do "${ruta_utils}\lab_sino.do"
 	gen graduado:sino = (prom_fin>=11) if !mi(prom_fin)	
 
 // Hacer cambios manuales a números de DNIs y nombres de productores
@@ -284,19 +286,19 @@ log using "${ruta_logs}\C1_make_treated_producers.log", replace text
 	gen año_ini_ECA = year(fch_ini_ECA), b(fch_ini_ECA)
 	
 //  Graduado y Promedio Final: De string a numéricas
-	lab def  sino 1 "Sí" 0 "No"
+	qui do "${ruta_utils}\lab_sino.do"
 	replace  graduado="1" if graduado=="SI"
 	replace  graduado="0" if graduado=="NO"
 	destring graduado	,	replace
 	destring prom_fin	, 	replace float
 	lab val graduado sino
 	
-//   Fecha de inicio/fin de ECAs: Modificar formato a fecha
+//  Fecha de inicio/fin de ECAs: Modificar formato a fecha
 	foreach name in ini fin{ 
 		format fch_`name'_ECA %tdDD-NN-CCYY
 	}
 
-//   Correr do-file con cambios manuales a DNIs y nombres de productores
+//  Correr do-file con cambios manuales a DNIs y nombres de productores
 	qui do "${ruta_utils}\fix_dni_names.do"	
 	
 // Trim data
@@ -442,11 +444,38 @@ log using "${ruta_logs}\C1_make_treated_producers.log", replace text
 
 // Generar otras variables
 //  Sesiones asistidas por productor
+// 	El alcance de esta imputación es limitado a propósito. `predict' devuelve
+// 	missing si falta cualquier regresor, y ssns_ECA (el total de sesiones de la
+// 	ECA) no existe para las ECAs que solo aparecen en el padrón de SENASA, que
+// 	no registra asistencia. Esos productores quedan SIN dato de asistencia y así
+// 	se guardan: imputarles el total de sesiones exigiría inventar el denominador
+// 	del porcentaje, y no hay base para hacerlo. La bandera ssns_imputado deja
+// 	esto explícito en la base en vez de que haya que deducirlo del código.
 	encode  nomb_rgn, gen(nomb_rgn_enc)
 	encode  nomb_ccpp, gen(nomb_ccpp_enc)
 	qui reg ssns_as_prod graduado prom_fin ssns_ECA i.prod_ECA i.nomb_rgn_enc i.nomb_ccpp_enc
-	predict ssns_as_pro_hat, xb 
+	predict ssns_as_pro_hat, xb
 	replace ssns_as_pro_hat = round(ssns_as_pro_hat,1)
+
+// 	Acotar al rango factible. `predict, xb' extrapola linealmente y puede salirse
+// 	de [0, ssns_ECA] cuando la nota del productor está lejos del soporte de su
+// 	centro poblado: el caso observado es una nota de 0 en un CCPP cuyas demás
+// 	notas promedian 17, que arrastra la predicción a -1 sesiones. El round()
+// 	redondea pero no acota.
+	replace ssns_as_pro_hat = 0 if ssns_as_pro_hat < 0 & !mi(ssns_as_pro_hat)
+	replace ssns_as_pro_hat = ssns_ECA ///
+		if ssns_as_pro_hat > ssns_ECA & !mi(ssns_as_pro_hat) & !mi(ssns_ECA)
+
+// 	Bandera de procedencia del dato. Sin ella, una vez guardado el .dta la
+// 	distinción entre asistencia observada e imputada es irrecuperable y no se
+// 	puede correr la robustez de excluir imputados. Queda en missing para quien
+// 	no tiene dato de asistencia por ninguna vía (ver nota de arriba), de modo
+// 	que ssns_imputado es no-missing exactamente cuando ssns_as_prod lo es.
+	lab def imput 0 "Observado" 1 "Imputado"
+	gen byte ssns_imputado:imput = 0 if !mi(ssns_as_prod)
+	replace  ssns_imputado = 1 if mi(ssns_as_prod) & !mi(ssns_as_pro_hat)
+	lab var  ssns_imputado "Procedencia de ssns_as_prod (observado / imputado por regresión)"
+
 	replace ssns_as_prod = ssns_as_pro_hat if mi(ssns_as_prod)
 	drop 	ssns_as_pro_hat nomb_rgn_enc nomb_ccpp_enc
 		
@@ -473,8 +502,13 @@ log using "${ruta_logs}\C1_make_treated_producers.log", replace text
 //==============================================================================
 // Step 4: Clean up intermediate files
 //==============================================================================
-// Eliminar archivos intermedios
-cap mkdir "`c3'\Productor\Temp_or_Trash"
+// Eliminar archivos intermedios.
+// La carpeta se crea con la ruta ABSOLUTA. Antes usaba el local `c3', que es
+// solo el nombre de la subcarpeta ("3_Centros Poblados y su..."), así que el
+// mkdir apuntaba a un destino relativo al directorio de trabajo. Funcionaba en
+// la máquina del autor porque la carpeta ya existía de una corrida vieja; en un
+// clon limpio el `copy' de abajo —que no está capturado— aborta el script.
+cap mkdir "`outc3prod'\Temp_or_Trash"
 local file1 "SENASA_PRODUCTORES_ECA_2021-CCPP_ALEA.dta"
 local file2 "BD_REPORTE_BID_PRODUCTORES_2021.dta"
 copy "`outc3prod'\\`file1'" "`outc3prod'\Temp_or_Trash\\`file1'", replace 

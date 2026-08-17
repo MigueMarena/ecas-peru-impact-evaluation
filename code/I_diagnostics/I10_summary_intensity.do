@@ -11,9 +11,10 @@
 //                    D13. Distribución por categorías de asistencia:
 //                         ≥90% (cumplidores estrictos), 50-89% (parcial),
 //                         <50% (bajo compliance).
+// Depends        : (ninguno)
 // Input          : Out/4_BDs Fusionadas/Panel_Inicio.dta
 // Output         : Tablas/0_Diseño_y_Diagnóstico/Anexo/B-5-6_Tabla_Intensidad_Stats.docx
-//                  Tablas/0_Diseño_y_Diagnóstico/Cuerpo/D13_Tabla_Intensidad_Categorias.docx
+//                  Tablas/0_Diseño_y_Diagnóstico/Cuerpo/6.3-2_Tabla_Intensidad_Categorias.docx
 //------------------------------------------------------------------------------
 
 cls
@@ -24,17 +25,17 @@ clear all
 // Step 1: Load environment
 //==============================================================================
 // Bootstrap del entorno: define las globals ${ruta_*} a partir de ${ECAS},
-// la única entrada de configuración del pipeline (ver A_master.do).
-// A_master.do se incluye SIEMPRE, sin guardarlo tras un `if' sobre alguna
+// la única entrada de configuración del pipeline (ver config.do).
+// config.do se incluye SIEMPRE, sin guardarlo tras un `if' sobre alguna
 // global: define locales (`outc1', `rawc1', …) y `do' abre un scope nuevo,
-// así que los locales del llamador NO llegan hasta acá. Saltarse el include
+// así que los locales del llamador NO llegan hasta aquí. Saltarse el include
 // porque las globals ya existan deja al script sin rutas y falla con r(601).
 // `include' es idempotente: solo redefine rutas y crea carpetas con `cap'.
-capture qui include "${ECAS}/2_Scripts/A_setup/A_master.do"
-if _rc capture qui include "2_Scripts/A_setup/A_master.do"
+capture qui include "${ECAS}/2_Scripts/A_setup/config.do"
+if _rc capture qui include "2_Scripts/A_setup/config.do"
 if "${ruta_data}" == "" {
-	di as error "No encuentro A_master.do. Definí la global ECAS con la ruta"
-	di as error "a la raíz del repositorio, o corré Stata desde esa raíz."
+	di as error "No encuentro config.do. Define la global ECAS con la ruta"
+	di as error "a la raíz del repositorio, o ejecuta Stata desde esa raíz."
 	exit 601
 }
 
@@ -70,7 +71,7 @@ local n_asist = r(N)
 //==============================================================================
 // Step 3: Tabla B.5-6 — estadísticos
 //==============================================================================
-local tag11 Tabla_Intensidad_Stats_D12
+local tag11 Tabla_Intensidad_Stats_B5_6
 
 collect clear
 collect create `tag11', replace
@@ -104,21 +105,16 @@ collect label levels result ///
 	mediana "Mediana" ///
 	p90     "P90",    modify
 
-collect style cell, border(right, pattern(nil)) margin(all, width(0pt))
-collect style cell cmdset, font(Roboto, size(`size_m')) halign(left)  valign(center)
-collect style cell result, font(Roboto, size(`size_m')) halign(center) nformat(%9.2f)
+// Estilo de casa BID (Roboto, encabezado azul, bordes y tamaños).
+// Lo que se declare DESPUÉS de esta línea se superpone.
+do "${ruta_utils}\collect_style_bid.do" `_pt_dat'
+
+collect style cell result, nformat(%9.2f)
 
 // Datos (items): regular
-collect style cell cell_type[item], font(Roboto, size(`size_m') nobold)
 
 // Headers: negrita blanca sobre azul BID
-collect style cell cell_type[corner column-header], ///
-	shading(background(0 78 112)) font(Roboto, size(`size_m') color(white) bold)
 
-collect style column, dups(center)
-collect style header cmdset, level(label)
-collect style header result, level(label)
-collect style row stack, nobinder
 
 local titulo "Tabla B.5-6 — Intensidad de exposición entre quienes asistieron (n = `n_asist')"
 local nota1 "Notas: La tabla reporta estadísticos descriptivos de intensidad de exposición restringidos a los productores que asistieron al menos a una sesión del programa (n = `n_asist')."
@@ -128,8 +124,6 @@ collect title "`titulo'"
 collect notes "`nota1' `nota2'"
 // Estilo APA-AEA: título en bold (sin italic), tamaño = cuerpo;
 // notas en italic, tamaño = (cuerpo − 1) pt.
-collect style title, font(Roboto, size(`size_m') bold)
-collect style notes, font(Roboto, size(`size_n') italic)
 
 collect layout (cmdset) (result[media sd mediana p90])
 
@@ -172,25 +166,19 @@ collect label levels result ///
 	n "Frecuencia" ///
 	p "%",         modify
 
-collect style cell, border(right, pattern(nil)) margin(all, width(0pt))
-collect style cell cmdset, font(Roboto, size(`size_m')) halign(left)  valign(center)
-collect style cell result, font(Roboto, size(`size_m')) halign(center)
+// Estilo de casa BID (Roboto, encabezado azul, bordes y tamaños).
+// Lo que se declare DESPUÉS de esta línea se superpone.
+do "${ruta_utils}\collect_style_bid.do" `_pt_dat'
+
 collect style cell result[n], nformat(%9.0f)
 collect style cell result[p], nformat(%9.1f)
 
 // Datos (items): regular
-collect style cell cell_type[item], font(Roboto, size(`size_m') nobold)
 
 // Headers: negrita blanca sobre azul BID
-collect style cell cell_type[corner column-header], ///
-	shading(background(0 78 112)) font(Roboto, size(`size_m') color(white) bold)
 
-collect style column, dups(center)
-collect style header cmdset, level(label)
-collect style header result, level(label)
-collect style row stack, nobinder
 
-local titulo "Tabla D13 — Distribución por categoría de asistencia (n = `n_asist')"
+local titulo "Tabla 6.3-2 — Distribución por categoría de asistencia"
 local nota1 "Notas: La tabla reporta la distribución de los productores asistentes según su porcentaje de asistencia a las sesiones del programa. El denominador corresponde a los productores que asistieron al menos a una sesión (n = `n_asist')."
 local nota2 "Las tres categorías son mutuamente excluyentes y exhaustivas."
 
@@ -198,14 +186,12 @@ collect title "`titulo'"
 collect notes "`nota1' `nota2'"
 // Estilo APA-AEA: título en bold (sin italic), tamaño = cuerpo;
 // notas en italic, tamaño = (cuerpo − 1) pt.
-collect style title, font(Roboto, size(`size_m') bold)
-collect style notes, font(Roboto, size(`size_n') italic)
 
 collect layout (cmdset) (result[n p])
 
 mat widths = (60, 20, 20)
 collect style putdocx, name(`tag12') width(widths)
-collect export "`outdir'\\D13_Tabla_Intensidad_Categorias.docx", as(docx) name(`tag12') replace
+collect export "`outdir'\\6.3-2_Tabla_Intensidad_Categorias.docx", as(docx) name(`tag12') replace
 
 di as text "Listo: D12 (intensidad-stats) y D13 (intensidad-categorías) exportadas en `outdir'."
 

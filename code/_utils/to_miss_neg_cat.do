@@ -1,13 +1,14 @@
-//----------------------------------------------------------------------
+//------------------------------------------------------------------------------
 // File           : to_miss_neg_cat.do
 // Author         : Carlos Marena
 // Email          : carlosmarena1995@gmail.com
 // Last Mod. Date : 11/04/2026
 // Description    : Programa que recodifica categorias negativas (NS/NC, NA)
 //                  a missing y limpia las etiquetas de valor correspondientes.
-//----------------------------------------------------------------------
+//------------------------------------------------------------------------------
 program define to_miss_neg_cat
-	syntax varname 
+	version 19.0
+	syntax varname
 	
 	// 1. Obtener el nombre del label de la variable
     local label_name : value label `varlist'

@@ -18,32 +18,36 @@
 //                  la versión vF como robustez en formato 2-paneles para
 //                  anexo.
 //
-// Output         : Tablas/4_Indicadores_Compuestos_BPAs/Cuerpo/8.2-<k>_Tab_SubInd_<stub>_vO.docx (×7)
-//                  Tablas/4_Indicadores_Compuestos_BPAs/Anexo/B-1-<k-1>_Tab_SubInd_<stub>_vO_het.docx (×6;
-//                  riego omitido: HetEff por cultivo no estimable en la
-//                  submuestra de riego tecnificado, ver nota en el loop)
 // Depends        : _utils/prg_load_panel.do
 //                  _utils/prg_table_3panels.do
 //                  _utils/prg_table_3way_het.do
 //                  _utils/fix_table_borders.ps1 (invocado por los programas)
+// Input          : Out/5_BDs por grupos de vars/BPAs_Compuestos_LByLS.dta (outcome_file)
+//                  Out/5_BDs por grupos de vars/Caract_Obs_Trat_ECA.dta,
+//                  Sociodem_Prod_JH_LB.dta, Viv_Act_SEA_LB.dta,
+//                  Demog_Ing_Hog_LB.dta, Productor_Predio_LB.dta (vía prg_load_panel)
+// Output         : Tablas/4_Indicadores_Compuestos_BPAs/Cuerpo/8.2-<k>_Tab_SubInd_<stub>_vO.docx (×7)
+//                  Tablas/4_Indicadores_Compuestos_BPAs/Anexo/B-1-<k-1>_Tab_SubInd_<stub>_vO_het.docx (×6;
+//                  riego omitido: HetEff por cultivo no estimable en la
+//                  submuestra de riego tecnificado, ver nota en el loop)
 //------------------------------------------------------------------------------
 
-version 19.0
-
 cls
+version 19.0
+clear all
 
 // Bootstrap del entorno: define las globals ${ruta_*} a partir de ${ECAS},
-// la única entrada de configuración del pipeline (ver A_master.do).
-// A_master.do se incluye SIEMPRE, sin guardarlo tras un `if' sobre alguna
+// la única entrada de configuración del pipeline (ver config.do).
+// config.do se incluye SIEMPRE, sin guardarlo tras un `if' sobre alguna
 // global: define locales (`outc1', `rawc1', …) y `do' abre un scope nuevo,
-// así que los locales del llamador NO llegan hasta acá. Saltarse el include
+// así que los locales del llamador NO llegan hasta aquí. Saltarse el include
 // porque las globals ya existan deja al script sin rutas y falla con r(601).
 // `include' es idempotente: solo redefine rutas y crea carpetas con `cap'.
-capture qui include "${ECAS}/2_Scripts/A_setup/A_master.do"
-if _rc capture qui include "2_Scripts/A_setup/A_master.do"
+capture qui include "${ECAS}/2_Scripts/A_setup/config.do"
+if _rc capture qui include "2_Scripts/A_setup/config.do"
 if "${ruta_data}" == "" {
-	di as error "No encuentro A_master.do. Definí la global ECAS con la ruta"
-	di as error "a la raíz del repositorio, o corré Stata desde esa raíz."
+	di as error "No encuentro config.do. Define la global ECAS con la ruta"
+	di as error "a la raíz del repositorio, o ejecuta Stata desde esa raíz."
 	exit 601
 }
 
@@ -52,12 +56,10 @@ cap log close
 cap erase "${ruta_scripts}\G5Aa_estimate_subind_ena_vO.log"
 log using "${ruta_logs}\G5Aa_estimate_subind_ena_vO.log", replace text
 
-
-// Cargar los programas (ruta_utils es GLOBAL definido por A_master.do)
+// Cargar los programas (ruta_utils es GLOBAL definido por config.do)
 qui do "${ruta_utils}/prg_load_panel.do"
 qui do "${ruta_utils}/prg_table_3panels.do"
 qui do "${ruta_utils}/prg_table_3way_het.do"
-
 qui include "${ruta_setup}/spec.do"
 
 //------------------------------------------------------------------------------
@@ -78,29 +80,32 @@ gen byte D_c = (i1aECA_PE_ccpp == 1) if !mi(asig_ccpp)
 gen byte P_i = (ptcp_ECA_prod  == 1) if !mi(asig_ccpp)
 
 //------------------------------------------------------------------------------
-// 3. Label update (versión ENA — vO)
+// 3. Generar las 7 tablas de sub-indicadores ENA (vO) en un loop
 //------------------------------------------------------------------------------
-lab var bpa_ena_riego_vO        "Prácticas adecuadas de riego"
-lab var bpa_ena_suelo_vO        "Prácticas contra la degradación del suelo"
-lab var bpa_ena_fert_abo_vO     "Uso de Fert./Abo. adecuado"
-lab var bpa_ena_plag_vO         "Uso de Plag. adecuado"
-lab var bpa_ena_biocontrol_vO   "Control biológico adecuado"
-lab var bpa_ena_mip_vO          "Manejo Integrado de Plagas adecuado"
-lab var bpa_ena_inoc_vO         "Buenas Prácticas de Inocuidad"
+// La frase del título y de la nota se declara por sub-indicador, indexada por
+// su stub. Antes iban en una lista paralela recorrida con `gettoken', emparejada
+// con los stubs solo por POSICIÓN: insertar o reordenar un sub-indicador sin
+// tocar la otra lista desplazaba todos los títulos siguientes, y las tablas
+// salían con el título de la variable vecina sin que nada avisara.
+local stubs riego suelo fert_abo plag biocontrol mip inoc
 
-//------------------------------------------------------------------------------
-// 4. Generar las 7 tablas de sub-indicadores ENA (vO) en un loop
-//------------------------------------------------------------------------------
+local ph_riego      "la adopción de prácticas adecuadas de riego"
+local ph_suelo      "la adopción de prácticas contra la degradación del suelo"
+local ph_fert_abo   "el uso adecuado de fertilizantes y abonos"
+local ph_plag       "el uso adecuado de plaguicidas"
+local ph_biocontrol "la adopción de control biológico"
+local ph_mip        "la adopción de Manejo Integrado de Plagas"
+local ph_inoc       "la adopción de buenas prácticas de inocuidad"
 
-// Loop sobre los 7 sub-indicadores ENA en vO. El label de variable se usa
-// como encabezado de columna; la frase del título y la nota se redacta
-// explícitamente vía `outcome_phrase' (no se hereda del label).
-local stubs    riego suelo fert_abo plag biocontrol mip inoc
-local phrases  `" "la adopción de prácticas adecuadas de riego" "la adopción de prácticas contra la degradación del suelo" "el uso adecuado de fertilizantes y abonos" "el uso adecuado de plaguicidas" "la adopción de control biológico" "la adopción de Manejo Integrado de Plagas" "la adopción de buenas prácticas de inocuidad" "'
-
-forvalues k = 1/7 {
-	gettoken stub   stubs   : stubs
-	gettoken phrase phrases : phrases
+local k = 0
+foreach stub of local stubs {
+	local ++k
+	local phrase "`ph_`stub''"
+	if "`phrase'" == "" {
+		di as error "Falta la frase del título para el sub-indicador `stub'."
+		di as error `"Declarala arriba como: local ph_`stub' "...""'
+		exit 198
+	}
 	local var bpa_ena_`stub'_vO
 
 	// El sub-indicador de riego se define solo para productores con riego

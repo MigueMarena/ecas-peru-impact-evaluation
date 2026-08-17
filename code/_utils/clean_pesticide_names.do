@@ -1,4 +1,4 @@
-//----------------------------------------------------------------------
+//------------------------------------------------------------------------------
 // File           : clean_pesticide_names.do
 // Author         : Carlos Marena
 // Email          : carlosmarena1995@gmail.com
@@ -6,7 +6,9 @@
 // Description    : Limpia y estandariza nombres de plaguicidas (preg114x2*).
 //                  Anula no-plaguicidas, crea variables de nombre, tipo, cantidad
 //                  y costo, y homogeniza cientos de nombres comerciales.
-//----------------------------------------------------------------------
+//------------------------------------------------------------------------------
+
+version 19.0
 # delimit ;	
 local noplagui 
 	" 
