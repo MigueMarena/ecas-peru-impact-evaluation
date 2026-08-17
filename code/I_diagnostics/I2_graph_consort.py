@@ -2,7 +2,7 @@
 # File           : I2_graph_consort.py
 # Author         : Carlos Marena
 # Email          : carlosmarena1995@gmail.com
-# Last Mod. Date : 11/05/2026
+# Last Mod. Date : 17/08/2026
 # Description    : Genera el diagrama CONSORT del cluster-RCT — variante con
 #                  atritos paralelos. Lee los conteos producidos por
 #                  I1_summary_consort.do (xlsx en formato long) y dibuja:
@@ -18,10 +18,11 @@
 #                  Gris oscuro #3c3b3b, Verde oscuro #308144 (cumplidores),
 #                  Amarillo #ffda00 (no cumplidores). Exporta PNG (300 dpi)
 #                  y PDF.
-# Input          : Tablas/0_Diseño_y_Diagnóstico/1_CONSORT/D1_Tabla_CONSORT.xlsx
+# Input          : Tablas/0_Diseño_y_Diagnóstico/Cuerpo/D1_Tabla_CONSORT.xlsx
 #                  (formato long: columnas etapa, padre, brazo, nivel, n)
 # Output         : Imágenes/Gráfico_Consort/D1_Grafico_CONSORT.png
 #                  Imágenes/Gráfico_Consort/D1_Grafico_CONSORT.pdf
+#                  El centinela que reciba como argv[1], si se le pasa uno.
 # -----------------------------------------------------------------------------
 
 import os
@@ -46,8 +47,8 @@ RUTA_IMG.mkdir(parents=True, exist_ok=True)
 
 XLSX_IN   = RUTA_TAB / "D1_Tabla_CONSORT.xlsx"
 
-# run_all.do envuelve la llamada en `capture`, así que un fallo acá pasaría
-# desapercibido: conviene decir exactamente qué no se encontró.
+# Conviene decir exactamente qué no se encontró: run_all.do detecta el fallo
+# por el centinela del final, pero el motivo solo se ve en esta salida.
 if not XLSX_IN.exists():
     sys.exit(
         f"I2: no encuentro el insumo del CONSORT.\n"
@@ -364,3 +365,11 @@ plt.close(fig)
 
 print(f"OK: {PNG_OUT}")
 print(f"OK: {PDF_OUT}")
+
+# Centinela con la lógica invertida: el archivo se crea SOLO si llegamos hasta
+# acá. `shell` de Stata no propaga códigos de salida —devuelve 0 incluso ante un
+# comando inexistente—, así que el llamador no puede preguntar si esto falló;
+# solo puede exigir que el centinela exista. Una excepción, un intérprete
+# ausente o un insumo faltante dejan el archivo sin crear y delatan el fallo.
+if len(sys.argv) > 1:
+    Path(sys.argv[1]).write_text("ok\n", encoding="utf-8")

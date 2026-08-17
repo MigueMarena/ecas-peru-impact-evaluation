@@ -2,7 +2,7 @@
 // File           : H1_report_compile.do
 // Author         : Carlos Marena
 // Email          : carlosmarena1995@gmail.com
-// Last Mod. Date : 10/08/2026
+// Last Mod. Date : 17/08/2026
 // Description    : Compila el reporte final en DOS documentos independientes,
 //                  concatenando las secciones .docx COMPLETAS —con sus tablas,
 //                  figuras y notas ya embebidas—. No reconstruye ninguna tabla.
@@ -239,6 +239,31 @@ di as text "{hline 70}"
 foreach f of local salidas {
 	shell powershell -NoProfile -ExecutionPolicy Bypass ///
 		-File "${ruta_utils}/update_fields_export_pdf.ps1" "${ruta_report}\\`f'"
+}
+
+// Comprobar que los PDF existen. El helper sale con código 2 cuando Word no
+// está disponible, pero `shell` no propaga códigos de salida, y la sonda del
+// Step 7 solo mira los .docx —no menciona el PDF ni una vez—. Sin esto, con
+// Word ausente el script terminaba anunciando "(y el .pdf de cada uno)" sin que
+// se hubiera creado ninguno: un entregable faltante con aspecto de terminado.
+local sin_pdf ""
+foreach f of local salidas {
+	local pdf = subinstr("`f'", ".docx", ".pdf", .)
+	cap confirm file "${ruta_report}\\`pdf'"
+	if _rc local sin_pdf `"`sin_pdf' "`pdf'""'
+}
+if `"`sin_pdf'"' != "" {
+	di as error _n "{hline 70}"
+	di as error "NO se generaron estos PDF:"
+	foreach p of local sin_pdf {
+		di as error "    `p'"
+	}
+	di as error "Suele ser que Word no esté disponible (el helper avisa y sale con 2)."
+	di as error "Los .docx quedaron escritos: se pueden abrir en Word, actualizar los"
+	di as error "campos con Ctrl+E y F9, y exportar a PDF a mano."
+	di as error "{hline 70}"
+	log close
+	exit 601
 }
 
 //==============================================================================

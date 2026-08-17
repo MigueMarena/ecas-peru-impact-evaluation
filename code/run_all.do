@@ -2,7 +2,7 @@
 // File           : run_all.do
 // Author         : Carlos Marena
 // Email          : carlosmarena1995@gmail.com
-// Last Mod. Date : 12/08/2026
+// Last Mod. Date : 17/08/2026
 // Description    : Orquestador del pipeline. Corre las fases en orden, de la
 //                  ingesta de las encuestas hasta la compilación del reporte.
 //
@@ -86,7 +86,10 @@ local f_diagnostics I1_summary_consort I3_summary_cluster               ///
                     I7B_summary_deff_outcomes I8_balance_attrition      ///
                     I9_summary_takeup I10_summary_intensity             ///
                     I11_robust_timing
-// H1 va al final de todo: consolida las secciones .docx ya terminadas.
+// H1 consolida las secciones .docx ya terminadas. En el orden por defecto corre
+// ANTES de `diagnostics`, y da igual: lee de Secciones/, no de Tablas/, así que
+// regenerar tablas —de la fase G o de la I— nunca cambia el consolidado. Las
+// tablas ya están embebidas dentro del .docx de cada sección.
 // H2_plot_yield_outliers.do se retiró el 2026-08-12: sus 50 gráficos Q-Q por
 // cultivo no aparecen en el reporte (que no menciona Q-Q ni cuantiles) y eran
 // en su mayoría de cultivos ajenos a los tres del estudio.
@@ -132,10 +135,30 @@ foreach fase of local fases_pedidas {
 
 // El diagnóstico CONSORT necesita Python; queda fuera del loop porque no es un
 // .do y su fallo no debe detener el pipeline (solo produce una figura).
+//
+// Se verifica con un CENTINELA, no con `_rc`: `shell` de Stata no propaga el
+// código de salida —devuelve 0 incluso ante un comando inexistente—, así que
+// el `if _rc' que había acá era código muerto. Por eso I2 estuvo roto desde el
+// 2026-08-12, apuntando a una carpeta eliminada, y el pipeline reportó éxito
+// en cada corrida. El script crea el centinela solo si termina bien.
 if strpos("`fases_pedidas'", "diagnostics") {
+	local ok_consort "${ruta_logs}/_I2_graph_consort.OK"
+	cap erase "`ok_consort'"
+
 	di as text _n ">>> I2_graph_consort.py"
-	capture shell python "${ruta_diagnostics}/I2_graph_consort.py"
-	if _rc di as error "    I2_graph_consort.py falló (r(" _rc ")); se continúa."
+	shell python "${ruta_diagnostics}/I2_graph_consort.py" "`ok_consort'"
+
+	cap confirm file "`ok_consort'"
+	if _rc {
+		di as error "    I2_graph_consort.py NO completó; la figura CONSORT quedó sin regenerar."
+		di as error "    Corrélo suelto para ver el error:"
+		di as error "        python `"${ruta_diagnostics}/I2_graph_consort.py"'"
+		di as error "    El pipeline continúa: solo afecta a esa figura."
+	}
+	else {
+		di as text "    ok"
+		cap erase "`ok_consort'"
+	}
 }
 
 di as text _n "{hline 78}"
